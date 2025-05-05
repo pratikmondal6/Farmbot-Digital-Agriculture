@@ -6,3 +6,5 @@ console.log('benni');
 
 var name = "Sina"
 console.log(name)
+
+console.log("Tarek")
