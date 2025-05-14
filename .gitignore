@@ -1,0 +1,10 @@
+# Ignore node_modules everywhere
+node_modules/
+
+# Ignore root-level package manager files if not used
+/package.json
+/package-lock.json
+
+# Optional: ignore environment files and logs
+.env
+*.log
