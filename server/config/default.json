@@ -1,4 +1,4 @@
 {
     "jwtPrivateKey": "Digital-Farming-Project",
-    "db": ""
+    "db": "mongodb+srv://schwar:AgGSY4ZVUmr2nAbN@cluster0.fm6oz4a.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
 }
