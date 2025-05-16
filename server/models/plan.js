@@ -1,19 +1,21 @@
-import { scheme, model } from 'mongoose';
-const plantscheme = new scheme({ // creates scheme for plant
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
+
+const plantscheme = new Schema({
   plant_type: {
     type: String,
-    required: true, //If this attribute isn't given you will get an error 
-    unique: true, //Same plant_type can't be used twice
-    trim: true, //Automaticly deletes blank spaces at the beginning and the end
+    required: true,
+    unique: true,
+    trim: true,
   },
   minimal_distance: {
     type: Number,
-    required: true,
+    required: false, // must be false or omitted
   },
-            seeding_depth: {
+  seeding_depth: {
     type: Number,
-    required: true,
+    required: false, // must be false or omitted
   },
 });
 
-export default model('Plant', plantscheme); //creates actual modelout of the scheme
+module.exports = mongoose.model('Plant', plantscheme);

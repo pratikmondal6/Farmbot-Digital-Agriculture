@@ -1,17 +1,4 @@
-import React, { useState } from 'react';
-
-const plantTypes = [
-  'Radishes',
-  'Lettuce',
-  'Carrots',
-  'Beets',
-  'Peas',
-  'Beans',
-  'Kohlrabi',
-  'Fennel',
-  'Pumpkin',
-  'Zucchini',
-];
+import React, { useState,useEffect } from 'react';
 
 const SeedingDistanceDepth = () => {
   const [depth, setDepth] = useState('');
@@ -20,6 +7,18 @@ const SeedingDistanceDepth = () => {
   const [distanceError, setDistanceError] = useState('');
   const [showPanel, setShowPanel] = useState('seeding'); // 'seeding', 'distance', or null
   const [plantType, setPlantType] = useState('');
+  const [plantTypes, setPlantTypes] = useState([]);
+  const [newPlantType, setNewPlantType] = useState('');
+  const [newMinDistance, setNewMinDistance] = useState('');
+  const [newSeedingDepth, setNewSeedingDepth] = useState('');
+  const [addError, setAddError] = useState('');
+
+  useEffect(() => {
+    fetch('/api/plant/types')
+      .then(res => res.json())
+      .then(data => setPlantTypes(data))
+      .catch(() => setPlantTypes([]));
+  }, []);
 
   // Seeding depth input validation
   const handleInput = (e) => {
@@ -70,6 +69,47 @@ const SeedingDistanceDepth = () => {
   // Show panel on single click if hidden
   const handleButtonClick = (panel) => () => {
     if (showPanel !== panel) setShowPanel(panel);
+  };
+
+  const saveToDatabase = async (valueType, value) => {
+    if (!plantType || !value) {
+      alert('Please select a plant type and enter a value.');
+      return;
+    }
+    try {
+      const response = await fetch('/api/plant/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plantType, valueType, value }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        alert('Saved successfully!');
+      } else {
+        alert(data.error || 'Save failed.');
+      }
+    } catch (err) {
+      alert('Network error.');
+    }
+  };
+
+  const addPlantType = async () => {
+    if (!newPlantType) {
+      setAddError('Please enter a plant type.');
+      return;
+    }
+    setAddError('');
+    await fetch('/api/plant/add-type', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ plant_type: newPlantType })
+    })
+      .then(res => res.json())
+      .then(data => {
+        alert(data.message);
+        setNewPlantType('');
+        // Optionally refresh plant types here
+      });
   };
 
   return (
@@ -197,6 +237,20 @@ const SeedingDistanceDepth = () => {
           {error && (
             <div style={{ color: '#dc2626', fontWeight: 'bold' }}>{error}</div>
           )}
+          <button
+            onClick={() => saveToDatabase('depth', depth)}
+            style={{
+              padding: '10px',
+              backgroundColor: '#22c55e',
+              color: 'white',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+            }}
+          >
+            Save
+          </button>
         </div>
       )}
 
@@ -268,8 +322,74 @@ const SeedingDistanceDepth = () => {
           {distanceError && (
             <div style={{ color: '#dc2626', fontWeight: 'bold' }}>{distanceError}</div>
           )}
+          <button
+            onClick={() => saveToDatabase('distance', distance)}
+            style={{
+              padding: '10px',
+              backgroundColor: '#22c55e',
+              color: 'white',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+            }}
+          >
+            Save
+          </button>
         </div>
       )}
+      {/* Add Plant Type Panel */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '60px',
+          right: '20px',
+          width: '350px',
+          backgroundColor: '#ecfdf5',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+          padding: '24px',
+          borderRadius: '12px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '16px',
+          zIndex: 9,
+        }}
+      >
+        <h2 style={{ margin: 0, color: '#14532d' }}>Add New Plant Type</h2>
+        <label style={{ color: '#14532d', fontWeight: 'bold' }}>
+          Plant type:
+          <input
+            type="text"
+            value={newPlantType}
+            onChange={e => setNewPlantType(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '8px',
+              marginTop: '4px',
+              border: '1px solid #ccc',
+              borderRadius: '4px',
+              marginBottom: '8px',
+            }}
+          />
+        </label>
+        {addError && (
+          <div style={{ color: '#dc2626', fontWeight: 'bold' }}>{addError}</div>
+        )}
+        <button
+          onClick={addPlantType}
+          style={{
+            padding: '10px',
+            backgroundColor: '#22c55e',
+            color: 'white',
+            border: 'none',
+            borderRadius: '5px',
+            cursor: 'pointer',
+            fontWeight: 'bold',
+          }}
+        >
+          Add Plant Type
+        </button>
+      </div>
     </div>
   );
 };
