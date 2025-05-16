@@ -1,9 +1,9 @@
-import { json } from "express";
-import notFound from "../routes/notFound";
-import error from "../middleware/error";
+const express = require("express");
+const notFound = require("../routes/notFound");
+const error = require("../middleware/error");
 
-export default function (app) {
-  app.use(json());
+module.exports = function (app) {
+  app.use(express.json());
   app.use("*", notFound);
-  app.use(error); // we just give refrence to this error function
+  app.use(error); // we just give reference to this error function
 };

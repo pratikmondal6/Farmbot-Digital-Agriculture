@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Plant = require('../models/plan'); // Make sure the filename is correct
+const Plant = require('../models/plan.js'); // Make sure the filename is correct
 
 router.post('/save', async (req, res) => {
   const { plantType, valueType, value } = req.body;

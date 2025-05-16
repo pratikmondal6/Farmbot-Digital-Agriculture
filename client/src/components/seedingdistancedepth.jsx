@@ -1,23 +1,27 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+
+const defaultPlantTypes = [
+  'Radishes', 'Lettuce', 'Carrots', 'Beets', 'Peas',
+  'Beans', 'Kohlrabi', 'Fennel', 'Pumpkin', 'Zucchini'
+];
 
 const SeedingDistanceDepth = () => {
+  const [plantTypes, setPlantTypes] = useState(defaultPlantTypes);
+  const [newPlantType, setNewPlantType] = useState('');
+  const [addError, setAddError] = useState('');
   const [depth, setDepth] = useState('');
   const [distance, setDistance] = useState('');
   const [error, setError] = useState('');
   const [distanceError, setDistanceError] = useState('');
-  const [showPanel, setShowPanel] = useState('seeding'); // 'seeding', 'distance', or null
+  const [showPanel, setShowPanel] = useState('seeding'); // 'seeding', 'distance', 'add', or null
   const [plantType, setPlantType] = useState('');
-  const [plantTypes, setPlantTypes] = useState([]);
-  const [newPlantType, setNewPlantType] = useState('');
-  const [newMinDistance, setNewMinDistance] = useState('');
-  const [newSeedingDepth, setNewSeedingDepth] = useState('');
-  const [addError, setAddError] = useState('');
 
+  // Fetch plant types from the database and merge with defaults
   useEffect(() => {
     fetch('/api/plant/types')
       .then(res => res.json())
       .then(data => setPlantTypes(data))
-      .catch(() => setPlantTypes([]));
+      .catch(() => setPlantTypes(defaultPlantTypes));
   }, []);
 
   // Seeding depth input validation
@@ -108,13 +112,16 @@ const SeedingDistanceDepth = () => {
       .then(data => {
         alert(data.message);
         setNewPlantType('');
-        // Optionally refresh plant types here
+        // Refresh plant types after adding
+        fetch('/api/plant/types')
+          .then(res => res.json())
+          .then(data => setPlantTypes(data));
       });
   };
 
+  // Top Bar with Buttons
   return (
     <div style={{ height: '100vh', background: '#f8fafc', position: 'relative' }}>
-      {/* Top Bar with Buttons */}
       <div
         style={{
           width: '100%',
@@ -160,12 +167,32 @@ const SeedingDistanceDepth = () => {
             cursor: 'pointer',
             fontSize: '16px',
             transition: 'background 0.2s',
+            marginRight: '10px',
           }}
           onClick={handleButtonClick('distance')}
           onDoubleClick={handleButtonDoubleClick('distance')}
           title="Double-click to hide/show panel"
         >
           Minimum Distance
+        </button>
+        <button
+          style={{
+            backgroundColor: showPanel === 'add' ? '#22c55e' : '#16a34a',
+            color: 'white',
+            border: 'none',
+            borderRadius: '5px',
+            padding: '10px 24px',
+            fontWeight: 'bold',
+            cursor: 'pointer',
+            fontSize: '16px',
+            transition: 'background 0.2s',
+            marginRight: '10px', // <-- use marginRight for spacing, not marginLeft:'auto'
+          }}
+          onClick={handleButtonClick('add')}
+          onDoubleClick={handleButtonDoubleClick('add')}
+          title="Double-click to hide/show panel"
+        >
+          Add Plant Type
         </button>
       </div>
 
@@ -339,57 +366,59 @@ const SeedingDistanceDepth = () => {
         </div>
       )}
       {/* Add Plant Type Panel */}
-      <div
-        style={{
-          position: 'absolute',
-          top: '60px',
-          right: '20px',
-          width: '350px',
-          backgroundColor: '#ecfdf5',
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-          padding: '24px',
-          borderRadius: '12px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '16px',
-          zIndex: 9,
-        }}
-      >
-        <h2 style={{ margin: 0, color: '#14532d' }}>Add New Plant Type</h2>
-        <label style={{ color: '#14532d', fontWeight: 'bold' }}>
-          Plant type:
-          <input
-            type="text"
-            value={newPlantType}
-            onChange={e => setNewPlantType(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '8px',
-              marginTop: '4px',
-              border: '1px solid #ccc',
-              borderRadius: '4px',
-              marginBottom: '8px',
-            }}
-          />
-        </label>
-        {addError && (
-          <div style={{ color: '#dc2626', fontWeight: 'bold' }}>{addError}</div>
-        )}
-        <button
-          onClick={addPlantType}
+      {showPanel === 'add' && (
+        <div
           style={{
-            padding: '10px',
-            backgroundColor: '#22c55e',
-            color: 'white',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer',
-            fontWeight: 'bold',
+            position: 'absolute',
+            top: '60px',
+            left: '20px', // <-- Change from right: '20px' to left: '20px'
+            width: '350px',
+            backgroundColor: '#ecfdf5',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+            padding: '24px',
+            borderRadius: '12px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+            zIndex: 9,
           }}
         >
-          Add Plant Type
-        </button>
-      </div>
+          <h2 style={{ margin: 0, color: '#14532d' }}>Add New Plant Type</h2>
+          <label style={{ color: '#14532d', fontWeight: 'bold' }}>
+            Plant type:
+            <input
+              type="text"
+              value={newPlantType}
+              onChange={e => setNewPlantType(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '8px',
+                marginTop: '4px',
+                border: '1px solid #ccc',
+                borderRadius: '4px',
+                marginBottom: '8px',
+              }}
+            />
+          </label>
+          {addError && (
+            <div style={{ color: '#dc2626', fontWeight: 'bold' }}>{addError}</div>
+          )}
+          <button
+            onClick={addPlantType}
+            style={{
+              padding: '10px',
+              backgroundColor: '#22c55e',
+              color: 'white',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+            }}
+          >
+            Add Plant Type
+          </button>
+        </div>
+      )}
     </div>
   );
 };
