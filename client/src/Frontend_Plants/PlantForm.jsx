@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 
 const PlantForm = () => {
   const [formData, setFormData] = useState({
@@ -13,9 +12,10 @@ const PlantForm = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    console.log(name)
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -23,12 +23,25 @@ const PlantForm = () => {
     e.preventDefault();
     setError('');
     setSuccess('');
+
     try {
-      await axios.post('http://localhost:5000/api/plants', {
-        plant_type: formData.plant_type.trim(),
-        minimal_distance: Number(formData.minimal_distance),
-        seeding_depth: Number(formData.seeding_depth),
+      const response = await fetch('http://localhost:5000/api/plants', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          plant_type: formData.plant_type.trim(),
+          minimal_distance: Number(formData.minimal_distance),
+          seeding_depth: Number(formData.seeding_depth),
+        }),
       });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Fehler beim Speichern.');
+      }
+
       setSuccess('Pflanze erfolgreich hinzugefügt.');
       setFormData({
         plant_type: '',
@@ -36,7 +49,7 @@ const PlantForm = () => {
         seeding_depth: '',
       });
     } catch (err) {
-      setError(err.response?.data?.message || 'Fehler beim Speichern.');
+      setError(err.message || 'Unbekannter Fehler');
     }
   };
 
