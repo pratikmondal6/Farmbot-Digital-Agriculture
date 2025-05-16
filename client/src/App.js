@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import SeedingDistanceDepth from './components/seedingdistancedepth.tsx'; // adjust path if needed
+import SeedingDistanceDepth from './components/seedingdistancedepth.jsx'; // adjust path if needed
 import './App.css';
 
 function App() {
