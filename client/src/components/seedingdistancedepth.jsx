@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import WorkArea from './workarea';
+
+
 
 const defaultPlantTypes = [
   'Radishes', 'Lettuce', 'Carrots', 'Beets', 'Peas',
@@ -382,6 +385,7 @@ const SeedingDistanceDepth = () => {
             gap: '16px',
             zIndex: 9,
           }}
+          
         >
           <h2 style={{ margin: 0, color: '#14532d' }}>Add New Plant Type</h2>
           <label style={{ color: '#14532d', fontWeight: 'bold' }}>
@@ -419,8 +423,11 @@ const SeedingDistanceDepth = () => {
           </button>
         </div>
       )}
+      <WorkArea />
     </div>
   );
 };
+
+
 
 export default SeedingDistanceDepth;
