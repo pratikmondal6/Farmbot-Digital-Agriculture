@@ -7,6 +7,7 @@ module.exports = function () {
     mongoose.set('strictQuery', false)
 
     const db = config.get('db')
+    console.log(db)
     mongoose.connect(db)
         .then(() => console.log("Connected to database..."))
         .catch(() => console.log("Cannot connect to database!"))
