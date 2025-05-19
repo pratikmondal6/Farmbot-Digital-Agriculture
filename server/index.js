@@ -7,6 +7,10 @@ app.use(cookieParser());
 
 require("./startup/routes")(app);
 require("./startup/db")();
+require('dotenv').config();
+
+const plantRoutes = require('./routes/plantRoutes');
+app.use('/api/plant', plantRoutes);
 
 const port = process.env.PORT || 3000;
 const server = app.listen(port, () => console.log(`Listening on ${port}...`));
