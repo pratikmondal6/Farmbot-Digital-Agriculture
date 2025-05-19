@@ -1,5 +1,5 @@
-const mongoose = require('mongoose')
-const config = require('config')
+const mongoose = require('mongoose');
+mongoose.set('strictQuery', true); // or false, depending on your preference
 
 module.exports = function () {
     // the `strictQuery` option will be switched back to `false` by default in Mongoose 7. 

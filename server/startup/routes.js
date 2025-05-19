@@ -5,5 +5,5 @@ const error = require("../middleware/error");
 module.exports = function (app) {
   app.use(express.json());
   app.use("*", notFound);
-  app.use(error); // we just give refrence to this error function
+  app.use(error); // we just give reference to this error function
 };
