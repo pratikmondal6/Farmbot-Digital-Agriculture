@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import WorkArea from './workarea';
-
+/*import Plant from './planttype';*/
 
 
 const defaultPlantTypes = [
@@ -18,6 +18,8 @@ const SeedingDistanceDepth = () => {
   const [distanceError, setDistanceError] = useState('');
   const [showPanel, setShowPanel] = useState('seeding'); // 'seeding', 'distance', 'add', or null
   const [plantType, setPlantType] = useState('');
+  const [minseedingdistance, setMinSeedingDistance] = useState({ distance: ''});
+  const [seedingdepth, setSeedingDepth] = useState({depth: ''});
 
   // Fetch plant types from the database and merge with defaults
   useEffect(() => {
@@ -178,6 +180,28 @@ const SeedingDistanceDepth = () => {
         >
           Minimum Distance
         </button>
+
+
+        <button
+          style={{
+            backgroundColor: showPanel === 'workarea' ? '#22c55e' : '#16a34a',
+            color: 'white',
+            border: 'none',
+            borderRadius: '5px',
+            padding: '10px 24px',
+            fontWeight: 'bold',
+            cursor: 'pointer',
+            fontSize: '16px',
+            transition: 'background 0.2s',
+            marginRight: '10px',
+          }}
+          onClick={handleButtonClick('workarea')}
+          onDoubleClick={handleButtonDoubleClick('workarea')}
+          title="Double-click to hide/show panel"
+        >
+          Define Work Area
+  	    </button>
+
         <button
           style={{
             backgroundColor: showPanel === 'add' ? '#22c55e' : '#16a34a',
@@ -392,8 +416,43 @@ const SeedingDistanceDepth = () => {
             Plant type:
             <input
               type="text"
+              placeholder='Plant Type'
               value={newPlantType}
               onChange={e => setNewPlantType(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '8px',
+                marginTop: '4px',
+                border: '1px solid #ccc',
+                borderRadius: '4px',
+                marginBottom: '8px',
+              }}
+            />
+          </label>
+                    <label style={{ color: '#14532d', fontWeight: 'bold' }}>
+            Plant type:
+            <input
+              type="text"
+              value={seedingdepth.depth}
+              placeholder='Seedingdepth in mm'
+              onChange={e => setSeedingDepth(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '8px',
+                marginTop: '4px',
+                border: '1px solid #ccc',
+                borderRadius: '4px',
+                marginBottom: '8px',
+              }}
+            />
+          </label>
+                    <label style={{ color: '#14532d', fontWeight: 'bold' }}>
+            Min seeding Distance:
+            <input
+              type="number"
+              placeholder='Seedingdistance in mm'
+              value={minseedingdistance.distance}
+              onChange={e => setMinSeedingDistance(e.target.value)}
               style={{
                 width: '100%',
                 padding: '8px',
@@ -424,6 +483,7 @@ const SeedingDistanceDepth = () => {
         </div>
       )}
       <WorkArea />
+      <WorkArea showPanel={showPanel} setShowPanel={setShowPanel} />
     </div>
   );
 };
