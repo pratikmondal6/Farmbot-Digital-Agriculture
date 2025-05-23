@@ -4,6 +4,8 @@ import FarmBotDashboard from './components/FarmBotDashboard';
 
 import './App.css';
 import WorkArea from "./components/workarea";
+import Dashboard from "./pages/Dashboard";
+import Settings from "./pages/Setting";
 
 function App() {
     return (
@@ -12,6 +14,7 @@ function App() {
                 <Route path="/" element={<FarmBotDashboard />} />
                 <Route path="/seeding/parameters" element={<SeedingDistanceDepth />} />
                 <Route path="/seeding/workarea" element={<WorkArea />} />
+                <Route path="/settings" element={<Settings/>}/>
             </Routes>
         </Router>
     );

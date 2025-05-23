@@ -1,16 +1,26 @@
 const cookieParser = require('cookie-parser');
 const express = require('express');
-const cors = require('cors'); // Keep this — needed for cross-origin requests
-
 const app = express();
+const cors = require('cors');
+const config = require('config');
+const routes = require('./startup/routes');
 
+// for getting cookies
 app.use(cookieParser());
-app.use(cors()); // Add this if it's needed in your project
+// CORS configuration
+app.use(cors({
+    origin: 'http://localhost:3001', // Allow requests from React client
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 require("./startup/routes")(app);
 require("./startup/db")();
 
 const port = process.env.PORT || 5000;
+// Routes setup
+routes(app);
+
 const server = app.listen(port, () => console.log(`Listening on ${port}...`));
 
 module.exports = server;
