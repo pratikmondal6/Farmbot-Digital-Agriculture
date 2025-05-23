@@ -1,16 +1,22 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import SeedingDistanceDepth from './components/seedingdistancedepth.jsx'; // adjust path if needed
-import './App.css';
+import SeedingDistanceDepth from './components/seedingdistancedepth.jsx';
+import FarmBotDashboard from './pages/FarmBotDashboard';
 
+import './App.css';
+import WorkArea from "./components/workarea";
+import Settings from "./pages/Setting";
 
 function App() {
-  return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<SeedingDistanceDepth />} />
-      </Routes>
-    </Router>
-  );
+    return (
+        <Router>
+            <Routes>
+                <Route path="/" element={<FarmBotDashboard />} />
+                <Route path="/seeding/parameters" element={<SeedingDistanceDepth />} />
+                <Route path="/seeding/workarea" element={<WorkArea />} />
+                <Route path="/settings" element={<Settings/>}/>
+            </Routes>
+        </Router>
+    );
 }
 
 export default App;

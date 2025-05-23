@@ -1,4 +1,5 @@
 {
     "jwtPrivateKey": "Digital-Farming-Project",
-    "db": "mongodb+srv://schwar:Sers1234@cluster0.xqbrnth.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+    "db": "mongodb+srv://schwar:Sers1234@cluster0.xqbrnth.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
+    "farmbotUrl": "https://my.farm.bot"
 }
