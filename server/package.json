@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest --setupFiles ./jest.setup.js --testEnvironment=node"
   },
   "author": "",
   "license": "ISC",
@@ -25,6 +25,19 @@
     "mongoose": "^6.13.8"
   },
   "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-environment-node": "^29.7.0",
+    "jest-fetch-mock": "^3.0.3",
+    "node-fetch": "^2.7.0",
     "nodemon": "^3.1.10"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/*.test.js"
+    ],
+    "setupFiles": [
+      "./jest.setup.js"
+    ]
   }
 }
