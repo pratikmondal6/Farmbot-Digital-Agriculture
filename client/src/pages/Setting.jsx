@@ -20,6 +20,7 @@ function Settings() {
         setShowFarmbotConfig(true);
     }
 
+    //Close the setting when we click outside it
     useEffect(() => {
         function handleClickOutside(event) {
             if (settingsRef.current && !settingsRef.current.contains(event.target)) {

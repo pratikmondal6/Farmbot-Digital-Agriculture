@@ -1,5 +1,5 @@
 export const updateTime = [
-    {key: "asap", value: "As soon as possible"},
+    {key: "", value: "As soon as possible"},
     {key: 0, value: "12:00 AM"},
     {key: 1, value: "1:00 AM"},
     {key: 2, value: "2:00 AM"},
@@ -27,12 +27,12 @@ export const updateTime = [
 ]
 
 export const timezones = [
-    {key: "europe/berlin", value: "Europe/Berlin"},
-    {key: "europe/andorra", value: "Europe/Andorra"},
-    {key: "europe/belfast", value: "Europe/Belfast"},
-    {key: "europe/budapest", value: "Europe/Budapest"},
-    {key: "europe/kiev", value: "Europe/Kiev"},
-    {key: "europe/london", value: "Europe/London"},
+    {key: "Europe/Berlin", value: "Europe/Berlin"},
+    {key: "Europe/Andorra", value: "Europe/Andorra"},
+    {key: "Europe/Belfast", value: "Europe/Belfast"},
+    {key: "Europe/Budapest", value: "Europe/Budapest"},
+    {key: "Europe/Kiev", value: "Europe/Kiev"},
+    {key: "Europe/London", value: "Europe/London"},
 ]
 
 export const firmware_hardware = [
