@@ -17,12 +17,7 @@ router.post("/", async (req, res) => {
       }
     })
     .then(response => {
-      res
-      .header("auth-token", response.data.token.encoded)
-      .cookie("auth-token", response.data.token.encoded, {
-        maxAge: 3600000,
-      })
-      .status(200).send({
+      res.status(200).send({
         "status": 200,
         "message": "Logged in successfully",
         "token": response.data.token.encoded
