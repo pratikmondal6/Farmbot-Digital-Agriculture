@@ -4,7 +4,6 @@ import FarmBotDashboard from './pages/FarmBotDashboard';
 
 import './App.css';
 import WorkArea from "./components/workarea";
-import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Setting";
 
 function App() {
