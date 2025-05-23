@@ -1,61 +1,29 @@
 import React, { useState } from 'react';
 
-const WorkArea = () => {
-  const [coords, setCoords] = useState({
-    ax: '',
-    ay: '',
-    bx: '',
-    by: '',
-  });
-  const [visible, setVisible] = useState(false);
+const WorkArea = ({ showPanel, setShowPanel }) => {
+  const [area_name, setArea_name] =useState({name: ''});
+  const [pointA, setPointA] = useState({ x: '', y: '' });
+  const [pointB, setPointB] = useState({ x: '', y: '' });
 
-  const togglePanel = () => setVisible((prev) => !prev);
-  const handleChange = (key, value) => {
-    setCoords((prev) => ({ ...prev, [key]: value }));
-  };
+  
 
-  const handleSave = () => {
-    console.log('Saved work area:', coords);
-    alert('Work area saved:\n' + JSON.stringify(coords, null, 2));
+  
+
+  const saveWorkArea = () => {
+    console.log('Saved Work Area:', {area_name, pointA, pointB });
+    alert(`Work Area saved: A(${pointA.x}, ${pointA.y}) to B(${pointB.x}, ${pointB.y})`);
   };
 
   return (
     <>
-      {/* Toggle Button – fixiert in der Topbar */}
-      <div
-        style={{
-          position: 'fixed',
-          top: '10px',
-          right: '500px',
-          zIndex: 20,
-        }}
-      >
-        <button
-          onClick={togglePanel}
-          style={{
-            backgroundColor: '#22c55e',
-            color: 'white',
-            border: 'none',
-            borderRadius: '5px',
-            padding: '10px 24px',
-            fontWeight: 'bold',
-            cursor: 'pointer',
-            fontSize: '16px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-          }}
-        >
-          {visible ? 'Hide Work Area' : 'Show Work Area'}
-        </button>
-      </div>
-
-      {/* Panel – gleich gestylt wie andere */}
-      {visible && (
+      {/* Button should be rendered inside the same toolbar div as the others in main component */}
+      {showPanel === 'workarea' && (
         <div
           style={{
-            position: 'absolute',
-            top: '60px',
+            position: 'fixed',
+            top: '80px',
             left: '20px',
-            width: '350px',
+            width: '400px',
             backgroundColor: '#ecfdf5',
             boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
             padding: '24px',
@@ -63,53 +31,67 @@ const WorkArea = () => {
             display: 'flex',
             flexDirection: 'column',
             gap: '16px',
-            zIndex: 19,
+            zIndex: 100,
           }}
         >
           <h2 style={{ margin: 0, color: '#14532d' }}>Define Working Area</h2>
+          
+          <div>
+            <label style={{ color: '#14532d', fontWeight: 'bold' }}>Area Name:</label>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <input
+                type="string"
+                placeholder="Name"
+                value={area_name.name}
+                onChange={e => setArea_name({ ...area_name, name: e.target.value })}
+                style={{ flex: 1, padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
+              />
+            </div>
+          </div>
 
-          <label style={{ color: '#14532d', fontWeight: 'bold' }}>
-            Point A (X, Y):
-            <div style={{ display: 'flex', gap: '4%' }}>
+
+          <div>
+            <label style={{ color: '#14532d', fontWeight: 'bold' }}>Point A (X, Y):</label>
+            <div style={{ display: 'flex', gap: '12px' }}>
               <input
                 type="number"
                 placeholder="X"
-                value={coords.ax}
-                onChange={(e) => handleChange('ax', e.target.value)}
-                style={inputStyle}
+                value={pointA.x}
+                onChange={e => setPointA({ ...pointA, x: e.target.value })}
+                style={{ flex: 1, padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
               />
               <input
                 type="number"
                 placeholder="Y"
-                value={coords.ay}
-                onChange={(e) => handleChange('ay', e.target.value)}
-                style={inputStyle}
+                value={pointA.y}
+                onChange={e => setPointA({ ...pointA, y: e.target.value })}
+                style={{ flex: 1, padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
               />
             </div>
-          </label>
+          </div>
 
-          <label style={{ color: '#14532d', fontWeight: 'bold' }}>
-            Point B (X, Y):
-            <div style={{ display: 'flex', gap: '4%' }}>
+          <div>
+            <label style={{ color: '#14532d', fontWeight: 'bold' }}>Point B (X, Y):</label>
+            <div style={{ display: 'flex', gap: '12px' }}>
               <input
                 type="number"
                 placeholder="X"
-                value={coords.bx}
-                onChange={(e) => handleChange('bx', e.target.value)}
-                style={inputStyle}
+                value={pointB.x}
+                onChange={e => setPointB({ ...pointB, x: e.target.value })}
+                style={{ flex: 1, padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
               />
               <input
                 type="number"
                 placeholder="Y"
-                value={coords.by}
-                onChange={(e) => handleChange('by', e.target.value)}
-                style={inputStyle}
+                value={pointB.y}
+                onChange={e => setPointB({ ...pointB, y: e.target.value })}
+                style={{ flex: 1, padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
               />
             </div>
-          </label>
+          </div>
 
           <button
-            onClick={handleSave}
+            onClick={saveWorkArea}
             style={{
               padding: '10px',
               backgroundColor: '#22c55e',
@@ -126,13 +108,6 @@ const WorkArea = () => {
       )}
     </>
   );
-};
-
-const inputStyle = {
-  width: '48%',
-  padding: '8px',
-  borderRadius: '4px',
-  border: '1px solid #ccc',
 };
 
 export default WorkArea;
