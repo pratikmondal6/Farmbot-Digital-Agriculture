@@ -2,18 +2,32 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import Settings from "./Setting";
 import '../farmbot-dashboard.css';
+import '../index.css';
 
 export default function FarmBotDashboard() {
     return (
         <div className="dashboard-container">
             {/* Top Header */}
 
+            {/* Header */}
             <header className="dashboard-header">
-                <h1 className="dashboard-title">🚜 FarmBot</h1>
+                <h1 className="dashboard-title">
+                    🚜 <span>FarmBot</span>
+                </h1>
                 <div className="dashboard-status-bar">
-                    <span className="status-indicator">● Online</span>
-                    <button className="refresh-button">🔄 Refresh</button>
-                    <Settings />
+                    <div className="status-indicator-container">
+                        <span className="status-dot">●</span>
+                        <span>Online</span>
+                    </div>
+                    <div className="refresh-button-container">
+                        <button className="refresh-button" aria-label="Refresh dashboard status">
+                            🔄 Refresh
+                        </button>
+                    </div>
+
+                    <div className="settings-container">
+                        <Settings />
+                    </div>
                 </div>
             </header>
 
@@ -26,7 +40,6 @@ export default function FarmBotDashboard() {
                         {/*<a href="#" className="nav-link">🌱 Seeding</a>*/}
                         {/*<a href="#" className="nav-link">💧 Watering</a>*/}
                         <a href="#" className="nav-link">📊 Monitor</a>
-                        <a href="#" className="nav-link">⚙️ Settings</a>
                     </nav>
                 </aside>
 

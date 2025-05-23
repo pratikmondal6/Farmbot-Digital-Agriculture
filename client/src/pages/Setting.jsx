@@ -43,7 +43,7 @@ function Settings() {
     return (
         <div className="settings-container" ref={settingsRef}>
             <div className={"settings-icon"}>
-                <FiSettings onClick={handleClick} size={24} color={"#16a34a"}/>
+                <FiSettings onClick={handleClick} size={24} color={"white"}/>
             </div>
             {showSetting && <div className="settings-form-container">
                 {!showFarmbotConfig ? (

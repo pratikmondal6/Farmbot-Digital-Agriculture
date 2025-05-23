@@ -1,11 +1,10 @@
-
 /* FarmBot Dashboard CSS */
 
 /* Main container */
 .dashboard-container {
     min-height: 100vh;
-    background-color: #f9fafb; /* bg-gray-50 */
-    font-family: sans-serif; /* font-sans */
+    background-color: #f9fafb;
+    font-family: sans-serif;
 }
 
 /* Header */
@@ -13,29 +12,78 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem; /* p-4 */
-    background-color: #16a34a; /* bg-green-600 */
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); /* shadow */
-    color: white; /* text-white */
+    padding: 1rem 2rem;
+    background-color: #16a34a; /* green */
+    color: white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    min-height: 60px;
 }
 
 .dashboard-title {
-    font-size: 1.25rem; /* text-xl */
-    font-weight: 600; /* font-semibold */
+    font-size: 1.25rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .dashboard-status-bar {
     display: flex;
     align-items: center;
-    gap: 1rem; /* space-x-4 */
+    gap: 1.5rem;
+    margin-left: auto;
+}
+
+/* Container styles for header components */
+.status-indicator-container,
+.refresh-button-container,
+.settings-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 80px;
+    height: 40px;
+    transition: all 0.3s ease;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* Hover effects for header containers */
+.status-indicator-container:hover,
+.refresh-button-container:hover,
+.settings-container:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .status-indicator {
-    font-weight: 500; /* font-medium */
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-weight: 500;
+}
+
+.status-dot {
+    font-size: 1.2rem;
+    color: #b2f5ea; /* lighter green dot */
+    line-height: 1;
+}
+
+.refresh-button {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 1rem;
 }
 
 .refresh-button:hover {
-    color: #e5e7eb; /* hover:text-gray-200 */
+    color: #d1fae5;
 }
 
 /* Main layout */
@@ -45,109 +93,201 @@
 
 /* Sidebar */
 .dashboard-sidebar {
-    width: 13rem; /* w-52 */
-    background-color: white; /* bg-white */
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); /* shadow */
-    height: 100vh; /* h-screen */
-    padding: 1rem; /* p-4 */
+    width: 13rem;
+    background-color: white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    height: 100vh;
+    padding: 1rem;
 }
 
 .sidebar-nav {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem; /* space-y-2 */
+    gap: 0.5rem;
 }
 
 .nav-link-active {
-    color: white; /* text-white */
-    font-weight: 500; /* font-medium */
-    background-color: #16a34a; /* bg-green-600 */
-    padding: 0.5rem; /* p-2 */
-    border-radius: 0.25rem; /* rounded */
+    color: white;
+    font-weight: 500;
+    background-color: #16a34a;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
 }
 
 .nav-link {
-    color: #374151; /* text-gray-700 */
+    color: #374151;
+    cursor: pointer;
 }
 
 .nav-link:hover {
-    color: #16a34a; /* hover:text-green-600 */
+    color: #16a34a;
 }
 
 /* Main content */
 .dashboard-main {
-    flex: 1; /* flex-1 */
-    margin-top: 2rem; /* mt-8 */
-    margin-left: 1rem; /* mx-4 */
-    margin-right: 1rem; /* mx-4 */
-    margin-bottom: 1rem; /* mb-4 */
+    flex: 1;
+    margin: 2rem 1rem 1rem 1rem;
     display: grid;
-    grid-template-columns: repeat(3, 1fr); /* grid-cols-3 */
-    gap: 0.5rem; /* gap-2 */
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
 }
 
-/* Card styles */
+/* Cards */
 .dashboard-card {
-    background-color: white; /* bg-white */
-    box-shadow: 0 25px 50px -12px rgba(22, 163, 74, 0.25); /* shadow-2xl shadow-green-200 */
-    padding: 1rem; /* p-4 */
-    height: 20rem; /* h-[20rem] */
-    width: 100%; /* w-full */
+    background-color: white;
+    box-shadow: 0 25px 50px -12px rgba(22, 163, 74, 0.25);
+    padding: 1rem;
+    height: 20rem;
+    width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
-    margin: 0.25rem; /* m-1 */
+    margin: 0.25rem;
 }
 
 .card-icon {
-    font-size: 3.75rem; /* text-6xl */
-    margin-bottom: 1rem; /* mb-4 */
+    font-size: 3.75rem;
+    margin-bottom: 1rem;
 }
 
 .card-title {
-    font-size: 1.125rem; /* text-lg */
-    font-weight: 600; /* font-semibold */
-    margin-bottom: 0.5rem; /* mb-2 */
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
 }
 
 .card-button {
-    padding: 0.5rem 1rem; /* px-4 py-2 */
-    background-color: #16a34a; /* bg-green-600 */
-    color: white; /* text-white */
-    border-radius: 0.25rem; /* rounded */
+    padding: 0.5rem 1rem;
+    background-color: #16a34a;
+    color: white;
+    border-radius: 0.25rem;
     border: none;
     cursor: pointer;
 }
 
 .card-button:hover {
-    background-color: #15803d; /* hover:bg-green-700 */
+    background-color: #15803d;
 }
 
 /* Status card */
 .status-card-icon {
-    font-size: 3rem; /* text-5xl */
-    margin-bottom: 0.5rem; /* mb-2 */
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
 }
 
 .status-card-title {
-    font-weight: 600; /* font-semibold */
-    color: #374151; /* text-gray-700 */
+    font-weight: 600;
+    color: #374151;
 }
 
 .status-online {
-    color: #16a34a; /* text-green-600 */
+    color: #16a34a;
 }
 
 /* Activity card */
 .activity-card-title {
-    font-weight: 600; /* font-semibold */
-    color: #374151; /* text-gray-700 */
-    margin-bottom: 0.5rem; /* mb-2 */
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.5rem;
 }
 
 .activity-list {
-    font-size: 0.875rem; /* text-sm */
-    color: #4b5563; /* text-gray-600 */
+    font-size: 0.875rem;
+    color: #4b5563;
+}
+
+/* Form styles: text color and accessibility */
+form input,
+form select,
+form textarea,
+form label,
+form legend,
+form h1, form h2, form h3, form h4, form h5, form h6 {
+    color: black !important;
+    background-color: white;
+}
+
+input, select, textarea {
+    border: 1px solid #ccc;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    font-family: inherit;
+    font-size: 1rem;
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: #555555;
+}
+
+input:disabled, select:disabled, textarea:disabled {
+    color: #999999;
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+}
+
+input:focus, select:focus, textarea:focus {
+    outline: 2px solid #16a34a;
+    outline-offset: 2px;
+}
+
+input[type="checkbox"] {
+    width: 1rem;
+    height: 1rem;
+}
+
+/* Settings component styles override */
+.settings-options-list {
+    color: black;
+}
+
+.settings-option {
+    color: black;
+}
+
+.settings-option span {
+    color: black;
+}
+
+.more-content-icon {
+    color: #666;
+}
+
+.farmbot-config {
+    color: black;
+}
+
+.farmbot-config label {
+    color: black;
+}
+
+.farmbot-config input,
+.farmbot-config select,
+.farmbot-config button,
+.farmbot-config option {
+    color: black;
+}
+
+.farmbot-config .back-button {
+    color: black;
+}
+
+.error-message {
+    color: black;
+}
+
+/* Responsive grid */
+@media (max-width: 768px) {
+    .dashboard-main {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .dashboard-main {
+        grid-template-columns: 1fr;
+    }
 }
