@@ -6,6 +6,10 @@ const axios = require('axios');
 
 
 router.post("/", async (req, res) => {
+  console.log({
+        email: req.body.email.trim(),
+        password: req.body.password
+      })
   axios.post('https://my.farm.bot/api/tokens', {
       user: {
         email: req.body.email.trim(),
