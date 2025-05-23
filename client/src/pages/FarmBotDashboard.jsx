@@ -1,76 +1,78 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import Settings from "./Setting";
+import '../farmbot-dashboard.css';
 
 export default function FarmBotDashboard() {
     return (
-        <div className="min-h-screen bg-gray-50 font-sans">
+        <div className="dashboard-container">
             {/* Top Header */}
-            <Settings />
-            <header className="flex justify-between items-center p-4 bg-green-600 shadow text-white">
-                <h1 className="text-xl font-semibold">🚜 FarmBot</h1>
-                <div className="flex items-center space-x-4">
-                    <span className="font-medium">● Online</span>
-                    <button className="hover:text-gray-200">🔄 Refresh</button>
+
+            <header className="dashboard-header">
+                <h1 className="dashboard-title">🚜 FarmBot</h1>
+                <div className="dashboard-status-bar">
+                    <span className="status-indicator">● Online</span>
+                    <button className="refresh-button">🔄 Refresh</button>
+                    <Settings />
                 </div>
             </header>
 
             {/* Main Layout */}
-            <div className="flex">
+            <div className="dashboard-layout">
                 {/* Sidebar */}
-                <aside className="w-52 bg-white shadow h-screen p-4 space-y-4">
-                    <nav className="flex flex-col space-y-2">
-                        <a href="#" className="text-white font-medium bg-green-600 p-2 rounded">🏠 Dashboard</a>
-                        {/*<a href="#" className="text-gray-700 hover:text-green-600">🌱 Seeding</a>*/}
-                        {/*<a href="#" className="text-gray-700 hover:text-green-600">💧 Watering</a>*/}
-                        <a href="#" className="text-gray-700 hover:text-green-600">📊 Monitor</a>
-                        <a href="#" className="text-gray-700 hover:text-green-600">⚙️ Settings</a>
+                <aside className="dashboard-sidebar">
+                    <nav className="sidebar-nav">
+                        <a href="#" className="nav-link-active">🏠 Dashboard</a>
+                        {/*<a href="#" className="nav-link">🌱 Seeding</a>*/}
+                        {/*<a href="#" className="nav-link">💧 Watering</a>*/}
+                        <a href="#" className="nav-link">📊 Monitor</a>
+                        <a href="#" className="nav-link">⚙️ Settings</a>
                     </nav>
                 </aside>
 
                 {/* Content */}
-                <main className="flex-1 mt-8 mx-4 mb-4 grid grid-cols-3 gap-2">
+                <main className="dashboard-main">
                     {/* Job Cards */}
-                    <div className="bg-white shadow-2xl shadow-green-200 p-4 h-[20rem] w-full flex flex-col items-center justify-center text-center m-1">
-                        <div className="text-6xl mb-4">🌱</div>
-                        <h2 className="text-lg font-semibold mb-2">Seeding</h2>
+                    <div className="dashboard-card">
+                        <div className="card-icon">🌱</div>
+                        <h2 className="card-title">Seeding</h2>
                         <Link to="/seeding/parameters">
-                            <button className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">View Jobs</button>
+                            <button className="card-button">View Jobs</button>
                         </Link>
                     </div>
 
-                    <div className="bg-white shadow-2xl shadow-green-200 p-4 h-[20rem] w-full flex flex-col items-center justify-center text-center m-1">
-                        <div className="text-6xl mb-4">💧</div>
-                        <h2 className="text-lg font-semibold mb-2">Watering</h2>
-                        <button className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">View Jobs</button>
+                    <div className="dashboard-card">
+                        <div className="card-icon">💧</div>
+                        <h2 className="card-title">Watering</h2>
+                        <button className="card-button">View Jobs</button>
                     </div>
 
-                    <div className="bg-white shadow-2xl shadow-green-200 p-4 h-[20rem] w-full flex flex-col items-center justify-center text-center m-1">
-                        <div className="text-6xl mb-4">🌿</div>
-                        <h2 className="text-lg font-semibold mb-2">Weed Control</h2>
-                        <button className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">View Jobs</button>
+                    <div className="dashboard-card">
+                        <div className="card-icon">🌿</div>
+                        <h2 className="card-title">Weed Control</h2>
+                        <button className="card-button">View Jobs</button>
                     </div>
 
-                    <div className="bg-white shadow-2xl shadow-green-200 p-4 h-[20rem] w-full flex flex-col items-center justify-center text-center m-1">
-                        <div className="text-6xl mb-4">💨</div>
-                        <h2 className="text-lg font-semibold mb-2">Humidity</h2>
-                        <button className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">View Jobs</button>
+                    <div className="dashboard-card">
+                        <div className="card-icon">💨</div>
+                        <h2 className="card-title">Humidity</h2>
+                        <button className="card-button">View Jobs</button>
                     </div>
 
                     {/* Passive Monitoring Panel */}
-                    <div className="bg-white shadow-2xl shadow-green-200 p-4 h-[20rem] w-full flex flex-col items-center justify-center text-center m-1">
-                        <div className="text-5xl mb-2">🤖</div>
-                        <h3 className="font-semibold text-gray-700">Bot Status</h3>
-                        <p className="text-green-600">Online</p>
+                    <div className="dashboard-card">
+                        <div className="status-card-icon">🤖</div>
+                        <h3 className="status-card-title">Bot Status</h3>
+                        <p className="status-online">Online</p>
                         <p>Humidity: 51%</p>
                         <p>Next Job: Seeding at 03:00</p>
                     </div>
 
                     {/* Recent Activity */}
-                    <div className="bg-white shadow-2xl shadow-green-200 p-4 h-[20rem] w-full flex flex-col items-center justify-center text-center m-1">
-                        <div className="text-5xl mb-2">📋</div>
-                        <h3 className="font-semibold text-gray-700 mb-2">Recent Activity</h3>
-                        <ul className="text-sm text-gray-600">
+                    <div className="dashboard-card">
+                        <div className="status-card-icon">📋</div>
+                        <h3 className="activity-card-title">Recent Activity</h3>
+                        <ul className="activity-list">
                             <li>✅ Seeding job finished at 02:55</li>
                             <li>💧 Watering started at 03:00</li>
                             <li>🤖 Bot resumed from idle</li>
