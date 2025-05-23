@@ -16,11 +16,7 @@
     "config": "^3.3.6",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
-<<<<<<< HEAD
-    "express": "^4.17.1",
-=======
     "express": "^4.21.2",
->>>>>>> b8b0405290688515b26becffa0794bc5edfed96c
     "jsonwebtoken": "^9.0.0",
     "mongodb": "^5.6.0",
     "mongoose": "^6.13.8"
