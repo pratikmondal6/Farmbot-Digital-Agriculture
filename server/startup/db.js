@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
-const config = require('config'); // ✅ REQUIRED to use config.get()
+const config = require('config');
 
-mongoose.set('strictQuery', false); // preparing for Mongoose 7
+mongoose.set('strictQuery', false);
 
 module.exports = function () {
     const db = config.get('db');
