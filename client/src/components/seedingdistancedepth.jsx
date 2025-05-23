@@ -432,7 +432,7 @@ const SeedingDistanceDepth = () => {
                     <label style={{ color: '#14532d', fontWeight: 'bold' }}>
             Plant type:
             <input
-              type="text"
+              type="number"
               value={seedingdepth.depth}
               placeholder='Seedingdepth in mm'
               onChange={e => setSeedingDepth(e.target.value)}
