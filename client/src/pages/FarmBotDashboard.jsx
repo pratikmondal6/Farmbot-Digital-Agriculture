@@ -1,10 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import Settings from "./Setting";
 
 export default function FarmBotDashboard() {
     return (
         <div className="min-h-screen bg-gray-50 font-sans">
             {/* Top Header */}
+            <Settings />
             <header className="flex justify-between items-center p-4 bg-green-600 shadow text-white">
                 <h1 className="text-xl font-semibold">🚜 FarmBot</h1>
                 <div className="flex items-center space-x-4">

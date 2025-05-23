@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import SeedingDistanceDepth from './components/seedingdistancedepth.jsx';
-import FarmBotDashboard from './components/FarmBotDashboard';
+import FarmBotDashboard from './pages/FarmBotDashboard';
 
 import './App.css';
 import WorkArea from "./components/workarea";

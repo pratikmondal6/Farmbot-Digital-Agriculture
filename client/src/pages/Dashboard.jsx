@@ -1,3 +1,4 @@
+/*
 import React, {useState} from "react";
 import Settings from "./Setting";
 
@@ -12,3 +13,4 @@ function Dashboard() {
 }
 
 export default Dashboard;
+*/
