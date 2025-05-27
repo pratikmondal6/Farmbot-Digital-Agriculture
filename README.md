@@ -1,12 +1,6 @@
 # Team Uni
 
 
-## API calls
-
-If you are working
-
-
-
 ## Getting started
 
 To set up the project, do these steps in terminal/CMD:
