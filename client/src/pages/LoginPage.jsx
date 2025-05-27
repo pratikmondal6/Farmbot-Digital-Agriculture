@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-const LoginPage = () => {
+const LoginPage = ({setIsLoggedIn}) => {
   const navigate = useNavigate();
 
   const [email, setEmail] = useState('');
@@ -10,6 +10,13 @@ const LoginPage = () => {
   const [isHovered, setIsHovered] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const token = sessionStorage.getItem("token");
+    if (token) {
+      navigate("/dashboard");
+    }
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,11 +29,11 @@ const LoginPage = () => {
         password,
       });
 
-      console.log('Login success:', response.data);
+      // console.log('Login success:', response.data);
+      sessionStorage.setItem('token', response.data.token);
+      setIsLoggedIn(true);
       navigate('/dashboard');
 
-      // Example: store token or redirect
-      // localStorage.setItem('token', response.data.token);
     } catch (err) {
       console.error('Login failed:', err);
       setError(
@@ -120,11 +127,14 @@ const styles = {
   },
   title: {
     marginBottom: '1rem',
+    fontSize: '1.3rem',
+    fontWeight: 'bold',
     textAlign: 'center',
     color: '#14532d'
   },
   label: {
     margin: '0.5rem 0 0.2rem',
+    fontWeight: 'bold',
     color: '#14532d',
     transition: 'color 0.3s ease',
   },
@@ -168,6 +178,10 @@ const styles = {
     marginBottom: '1rem',
     textAlign: 'center',
     transition: '0.3s'
+  },
+  loggedInHeader: {
+    fontSize: '1.5rem',
+    fontWeight: 'bold'
   }
 };
 

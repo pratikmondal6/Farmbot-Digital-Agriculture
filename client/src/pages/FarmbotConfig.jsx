@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {FiArrowLeft} from 'react-icons/fi';
 import Button from "../components/Button";
-import instance from "../utils/api";
+import api from "../utils/api";
 import {firmware_hardware, firmware_path, rpiVersions, timezones, updateTime} from "../utils/botConfigUtils";
 
 function FarmbotConfig({onBack}) {
@@ -35,7 +35,7 @@ function FarmbotConfig({onBack}) {
             try {
                 setLoading(true);
 
-                const response = await instance.get('/api/botConfig')
+                const response = await api.get('/api/botConfig')
                 const result = await response.data;
 
                 if (result.error) {
@@ -58,7 +58,7 @@ function FarmbotConfig({onBack}) {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await instance.put('/api/botConfig', botConfig)
+            const response = await api.put('/api/botConfig', botConfig)
 
             const result = await response.data;
 
