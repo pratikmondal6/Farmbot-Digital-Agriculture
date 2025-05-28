@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import WorkArea from './workarea';
-import instance from '../utils/api';
+// import instance from '../utils/api';
+import api from '../utils/api';
 /*import Plant from './planttype';*/
 
 
@@ -41,9 +42,9 @@ const SeedingDistanceDepth = () => {
       value.includes(' ') ||
       isNaN(num)
     ) {
-      setError('Please enter a valid number between 0 mm and -40 mm.');
-    } else if (num > 0 || num < -40) {
-      setError('Please enter a value between 0 mm and -40 mm.');
+      setError('Please enter a valid number between 0 mm and 40 mm.');
+    } else if (num < 0 || num > 40) {
+      setError('Please enter a value between 0 mm and 40 mm.');
     } else {
       setError('');
     }
@@ -81,21 +82,26 @@ const SeedingDistanceDepth = () => {
   };
 
   const saveToDatabase = async (valueType, value) => {
-   
-    if (!plantType || !value) {
-      alert('Please select a plant type and enter a value.');
+    if (!plantType || !valueType || value === '' || isNaN(Number(value))) {
+      alert('Please select a plant type and enter a valid value.');
       return;
     }
     try {
-      const response = await instance.post('/api/plant/save',JSON.stringify({ plantType, valueType, value }));
-      const data = await response.data;
-      if (response.status) {
-        alert('Saved successfully!');
-      } else {
-        alert(data.error || 'Save failed.');
+      const valueNum = Number(value);
+      if (isNaN(valueNum)) {
+        alert('Please enter a valid number.');
+        return;
       }
+      if (valueType === 'depth') {
+        // Use /save-depth for seeding depth
+        await api.post('/api/plant/save-depth', { plantType, depth: valueNum });
+      } else {
+        // Use /save for distance
+        await api.post('/api/plant/save', { plantType, valueType, value: valueNum });
+      }
+      alert('Saved successfully!');
     } catch (err) {
-      alert('Error saving data: ' + err.message);
+      alert('Error saving data: ' + (err.response?.data?.error || err.message));
     }
   };
 
@@ -105,20 +111,23 @@ const SeedingDistanceDepth = () => {
       return;
     }
     setAddError('');
-    await fetch('/api/plant/add-type', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ plant_type: newPlantType })
-    })
-      .then(res => res.json())
-      .then(data => {
-        alert(data.message);
-        setNewPlantType('');
-        // Refresh plant types after adding
-        fetch('/api/plant/types')
-          .then(res => res.json())
-          .then(data => setPlantTypes(data));
+    try {
+      // Add plant type
+      const response = await api.post('/api/plant/add-type', {
+        plant_type: newPlantType,
+        seeding_depth: Number(seedingdepth.depth),
+        minimal_distance: Number(minseedingdistance.distance)
       });
+      const result = response.data;
+      alert(result.message || 'Plant type added!');
+      setNewPlantType('');
+      // Refresh plant types after adding
+      const typesResponse = await api.get('/api/plant/types');
+      const typesResult = typesResponse.data;
+      setPlantTypes(typesResult);
+    } catch (err) {
+      setAddError(err.response?.data?.error || err.message || 'Failed to add plant type.');
+    }
   };
 
   // Top Bar with Buttons
@@ -246,7 +255,7 @@ const SeedingDistanceDepth = () => {
             <b>Peas & Beans:</b> 30 - 50 mm<br />
             <b>Kohlrabi & Fennel:</b> 10 - 20 mm<br />
             <b>Pumpkin & Zucchini:</b> 30 - 40 mm<br /><br />
-            <b>Please enter a number between 0 and -40 mm in the input field below</b><br />
+            <b>Please enter a number between 0 and 40 mm in the input field below</b><br />
             <b>Note:</b> The seeding depth is the distance from the soil surface to the seed.<br />
           </div>
           <label style={{ color: '#14532d', fontWeight: 'bold' }}>
@@ -275,8 +284,8 @@ const SeedingDistanceDepth = () => {
               type="number"
               value={depth}
               onChange={handleInput}
-              min={-40}
-              max={0}
+              min={0}
+              max={40}
               style={{
                 width: '100%',
                 padding: '8px',
@@ -429,12 +438,12 @@ const SeedingDistanceDepth = () => {
             />
           </label>
                     <label style={{ color: '#14532d', fontWeight: 'bold' }}>
-            Plant type:
+            Seeding depth:
             <input
               type="number"
               value={seedingdepth.depth}
               placeholder='Seedingdepth in mm'
-              onChange={e => setSeedingDepth(e.target.value)}
+              onChange={e => setSeedingDepth({ depth: Number(e.target.value) })}
               style={{
                 width: '100%',
                 padding: '8px',
@@ -451,7 +460,7 @@ const SeedingDistanceDepth = () => {
               type="number"
               placeholder='Seedingdistance in mm'
               value={minseedingdistance.distance}
-              onChange={e => setMinSeedingDistance(e.target.value)}
+              onChange={e => setMinSeedingDistance({ distance: Number(e.target.value) })}
               style={{
                 width: '100%',
                 padding: '8px',
