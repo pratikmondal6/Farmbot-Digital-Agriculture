@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import WorkArea from './workarea';
+import instance from '../utils/api';
 /*import Plant from './planttype';*/
 
 
@@ -80,24 +81,21 @@ const SeedingDistanceDepth = () => {
   };
 
   const saveToDatabase = async (valueType, value) => {
+   
     if (!plantType || !value) {
       alert('Please select a plant type and enter a value.');
       return;
     }
     try {
-      const response = await fetch('/api/plant/save', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plantType, valueType, value }),
-      });
-      const data = await response.json();
-      if (response.ok) {
+      const response = await instance.post('/api/plant/save',JSON.stringify({ plantType, valueType, value }));
+      const data = await response.data;
+      if (response.status) {
         alert('Saved successfully!');
       } else {
         alert(data.error || 'Save failed.');
       }
     } catch (err) {
-      alert('Network error.');
+      alert('Error saving data: ' + err.message);
     }
   };
 
