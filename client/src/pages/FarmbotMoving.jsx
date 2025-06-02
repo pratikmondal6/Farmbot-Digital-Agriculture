@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import { useNavigate } from 'react-router-dom';
-import { FaArrowUp, FaArrowDown, FaArrowLeft, FaArrowRight, FaArrowsAltV } from 'react-icons/fa';
+import { FaArrowUp, FaArrowDown, FaArrowLeft, FaArrowRight, FaHome } from 'react-icons/fa';
+
+const MOVE_UNITS = [1, 10, 100, 1000];
 
 const FarmbotMoving = () => {
   const navigate = useNavigate();
@@ -9,6 +11,8 @@ const FarmbotMoving = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPanel, setShowPanel] = useState(true);
+  const [moveUnit, setMoveUnit] = useState(10);
+  const [coord, setCoord] = useState({ x: '', y: '', z: '' });
 
   useEffect(() => {
     const token = sessionStorage.getItem("token");
@@ -22,10 +26,10 @@ const FarmbotMoving = () => {
     setLoading(true);
     setIsMoving(true);
     try {
-      const response = await axios.post('http://localhost:5000/farmbot/move', { direction });
-      console.log('Move success:', response.data);
+      const response = await api.post('/farmbot/move', { direction, amount: moveUnit });
+      const result = response.data;
+      console.log('Move success:', result);
     } catch (err) {
-      console.error('Move failed:', err);
       setError(err.response?.data?.message || 'Move failed. Please try again.');
     } finally {
       setLoading(false);
@@ -33,87 +37,217 @@ const FarmbotMoving = () => {
     }
   };
 
-  // Double-click tab to toggle panel
+  const handleHome = async () => {
+    setError('');
+    setLoading(true);
+    setIsMoving(true);
+    try {
+      const response = await api.post('/farmbot/home');
+      const result = response.data;
+      console.log('Home success:', result);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Move to home failed. Please try again.');
+    } finally {
+      setLoading(false);
+      setIsMoving(false);
+    }
+  };
+
   const handleTabDoubleClick = () => setShowPanel((prev) => !prev);
 
+  const handleCoordChange = (axis, value) => {
+    setCoord((prev) => ({ ...prev, [axis]: value }));
+  };
+
+  const handleMoveToCoord = async () => {
+    setError('');
+    setLoading(true);
+    setIsMoving(true);
+    try {
+      const x = Number(coord.x);
+      const y = Number(coord.y);
+      const z = Number(coord.z);
+      if (isNaN(x) || isNaN(y) || isNaN(z)) {
+        setError('Please enter valid numbers for X, Y, and Z.');
+        setLoading(false);
+        setIsMoving(false);
+        return;
+      }
+      const response = await api.post('/farmbot/move-to', { x, y, z });
+      const result = response.data;
+      console.log('Move to coordinate success:', result);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Move to coordinate failed. Please try again.');
+    } finally {
+      setLoading(false);
+      setIsMoving(false);
+    }
+  };
+
   return (
-    <div style={styles.page}>
-      <div style={styles.header}>FarmBot Moving</div>
-      <div
-        style={{
-          ...styles.tabButton,
-          backgroundColor: showPanel ? '#22c55e' : '#16a34a',
-        }}
-        onDoubleClick={handleTabDoubleClick}
-        title="Double-click to expand/collapse"
-      >
-        <span role="img" aria-label="move">🤖</span> Movement Panel
+    <>
+      <div style={styles.header}>
+        <span></span>
+        <button
+          style={{
+            ...styles.tabButton,
+            backgroundColor: showPanel ? '#22c55e' : '#16a34a',
+          }}
+          onClick={handleTabDoubleClick}
+          title="Expand/collapse movement panel"
+        >
+          FarmBot Movement Panel
+        </button>
       </div>
       {showPanel && (
-        <div style={styles.panel}>
-          {error && <p style={styles.error}>{error}</p>}
-          <div style={styles.moveGrid}>
-            {/* Z Up */}
-            <button
-              style={styles.zButton}
-              onClick={() => handleMove('z-up')}
-              disabled={loading}
-              title="Z Up"
-            >
-              <FaArrowsAltV style={{ transform: 'rotate(-90deg)' }} /> Z+
-            </button>
-            {/* XY Grid */}
-            <div style={styles.xyGrid}>
-              <button
-                style={styles.arrowButton}
-                onClick={() => handleMove('y-up')}
-                disabled={loading}
-                title="Y Up"
-              >
-                <FaArrowUp />
-              </button>
-              <div style={styles.middleRow}>
+        <div style={styles.fixedPanel}>
+          <div style={styles.panel}>
+            {/* Units Selection */}
+            <div style={styles.unitsPanel}>
+              <div style={styles.unitsLabel}>Select a unit:</div>
+              <div style={styles.unitsList}>
+                {MOVE_UNITS.map(unit => (
+                  <button
+                    key={unit}
+                    style={{
+                      ...styles.unitButton,
+                      backgroundColor: moveUnit === unit ? '#22c55e' : '#fff',
+                      color: moveUnit === unit ? '#fff' : '#14532d',
+                      borderColor: moveUnit === unit ? '#22c55e' : '#22c55e',
+                    }}
+                    onClick={() => setMoveUnit(unit)}
+                    disabled={loading}
+                  >
+                    {unit} mm
+                  </button>
+                ))}
+              </div>
+            </div>
+            {/* Movement Grid */}
+            <div style={styles.moveGrid}>
+              {/* Home Button */}
+              <div style={styles.homePanel}>
                 <button
-                  style={styles.arrowButton}
-                  onClick={() => handleMove('x-left')}
+                  style={styles.homeButton}
+                  onClick={handleHome}
                   disabled={loading}
-                  title="X Left"
+                  title="Move to Home Position"
                 >
-                  <FaArrowLeft />
-                </button>
-                <div style={styles.centerDot}></div>
-                <button
-                  style={styles.arrowButton}
-                  onClick={() => handleMove('x-right')}
-                  disabled={loading}
-                  title="X Right"
-                >
-                  <FaArrowRight />
+                  <FaHome style={{ marginRight: 8 }} /> Home
                 </button>
               </div>
-              <button
-                style={styles.arrowButton}
-                onClick={() => handleMove('y-down')}
-                disabled={loading}
-                title="Y Down"
-              >
-                <FaArrowDown />
-              </button>
+              {/* XY Grid */}
+              <div style={styles.xyGrid}>
+                <div style={styles.labelRow}>
+                  <span style={styles.axisLabel}>+Y</span>
+                </div>
+                <button
+                  style={styles.arrowButton}
+                  onClick={() => handleMove('y-up')}
+                  disabled={loading}
+                  title="Y Up"
+                >
+                  <FaArrowUp />
+                </button>
+                <div style={styles.middleRow}>
+                  <span style={styles.axisLabel}>-X</span>
+                  <button
+                    style={styles.arrowButton}
+                    onClick={() => handleMove('x-left')}
+                    disabled={loading}
+                    title="X Left"
+                  >
+                    <FaArrowLeft />
+                  </button>
+                  <div style={styles.centerDot}></div>
+                  <button
+                    style={styles.arrowButton}
+                    onClick={() => handleMove('x-right')}
+                    disabled={loading}
+                    title="X Right"
+                  >
+                    <FaArrowRight />
+                  </button>
+                  <span style={styles.axisLabel}>+X</span>
+                </div>
+                <button
+                  style={styles.arrowButton}
+                  onClick={() => handleMove('y-down')}
+                  disabled={loading}
+                  title="Y Down"
+                >
+                  <FaArrowDown />
+                </button>
+                <div style={styles.labelRow}>
+                  <span style={styles.axisLabel}>-Y</span>
+                </div>
+              </div>
+              {/* Z Axis Panel */}
+              <div style={styles.zPanel}>
+                <button
+                  style={styles.arrowButton}
+                  onClick={() => handleMove('z-up')}
+                  disabled={loading}
+                  title="Z Up"
+                >
+                  <div style={styles.axisLabel}>+Z</div>
+                  <FaArrowUp />
+                </button>
+                <button
+                  style={styles.arrowButton}
+                  onClick={() => handleMove('z-down')}
+                  disabled={loading}
+                  title="Z Down"
+                >
+                  <div style={styles.axisLabel}>-Z</div>
+                  <FaArrowDown />
+                </button>
+              </div>
             </div>
-            {/* Z Down */}
-            <button
-              style={styles.zButton}
-              onClick={() => handleMove('z-down')}
-              disabled={loading}
-              title="Z Down"
-            >
-              <FaArrowsAltV style={{ transform: 'rotate(90deg)' }} /> Z-
-            </button>
+            {/* Move to coordinate */}
+            <div style={styles.coordPanel}>
+              <div style={styles.coordLabel}>Move to coordinate:</div>
+              <div style={styles.coordInputs}>
+                <input
+                  style={styles.coordInput}
+                  type="number"
+                  placeholder="X"
+                  value={coord.x}
+                  onChange={e => handleCoordChange('x', e.target.value)}
+                  disabled={loading}
+                />
+                <input
+                  style={styles.coordInput}
+                  type="number"
+                  placeholder="Y"
+                  value={coord.y}
+                  onChange={e => handleCoordChange('y', e.target.value)}
+                  disabled={loading}
+                />
+                <input
+                  style={styles.coordInput}
+                  type="number"
+                  placeholder="Z"
+                  value={coord.z}
+                  onChange={e => handleCoordChange('z', e.target.value)}
+                  disabled={loading}
+                />
+                <button
+                  style={styles.coordButton}
+                  onClick={handleMoveToCoord}
+                  disabled={loading}
+                >
+                  Move
+                </button>
+              </div>
+            </div>
+            {/* Status messages INSIDE the panel */}
+            {error && <p style={styles.error}>{error}</p>}
+            {isMoving && <p style={styles.moving}>Moving...</p>}
           </div>
-          {isMoving && <p style={styles.moving}>Moving...</p>}
         </div>
       )}
-    </div>
+    </>
   );
 };
 
@@ -121,63 +255,152 @@ export default FarmbotMoving;
 
 // --- Styles ---
 const styles = {
-  page: {
-    minHeight: '100vh',
-    background: '#f8fafc',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-  },
   header: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
     width: '100%',
     background: '#16a34a',
     color: 'white',
     fontWeight: 'bold',
     fontSize: '2rem',
-    padding: '18px 0',
-    textAlign: 'center',
+    padding: '0 0 0 32px',
+    height: 72,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     letterSpacing: '1px',
     boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+    borderRadius: 0,
+    zIndex: 200,
+  },
+  fixedPanel: {
     position: 'fixed',
-    top: 0,
-    left: 0,
-    zIndex: 10,
+    top: 72, // below header
+    right: 24,
+    zIndex: 100,
+    minWidth: 480,
+    maxWidth: '90vw',
+    background: 'transparent',
+    paddingTop: 0,
+    boxSizing: 'border-box',
+  },
+  page: {
+    minHeight: '100vh',
+    background: 'transparent',
+    display: 'block',
   },
   tabButton: {
-    marginTop: 80,
-    marginBottom: 24,
-    padding: '12px 32px',
-    borderRadius: '8px 8px 0 0',
+    marginRight: 32,
+    padding: '10px 28px',
+    borderRadius: '8px',
     color: 'white',
     fontWeight: 'bold',
     fontSize: '1.1rem',
     cursor: 'pointer',
     userSelect: 'none',
+    border: 'none',
+    background: '#22c55e',
     boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
     transition: 'background 0.2s',
+    zIndex: 201,
   },
   panel: {
     background: '#ecfdf5',
     borderRadius: '0 0 16px 16px',
     boxShadow: '0 2px 8px rgba(0,0,0,0.10)',
-    padding: '32px 48px',
+    padding: '32px 32px 24px 32px',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    minWidth: 340,
-    marginBottom: 40,
+    minWidth: 480,
+    marginBottom: 0,
   },
   moveGrid: {
     display: 'flex',
     flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 32,
+    marginTop: 16,
+  },
+  homePanel: {
+    display: 'flex',
+    flexDirection: 'column',
     alignItems: 'center',
-    gap: 40,
+    justifyContent: 'flex-start',
+    marginRight: 16,
+    marginTop: 56, // aligns with +Z
+  },
+  unitsPanel: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    marginRight: 16,
+    marginTop: 0,
+    marginBottom: 8,
+  },
+  unitsLabel: {
+    fontWeight: 'bold',
+    color: '#14532d',
+    fontSize: '1rem',
+    marginBottom: 4,
+    marginLeft: 0,
+  },
+  unitsList: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  unitButton: {
+    padding: '6px 16px',
+    borderRadius: '6px',
+    border: '2px solid #22c55e',
+    fontWeight: 'bold',
+    fontSize: '1rem',
+    cursor: 'pointer',
+    transition: 'background 0.2s, color 0.2s',
   },
   xyGrid: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
+    gap: 8,
+    minWidth: 180,
+  },
+  zPanel: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    marginLeft: 24,
     gap: 12,
+    minWidth: 80,
+    marginTop: 0,
+  },
+  depthLabel: {
+    fontWeight: 'bold',
+    marginBottom: 8,
+    color: '#14532d',
+    fontSize: '1.1rem',
+    letterSpacing: '1px',
+  },
+  labelRow: {
+    height: 18,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  labelCol: {
+    width: 28,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  axisLabel: {
+    color: '#14532d',
+    fontWeight: 'bold',
+    fontSize: '1rem',
+    marginBottom: 2,
   },
   middleRow: {
     display: 'flex',
@@ -186,33 +409,22 @@ const styles = {
     gap: 12,
   },
   arrowButton: {
-    padding: '18px',
-    fontSize: '2rem',
-    borderRadius: '50%',
+    padding: '8px',
+    fontSize: '1.2rem',
+    borderRadius: '12px',
     border: '2px solid #22c55e',
     backgroundColor: '#fff',
     color: '#14532d',
     cursor: 'pointer',
-    minWidth: '56px',
-    minHeight: '56px',
-    boxShadow: '0 1px 4px rgba(34,197,94,0.08)',
-    transition: 'background 0.2s, color 0.2s',
-  },
-  zButton: {
-    padding: '12px 18px',
-    fontSize: '1.2rem',
-    borderRadius: '8px',
-    border: '2px solid #22c55e',
-    backgroundColor: '#e0ffe0',
-    color: '#14532d',
-    cursor: 'pointer',
-    minWidth: '60px',
-    minHeight: '60px',
+    minWidth: '64px',
+    minHeight: '64px',
     boxShadow: '0 1px 4px rgba(34,197,94,0.08)',
     transition: 'background 0.2s, color 0.2s',
     display: 'flex',
+    flexDirection: 'column',
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'center',
+    gap: 2,
   },
   centerDot: {
     width: '18px',
@@ -221,14 +433,69 @@ const styles = {
     backgroundColor: '#22c55e',
     margin: '0 10px',
   },
+  homeButton: {
+    marginTop: 0,
+    padding: '12px 32px',
+    borderRadius: '8px',
+    border: '2px solid #22c55e',
+    backgroundColor: '#fff',
+    color: '#14532d',
+    fontWeight: 'bold',
+    fontSize: '1.1rem',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    boxShadow: '0 1px 4px rgba(34,197,94,0.08)',
+    transition: 'background 0.2s, color 0.2s',
+  },
+  coordPanel: {
+    marginTop: 24,
+    width: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: 8,
+  },
+  coordLabel: {
+    fontWeight: 'bold',
+    color: '#14532d',
+    fontSize: '1rem',
+    marginBottom: 4,
+  },
+  coordInputs: {
+    display: 'flex',
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'center',
+  },
+  coordInput: {
+    width: 60,
+    padding: '6px 8px',
+    borderRadius: '4px',
+    border: '1px solid #22c55e',
+    fontSize: '1rem',
+  },
+  coordButton: {
+    padding: '6px 16px',
+    borderRadius: '6px',
+    border: '2px solid #22c55e',
+    fontWeight: 'bold',
+    fontSize: '1rem',
+    cursor: 'pointer',
+    backgroundColor: '#22c55e',
+    color: '#fff',
+    transition: 'background 0.2s, color 0.2s',
+  },
   error: {
     color: '#dc2626',
     fontWeight: 'bold',
     marginBottom: 12,
+    marginTop: 8,
   },
   moving: {
     color: '#14532d',
     fontWeight: 'bold',
-    marginTop: 16,
+    marginTop: 8,
   },
 };
