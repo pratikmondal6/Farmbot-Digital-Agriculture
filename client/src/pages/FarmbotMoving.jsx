@@ -21,22 +21,6 @@ const FarmbotMoving = () => {
     }
   }, [navigate]);
 
-  const handleHome = async () => {
-    setError('');
-    setLoading(true);
-    setIsMoving(true);
-    try {
-      const response = await api.post('/farmbot/home');
-      const result = response.data;
-      console.log('Home success:', result);
-    } catch (err) {
-      setError(err.response?.data?.message || 'Move to home failed. Please try again.');
-    } finally {
-      setLoading(false);
-      setIsMoving(false);
-    }
-  };
-
   const handleTabDoubleClick = () => setShowPanel((prev) => !prev);
 
   const handleCoordChange = (axis, value) => {
@@ -55,12 +39,7 @@ const FarmbotMoving = () => {
         setIsMoving(false);
         return;
       }
-      const token = sessionStorage.getItem("token");
-      const response = await api.post(
-        '/move-farmbot', // or your actual backend route
-        { x, y, z },
-        { headers: { 'auth-token': token } }
-      );
+      const response = await api.post('/move', { x, y, z });
       const result = response.data;
       console.log('Move to coordinate success:', result);
     } catch (err) {
@@ -126,7 +105,7 @@ const FarmbotMoving = () => {
               <div style={styles.homePanel}>
                 <button
                   style={styles.homeButton}
-                  onClick={handleHome}
+                  onClick={() => handleMoveToCoord({ x: 0, y: 0, z: 0 })}
                   disabled={loading}
                   title="Move to Home Position"
                 >
