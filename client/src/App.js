@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import SeedingDistanceDepth from './components/seedingdistancedepth.jsx';
+import AddPlanttype from './pages/AddPlanttype.jsx';
 import FarmBotDashboard from './pages/FarmBotDashboard';
 
 import './App.css';
@@ -28,7 +28,7 @@ function App() {
                 <Route path="/" element={<LoginPage setIsLoggedIn={setIsLoggedIn} />} />
                 <Route path="/login" element={<LoginPage setIsLoggedIn={setIsLoggedIn} />} />
                 {isLoggedIn && <Route path="/dashboard" element={<FarmBotDashboard />} />}
-                {isLoggedIn && <Route path="/seeding/parameters" element={<SeedingDistanceDepth />} />}
+                {isLoggedIn && <Route path="/seeding/parameters" element={<AddPlanttype />} />}
                 {isLoggedIn && <Route path="/seeding/workarea" element={<WorkArea />} />}
                 {isLoggedIn && <Route path="/settings" element={<Settings/>}/>}
                 <Route path="*" element={<NotFoundPage/>}/>
