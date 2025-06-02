@@ -21,22 +21,6 @@ const FarmbotMoving = () => {
     }
   }, [navigate]);
 
-  const handleMove = async (direction) => {
-    setError('');
-    setLoading(true);
-    setIsMoving(true);
-    try {
-      const response = await api.post('/farmbot/move', { direction, amount: moveUnit });
-      const result = response.data;
-      console.log('Move success:', result);
-    } catch (err) {
-      setError(err.response?.data?.message || 'Move failed. Please try again.');
-    } finally {
-      setLoading(false);
-      setIsMoving(false);
-    }
-  };
-
   const handleHome = async () => {
     setError('');
     setLoading(true);
@@ -59,21 +43,24 @@ const FarmbotMoving = () => {
     setCoord((prev) => ({ ...prev, [axis]: value }));
   };
 
-  const handleMoveToCoord = async () => {
+  const handleMoveToCoord = async (customCoord) => {
     setError('');
     setLoading(true);
     setIsMoving(true);
     try {
-      const x = Number(coord.x);
-      const y = Number(coord.y);
-      const z = Number(coord.z);
+      const { x, y, z } = customCoord || coord;
       if (isNaN(x) || isNaN(y) || isNaN(z)) {
         setError('Please enter valid numbers for X, Y, and Z.');
         setLoading(false);
         setIsMoving(false);
         return;
       }
-      const response = await api.post('/farmbot/move-to', { x, y, z });
+      const token = sessionStorage.getItem("token");
+      const response = await api.post(
+        '/move-farmbot', // or your actual backend route
+        { x, y, z },
+        { headers: { 'auth-token': token } }
+      );
       const result = response.data;
       console.log('Move to coordinate success:', result);
     } catch (err) {
@@ -82,6 +69,16 @@ const FarmbotMoving = () => {
       setLoading(false);
       setIsMoving(false);
     }
+  };
+
+  const handleMoveRelative = (axis, delta) => {
+    const x = Number(coord.x) || 0;
+    const y = Number(coord.y) || 0;
+    const z = Number(coord.z) || 0;
+    let newCoord = { x, y, z };
+    newCoord[axis] += delta;
+    setCoord(newCoord);
+    handleMoveToCoord(newCoord);
   };
 
   return (
@@ -143,7 +140,7 @@ const FarmbotMoving = () => {
                 </div>
                 <button
                   style={styles.arrowButton}
-                  onClick={() => handleMove('y-up')}
+                  onClick={() => handleMoveRelative('y', moveUnit)} // for +Y
                   disabled={loading}
                   title="Y Up"
                 >
@@ -153,7 +150,7 @@ const FarmbotMoving = () => {
                   <span style={styles.axisLabel}>-X</span>
                   <button
                     style={styles.arrowButton}
-                    onClick={() => handleMove('x-left')}
+                    onClick={() => handleMoveRelative('x', -moveUnit)} // for -X
                     disabled={loading}
                     title="X Left"
                   >
@@ -162,7 +159,7 @@ const FarmbotMoving = () => {
                   <div style={styles.centerDot}></div>
                   <button
                     style={styles.arrowButton}
-                    onClick={() => handleMove('x-right')}
+                    onClick={() => handleMoveRelative('x', moveUnit)}  // for +X
                     disabled={loading}
                     title="X Right"
                   >
@@ -172,7 +169,7 @@ const FarmbotMoving = () => {
                 </div>
                 <button
                   style={styles.arrowButton}
-                  onClick={() => handleMove('y-down')}
+                  onClick={() => handleMoveRelative('y', -moveUnit)} // for -Y
                   disabled={loading}
                   title="Y Down"
                 >
@@ -186,7 +183,7 @@ const FarmbotMoving = () => {
               <div style={styles.zPanel}>
                 <button
                   style={styles.arrowButton}
-                  onClick={() => handleMove('z-up')}
+                  onClick={() => handleMoveRelative('z', moveUnit)} // for +Z
                   disabled={loading}
                   title="Z Up"
                 >
@@ -195,7 +192,7 @@ const FarmbotMoving = () => {
                 </button>
                 <button
                   style={styles.arrowButton}
-                  onClick={() => handleMove('z-down')}
+                  onClick={() => handleMoveRelative('z', -moveUnit)} // for -Z
                   disabled={loading}
                   title="Z Down"
                 >
