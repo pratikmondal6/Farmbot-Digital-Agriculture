@@ -1,0 +1,12 @@
+services:
+  easyfarm:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+      - "5000:5000"
+    environment:
+      JWT_PRIVATE_KEY: Digital-Farming-Project
+      DB_URI: mongodb+srv://schwar:Sers1234@cluster0.xqbrnth.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+      FARM_BOT_URL: https://my.farm.bot
