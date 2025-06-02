@@ -1,0 +1,52 @@
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem 1.5rem;
+    background-color: #16a34a;
+    color: white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    min-height: 60px;
+    font-family: sans-serif;
+}
+
+.header-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.header-status-bar {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.header-item {
+    display: flex;
+    align-items: center;  /* Ensures icon and text are vertically aligned */
+    gap: 0.4rem;
+    cursor: pointer;
+    transition: transform 0.2s, background-color 0.2s;
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+}
+
+.header-item:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
+}
+
+.status-dot {
+    font-size: 1.2rem;
+    color: #b2f5ea;
+    line-height: 1;
+}
+
+.header-item svg {
+    width: 20px;  /* Consistent icon size */
+    height: 20px;
+    vertical-align: middle;  /* Align with text */
+}

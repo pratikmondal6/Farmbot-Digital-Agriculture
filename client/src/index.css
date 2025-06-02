@@ -19,6 +19,7 @@ code {
 .settings-container {
   position: relative;
   width: 100%;
+  padding-top: 7px;
 }
 
 .settings-icon {
