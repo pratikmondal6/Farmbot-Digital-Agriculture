@@ -110,7 +110,10 @@ const FarmbotMoving = () => {
               <div style={styles.homePanel}>
                 <button
                   style={styles.homeButton}
-                  onClick={() => handleMoveToCoord({ x: 0, y: 0, z: 0 })}
+                  onClick={() => {
+                    setCoord({ x: 0, y: 0, z: 0 });
+                    handleMoveToCoord({ x: 0, y: 0, z: 0 });
+                  }}
                   disabled={loading}
                   title="Move to Home Position"
                 >
