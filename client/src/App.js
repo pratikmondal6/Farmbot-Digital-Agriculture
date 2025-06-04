@@ -8,6 +8,7 @@ import WorkArea from "./components/workarea";
 import LoginPage from "./pages/LoginPage";
 import Settings from "./pages/Setting";
 import NotFoundPage from './pages/NotFoundPage.jsx';
+import FieldMap from "./components/FieldMap";
 
 function App() {
     const [isLoggedIn, setIsLoggedIn] = useState(!!sessionStorage.getItem("token"));
@@ -32,6 +33,7 @@ function App() {
                 {isLoggedIn && <Route path="/seeding/workarea" element={<WorkArea />} />}
                 {isLoggedIn && <Route path="/settings" element={<Settings/>}/>}
                 <Route path="*" element={<NotFoundPage/>}/>
+                <Route path="/fieldmap" element={<FieldMap />} />
             </Routes>
         </Router>
     );

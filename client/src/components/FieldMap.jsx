@@ -1,11 +1,65 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import PropTypes from 'prop-types';
+import '../utils/styles/field-map.css';
 
-const FieldMap = ({ widthInCm = 800, heightInCm = 400 }) => {
+const ActionModal = ({position, onMove}) => {
+    const [z, setZ] = useState(0);
+
+    const handleZChange = (e) => {
+        const value = Number(e.target.value);
+        if (value >= 0 && value <= 100) {
+            setZ(value);
+        }
+    };
+
+    return (
+        <div className="action-modal" style={{left: position.x, top: position.y}}>
+            <div className="action-modal-content">
+                <div className="action-modal-input-container">
+                    <label className="action-modal-label">X:</label>
+                    <input
+                        type="number"
+                        value={position.cmX}
+                        disabled
+                        className="action-modal-input"
+                    />
+                </div>
+                <div className="action-modal-input-container">
+                    <label className="action-modal-label">Y:</label>
+                    <input
+                        type="number"
+                        value={position.cmY}
+                        disabled
+                        className="action-modal-input"
+                    />
+                </div>
+                <div className="action-modal-input-container">
+                    <label className="action-modal-label">Z:</label>
+                    <input
+                        type="number"
+                        value={z}
+                        onChange={handleZChange}
+                        min={0}
+                        max={100}
+                        className="action-modal-input"
+                    />
+                </div>
+                <button
+                    onClick={() => onMove(position.cmX, position.cmY, z)}
+                    className="action-modal-move-btn"
+                >
+                    Move
+                </button>
+            </div>
+        </div>
+    );
+};
+
+const FieldMap = ({widthInCm = 1800, heightInCm = 1400}) => {
     const containerWidth = 1000;
     const containerHeight = 500;
     const margin = 2;
-    const gridSpacing = 30;
+    const gridSpacing = 60;
     const [hoverPoint, setHoverPoint] = useState(null);
     const [selectedPoint, setSelectedPoint] = useState(null);
 
@@ -58,13 +112,13 @@ const FieldMap = ({ widthInCm = 800, heightInCm = 400 }) => {
         if (cmX >= 0 && cmX <= widthInCm && cmY >= 0 && cmY <= heightInCm) {
             const pixelX = x;
             const pixelY = y;
-            // Calculate if we're near the left edge
             const isNearLeft = pixelX < containerWidth * 0.2;
             const isNearTop = pixelY < containerHeight * 0.2;
 
             setHoverPoint({
                 x: cmX,
                 y: cmY,
+                z: 0,
                 pixelX,
                 pixelY,
                 isNearLeft,
@@ -73,10 +127,31 @@ const FieldMap = ({ widthInCm = 800, heightInCm = 400 }) => {
         } else {
             setHoverPoint(null);
         }
+
+        setSelectedPoint(null);
     };
 
     const handleMouseLeave = () => {
         setHoverPoint(null);
+    };
+
+    const handleClick = (event) => {
+        if (hoverPoint) {
+            const svgRect = event.currentTarget.getBoundingClientRect();
+            setSelectedPoint({
+                x: event.clientX,
+                y: event.clientY,
+                cmX: hoverPoint.x,
+                cmY: hoverPoint.y,
+                cmZ: 0,
+            });
+            setHoverPoint(null);
+        }
+    };
+
+    const handleMove = (x, y) => {
+        console.log(`Moving to position (${x}, ${y})`);
+        setSelectedPoint(null);
     };
 
     return (
@@ -87,12 +162,7 @@ const FieldMap = ({ widthInCm = 800, heightInCm = 400 }) => {
                 viewBox={`${-marginPx} ${-marginPx} ${containerWidth + (2 * marginPx)} ${containerHeight + (2 * marginPx)}`}
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
-                onClick={}
-                style={{
-                    border: '2px solid #000000',
-                    borderRadius: '2px',
-                    backgroundColor: '#fff'
-                }}
+                onClick={handleClick}
             >
                 {drawGrid()}
 
@@ -126,6 +196,13 @@ const FieldMap = ({ widthInCm = 800, heightInCm = 400 }) => {
                     </>
                 )}
             </svg>
+
+            {selectedPoint && (
+                <ActionModal
+                    position={selectedPoint}
+                    onMove={handleMove}
+                />
+            )}
         </div>
     );
 };

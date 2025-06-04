@@ -1,6 +1,7 @@
 import React, {useState, useRef, useEffect} from "react";
 import {FiSettings, FiChevronRight} from "react-icons/fi";
 import FarmbotConfig from "./FarmbotConfig";
+import '../utils/styles/settings.css';
 
 function Settings() {
     const [showSetting, setShowSetting] = useState(false);
