@@ -19,7 +19,7 @@ const ActionModal = ({position, onMove}) => {
                     <label className="action-modal-label">X:</label>
                     <input
                         type="number"
-                        value={position.cmX}
+                        value={position.meterX}
                         disabled
                         className="action-modal-input"
                     />
@@ -28,7 +28,7 @@ const ActionModal = ({position, onMove}) => {
                     <label className="action-modal-label">Y:</label>
                     <input
                         type="number"
-                        value={position.cmY}
+                        value={position.meterY}
                         disabled
                         className="action-modal-input"
                     />
@@ -45,7 +45,7 @@ const ActionModal = ({position, onMove}) => {
                     />
                 </div>
                 <button
-                    onClick={() => onMove(position.cmX, position.cmY, z)}
+                    onClick={() => onMove(position.meterX, position.meterY, z)}
                     className="action-modal-move-btn"
                 >
                     Move
@@ -55,22 +55,22 @@ const ActionModal = ({position, onMove}) => {
     );
 };
 
-const FieldMap = ({widthInCm = 1800, heightInCm = 1400}) => {
-    const containerWidth = 1000;
-    const containerHeight = 500;
+const FieldMap = ({widthInMeter = 1800, heightInMeter = 1400}) => {
+    const containerWidth = 1200;
+    const containerHeight = 750;
     const margin = 2;
     const gridSpacing = 60;
     const [hoverPoint, setHoverPoint] = useState(null);
     const [selectedPoint, setSelectedPoint] = useState(null);
 
-    const scaleX = containerWidth / widthInCm;
-    const scaleY = containerHeight / heightInCm;
+    const scaleX = containerWidth / widthInMeter;
+    const scaleY = containerHeight / heightInMeter;
     const marginPx = margin * scaleX;
 
     const drawGrid = () => {
         const elements = [];
 
-        for (let y = 0; y <= heightInCm; y += gridSpacing) {
+        for (let y = 0; y <= heightInMeter; y += gridSpacing) {
             elements.push(
                 <line
                     key={`h-${y}`}
@@ -84,7 +84,7 @@ const FieldMap = ({widthInCm = 1800, heightInCm = 1400}) => {
             );
         }
 
-        for (let x = 0; x <= widthInCm; x += gridSpacing) {
+        for (let x = 0; x <= widthInMeter; x += gridSpacing) {
             elements.push(
                 <line
                     key={`v-${x}`}
@@ -106,18 +106,18 @@ const FieldMap = ({widthInCm = 1800, heightInCm = 1400}) => {
         const x = event.clientX - svgRect.left - marginPx;
         const y = event.clientY - svgRect.top - marginPx;
 
-        const cmX = Math.floor(x / scaleX);
-        const cmY = Math.floor((containerHeight - y) / scaleY);
+        const meterX = Math.floor(x / scaleX);
+        const meterY = Math.floor((containerHeight - y) / scaleY);
 
-        if (cmX >= 0 && cmX <= widthInCm && cmY >= 0 && cmY <= heightInCm) {
+        if (meterX >= 0 && meterX <= widthInMeter && meterY >= 0 && meterY <= heightInMeter) {
             const pixelX = x;
             const pixelY = y;
             const isNearLeft = pixelX < containerWidth * 0.2;
             const isNearTop = pixelY < containerHeight * 0.2;
 
             setHoverPoint({
-                x: cmX,
-                y: cmY,
+                x: meterX,
+                y: meterY,
                 z: 0,
                 pixelX,
                 pixelY,
@@ -141,9 +141,9 @@ const FieldMap = ({widthInCm = 1800, heightInCm = 1400}) => {
             setSelectedPoint({
                 x: event.clientX,
                 y: event.clientY,
-                cmX: hoverPoint.x,
-                cmY: hoverPoint.y,
-                cmZ: 0,
+                meterX: hoverPoint.x,
+                meterY: hoverPoint.y,
+                meterZ: 0,
             });
             setHoverPoint(null);
         }
@@ -208,8 +208,8 @@ const FieldMap = ({widthInCm = 1800, heightInCm = 1400}) => {
 };
 
 FieldMap.propTypes = {
-    widthInCm: PropTypes.number,
-    heightInCm: PropTypes.number
+    widthInMeter: PropTypes.number,
+    heightInMeter: PropTypes.number
 };
 
 export default FieldMap;
