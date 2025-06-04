@@ -32,25 +32,18 @@ const FarmbotMoving = () => {
     setLoading(true);
     setIsMoving(true);
     try {
+      // Ensure numbers are sent
       const { x, y, z } = customCoord || coord;
-      console.log('Raw values:', x, y, z);
-      // Check for empty fields
-      if (x === '' || y === '' || z === '') {
-        setError('Please enter values for X, Y, and Z.');
-        setLoading(false);
-        setIsMoving(false);
-        return;
-      }
       const nx = Number(x);
       const ny = Number(y);
       const nz = Number(z);
-      console.log('Parsed numbers:', nx, ny, nz);
       if (isNaN(nx) || isNaN(ny) || isNaN(nz)) {
         setError('Please enter valid numbers for X, Y, and Z.');
         setLoading(false);
         setIsMoving(false);
         return;
       }
+      console.log('Sending to backend:', { x: nx, y: ny, z: nz });
       const response = await api.post('/move', { x: nx, y: ny, z: nz });
       const result = response.data;
       console.log('Move to coordinate success:', result);
@@ -79,12 +72,21 @@ const FarmbotMoving = () => {
         <button
           style={{
             ...styles.tabButton,
+            width: 48,
+            height: 48,
+            minWidth: 48,
+            minHeight: 48,
+            marginRight: 16,
+            padding: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             backgroundColor: showPanel ? '#22c55e' : '#16a34a',
           }}
           onClick={handleTabDoubleClick}
           title="Expand/collapse movement panel"
         >
-          FarmBot Movement Panel
+          <span role="img" aria-label="control-panel" style={{ fontSize: 24 }}>🕹️</span>
         </button>
       </div>
       {showPanel && (
@@ -113,20 +115,6 @@ const FarmbotMoving = () => {
             </div>
             {/* Movement Grid */}
             <div style={styles.moveGrid}>
-              {/* Home Button */}
-              <div style={styles.homePanel}>
-                <button
-                  style={styles.homeButton}
-                  onClick={() => {
-                    setCoord({ x: 0, y: 0, z: 0 });
-                    handleMoveToCoord({ x: 0, y: 0, z: 0 });
-                  }}
-                  disabled={loading}
-                  title="Move to Home Position"
-                >
-                  <FaHome style={{ marginRight: 8 }} /> Home
-                </button>
-              </div>
               {/* XY Grid */}
               <div style={styles.xyGrid}>
                 <div style={styles.labelRow}>
@@ -193,6 +181,26 @@ const FarmbotMoving = () => {
                   <div style={styles.axisLabel}>-Z</div>
                   <FaArrowDown />
                 </button>
+                {/* Home button directly under Z arrows */}
+                <button
+                  style={{
+                    ...styles.arrowButton,
+                    borderRadius: '50%',
+                    padding: 8,
+                    fontSize: '1.2rem',
+                    minWidth: 40,
+                    minHeight: 40,
+                    marginTop: 12 // add a little space below the -Z arrow
+                  }}
+                  onClick={() => {
+                    setCoord({ x: 0, y: 0, z: 0 });
+                    handleMoveToCoord({ x: 0, y: 0, z: 0 });
+                  }}
+                  disabled={loading}
+                  title="Move to Home Position"
+                >
+                  <FaHome />
+                </button>
               </div>
             </div>
             {/* Move to coordinate */}
@@ -225,7 +233,7 @@ const FarmbotMoving = () => {
                 />
                 <button
                   style={styles.coordButton}
-                  onClick={() => handleMoveToCoord()}
+                  onClick={handleMoveToCoord}
                   disabled={loading}
                 >
                   Move
@@ -268,10 +276,10 @@ const styles = {
   fixedPanel: {
     position: 'fixed',
     top: 72, // below header
-    right: 24,
+    right: 0, // flush with right edge
     zIndex: 100,
-    minWidth: 480,
-    maxWidth: '90vw',
+    minWidth: 320,
+    maxWidth: '60vw',
     background: 'transparent',
     paddingTop: 0,
     boxSizing: 'border-box',
@@ -282,9 +290,15 @@ const styles = {
     display: 'block',
   },
   tabButton: {
-    marginRight: 32,
-    padding: '10px 28px',
-    borderRadius: '8px',
+    width: 48,
+    height: 48,
+    minWidth: 48,
+    minHeight: 48,
+    marginRight: 16,
+    padding: 0,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
     color: 'white',
     fontWeight: 'bold',
     fontSize: '1.1rem',
@@ -300,27 +314,19 @@ const styles = {
     background: '#ecfdf5',
     borderRadius: '0 0 16px 16px',
     boxShadow: '0 2px 8px rgba(0,0,0,0.10)',
-    padding: '32px 32px 24px 32px',
+    padding: '16px 16px 12px 16px', // was 32px 32px 24px 32px
     display: 'flex',
     flexDirection: 'column',
-    alignItems: 'center',
-    minWidth: 480,
+    alignItems: 'flex-end', // align content to the right
+    minWidth: 320, // was 480
     marginBottom: 0,
   },
   moveGrid: {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 32,
+    gap: 12, // was 32, now reduced
     marginTop: 16,
-  },
-  homePanel: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    marginRight: 16,
-    marginTop: 56, // aligns with +Z
   },
   unitsPanel: {
     display: 'flex',
@@ -344,11 +350,11 @@ const styles = {
     gap: 8,
   },
   unitButton: {
-    padding: '6px 16px',
+    padding: '4px 10px',
     borderRadius: '6px',
     border: '2px solid #22c55e',
     fontWeight: 'bold',
-    fontSize: '1rem',
+    fontSize: '0.9rem',
     cursor: 'pointer',
     transition: 'background 0.2s, color 0.2s',
   },
@@ -390,7 +396,7 @@ const styles = {
   axisLabel: {
     color: '#14532d',
     fontWeight: 'bold',
-    fontSize: '1rem',
+    fontSize: '0.8rem', // smaller text
     marginBottom: 2,
   },
   middleRow: {
@@ -400,15 +406,15 @@ const styles = {
     gap: 12,
   },
   arrowButton: {
-    padding: '8px',
-    fontSize: '1.2rem',
-    borderRadius: '12px',
+    padding: '4px',
+    fontSize: '1rem',
+    borderRadius: '8px',
     border: '2px solid #22c55e',
     backgroundColor: '#fff',
     color: '#14532d',
     cursor: 'pointer',
-    minWidth: '64px',
-    minHeight: '64px',
+    minWidth: '40px',
+    minHeight: '40px',
     boxShadow: '0 1px 4px rgba(34,197,94,0.08)',
     transition: 'background 0.2s, color 0.2s',
     display: 'flex',
@@ -461,11 +467,11 @@ const styles = {
     alignItems: 'center',
   },
   coordInput: {
-    width: 100, // was 60
-    padding: '6px 8px',
+    width: 60,
+    padding: '4px 6px', // slightly smaller
     borderRadius: '4px',
     border: '1px solid #22c55e',
-    fontSize: '1rem',
+    fontSize: '0.85rem',
   },
   coordButton: {
     padding: '6px 16px',
