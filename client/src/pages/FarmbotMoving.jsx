@@ -32,14 +32,19 @@ const FarmbotMoving = () => {
     setLoading(true);
     setIsMoving(true);
     try {
+      // Ensure numbers are sent
       const { x, y, z } = customCoord || coord;
-      if (isNaN(x) || isNaN(y) || isNaN(z)) {
+      const nx = Number(x);
+      const ny = Number(y);
+      const nz = Number(z);
+      if (isNaN(nx) || isNaN(ny) || isNaN(nz)) {
         setError('Please enter valid numbers for X, Y, and Z.');
         setLoading(false);
         setIsMoving(false);
         return;
       }
-      const response = await api.post('/move', { x, y, z });
+      console.log('Sending to backend:', { x: nx, y: ny, z: nz });
+      const response = await api.post('/move', { x: nx, y: ny, z: nz });
       const result = response.data;
       console.log('Move to coordinate success:', result);
     } catch (err) {
