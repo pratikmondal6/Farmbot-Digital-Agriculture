@@ -4,6 +4,7 @@ import Settings from "./Setting";
 import '../farmbot-dashboard.css';
 import '../index.css';
 
+
 export default function FarmBotDashboard() {
     return (
         <div className="dashboard-container">
@@ -35,11 +36,11 @@ export default function FarmBotDashboard() {
             <div className="dashboard-layout">
                 {/* Sidebar */}
                 <aside className="dashboard-sidebar">
+
                     <nav className="sidebar-nav">
-                        <a href="#" className="nav-link-active">🏠 Dashboard</a>
-                        {/*<a href="#" className="nav-link">🌱 Seeding</a>*/}
-                        {/*<a href="#" className="nav-link">💧 Watering</a>*/}
-                        <a href="#" className="nav-link">📊 Monitor</a>
+                        <Link to="/dashboard" className="nav-link-active">🏠 Dashboard</Link>
+                        <Link to="/monitor" className="nav-link">📊 Monitor</Link>
+                        <Link to="/seeding/jobs" className="nav-link">🌱 Seeding Jobs</Link> {/* ✅ NEU */}
                     </nav>
                 </aside>
 

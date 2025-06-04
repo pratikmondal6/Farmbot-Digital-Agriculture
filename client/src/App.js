@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import AddPlanttype from './pages/AddPlanttype.jsx';
 import FarmBotDashboard from './pages/FarmBotDashboard';
+import SeedingJobManager from './pages/SeedingJobManager';
+
 
 import './App.css';
 import WorkArea from "./components/workarea";
@@ -32,6 +34,7 @@ function App() {
                 {isLoggedIn && <Route path="/seeding/workarea" element={<WorkArea />} />}
                 {isLoggedIn && <Route path="/settings" element={<Settings/>}/>}
                 <Route path="*" element={<NotFoundPage/>}/>
+                <Route path="/seeding/jobs" element={<SeedingJobManager />} />
             </Routes>
         </Router>
     );
