@@ -31,21 +31,41 @@ const config = {
  * @returns {PlantPosition} - Validated plant position
  */
 function validatePlantData(plant) {
-    // Ensure required numeric coordinates
-    if (typeof plant.x !== 'number' || typeof plant.y !== 'number') {
-        throw new Error(`Invalid coordinates for plant ${plant.id}`);
-    }
+    // For plants from database that might not have coordinates yet
+    const x = typeof plant.x === 'number' ? plant.x : Math.floor(Math.random() * 1000);
+    const y = typeof plant.y === 'number' ? plant.y : Math.floor(Math.random() * 1000);
 
-    // Ensure required properties with defaults
+    // Use seeding_depth as z coordinate if available
+    const z = typeof plant.seeding_depth === 'number' ? plant.seeding_depth : 
+              (typeof plant.z === 'number' ? plant.z : 0);
+
+    // Get plant ID (either _id from database or id from request)
+    const id = plant._id || plant.id;
+
+    // Get plant name (either plant_type from database or name from request)
+    const name = plant.plant_type || plant.name || `Plant ${id}`;
+
+    // Get minimal_distance if available
+    const minimal_distance = typeof plant.minimal_distance === 'number' ? plant.minimal_distance : 0;
+
+    // Get planted_at date if available
+    const planted_at = plant.planted_at || new Date().toISOString();
+
+    // Generate openfarm_slug from plant name if not available
+    const openfarm_slug = plant.openfarm_slug || name.toLowerCase().replace(/\s+/g, '_');
+
     return {
-        x: plant.x,
-        y: plant.y,
-        z: typeof plant.z === 'number' ? plant.z : 0,
-        id: plant.id,
-        name: plant.name || `Plant ${plant.id}`,
+        x,
+        y,
+        z,
+        id,
+        name,
+        minimal_distance,
         meta: {
-            planted_at: plant.planted_at || null,
-            openfarm_slug: plant.openfarm_slug || null
+            planted_at,
+            openfarm_slug,
+            seeding_depth: z,
+            minimal_distance
         }
     };
 }
@@ -76,18 +96,8 @@ async function getLocalPlants() {
     try {
         const plants = await Plant.find({});
 
-        // Convert database plants to position format
-        const positions = plants.map(plant => ({
-            x: Math.random() * 1000, // Mock x position (replace with real data)
-            y: Math.random() * 1000, // Mock y position (replace with real data)
-            z: 0,                    // Mock z position (replace with real data)
-            id: plant._id,
-            name: plant.plant_type,
-            meta: {
-                planted_at: new Date().toISOString(),
-                openfarm_slug: plant.plant_type.toLowerCase().replace(/\s+/g, '_')
-            }
-        }));
+        // Convert database plants to position format using validatePlantData
+        const positions = plants.map(plant => validatePlantData(plant));
 
         return positions;
     } catch (error) {
@@ -200,13 +210,22 @@ async function analyzePlantData() {
         // Get plant type statistics
         const typeStats = getPlantTypeStats(plantPositions);
 
+        // Get distance recommendations for each plant type
+        const distanceRecommendations = {};
+        for (const plant of plantPositions) {
+            if (plant.minimal_distance && !distanceRecommendations[plant.name]) {
+                distanceRecommendations[plant.name] = plant.minimal_distance;
+            }
+        }
+
         return {
             plantCount: plantPositions.length,
             minDistance: distance,
             closestPair: pair,
             positions: plantPositions,
             calculationMode: config.includeZAxis ? '3D' : '2D',
-            typeStats
+            typeStats,
+            distanceRecommendations
         };
     } catch (error) {
         console.error("Error analyzing plant data:", error);
@@ -265,6 +284,261 @@ router.get('/minimum', async (req, res) => {
             minDistance: distance,
             closestPair: pair
         });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
+ * GET /api/seedistance/recommendations
+ * Gets distance recommendations for all plant types
+ */
+router.get('/recommendations', async (req, res) => {
+    try {
+        const plants = await Plant.find({});
+        const recommendations = {};
+
+        plants.forEach(plant => {
+            if (plant.minimal_distance) {
+                recommendations[plant.plant_type] = plant.minimal_distance;
+            }
+        });
+
+        res.json(recommendations);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
+ * GET /api/seedistance/recommendation/:plantType
+ * Gets distance recommendation for a specific plant type
+ */
+router.get('/recommendation/:plantType', async (req, res) => {
+    try {
+        const { plantType } = req.params;
+        const plant = await Plant.findOne({ plant_type: plantType });
+
+        if (!plant) {
+            return res.status(404).json({ error: 'Plant type not found' });
+        }
+
+        res.json({
+            plantType: plant.plant_type,
+            minimalDistance: plant.minimal_distance || 0
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
+ * GET /api/seedistance/depths
+ * Gets seeding depths for all plant types
+ */
+router.get('/depths', async (req, res) => {
+    try {
+        const plants = await Plant.find({});
+        const depths = {};
+
+        plants.forEach(plant => {
+            if (plant.seeding_depth !== undefined) {
+                depths[plant.plant_type] = plant.seeding_depth;
+            }
+        });
+
+        res.json(depths);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
+ * GET /api/seedistance/depth/:plantType
+ * Gets seeding depth for a specific plant type
+ */
+router.get('/depth/:plantType', async (req, res) => {
+    try {
+        const { plantType } = req.params;
+        const plant = await Plant.findOne({ plant_type: plantType });
+
+        if (!plant) {
+            return res.status(404).json({ error: 'Plant type not found' });
+        }
+
+        res.json({
+            plantType: plant.plant_type,
+            seedingDepth: plant.seeding_depth || 0
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
+ * POST /api/seedistance/check-spacing
+ * Checks if plants are properly spaced based on their minimal_distance
+ */
+router.post('/check-spacing', async (req, res) => {
+    try {
+        const plantPositions = await getLocalPlants();
+        const violations = [];
+
+        // Check each pair of plants
+        for (let i = 0; i < plantPositions.length; i++) {
+            for (let j = i + 1; j < plantPositions.length; j++) {
+                const plant1 = plantPositions[i];
+                const plant2 = plantPositions[j];
+                const distance = calculateDistance(plant1, plant2);
+
+                // Get the larger of the two minimal distances
+                const minRequired = Math.max(
+                    plant1.minimal_distance || 0,
+                    plant2.minimal_distance || 0
+                );
+
+                if (minRequired > 0 && distance < minRequired) {
+                    violations.push({
+                        plant1: {
+                            id: plant1.id,
+                            name: plant1.name,
+                            position: { x: plant1.x, y: plant1.y, z: plant1.z }
+                        },
+                        plant2: {
+                            id: plant2.id,
+                            name: plant2.name,
+                            position: { x: plant2.x, y: plant2.y, z: plant2.z }
+                        },
+                        distance,
+                        minRequired,
+                        deficit: minRequired - distance
+                    });
+                }
+            }
+        }
+
+        res.json({
+            violations,
+            totalViolations: violations.length,
+            plantsChecked: plantPositions.length
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
+ * POST /api/seedistance/update-position
+ * Updates the position of a plant in the database
+ */
+router.post('/update-position', async (req, res) => {
+    try {
+        const { plantId, x, y, z } = req.body;
+
+        if (!plantId) {
+            return res.status(400).json({ error: 'Plant ID is required' });
+        }
+
+        if (typeof x !== 'number' || typeof y !== 'number') {
+            return res.status(400).json({ error: 'Valid x and y coordinates are required' });
+        }
+
+        // Find the plant by ID
+        const plant = await Plant.findById(plantId);
+
+        if (!plant) {
+            return res.status(404).json({ error: 'Plant not found' });
+        }
+
+        // Update the plant with the new position
+        plant.x = x;
+        plant.y = y;
+
+        // If z is provided, update seeding_depth
+        if (typeof z === 'number') {
+            plant.seeding_depth = z;
+        }
+
+        await plant.save();
+
+        res.json({
+            message: 'Plant position updated successfully',
+            plant: {
+                id: plant._id,
+                name: plant.plant_type,
+                position: {
+                    x: plant.x,
+                    y: plant.y,
+                    z: plant.seeding_depth || 0
+                },
+                minimal_distance: plant.minimal_distance || 0
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
+ * GET /api/seedistance/plant-data
+ * Gets all plant data including positions, distances, and depths
+ */
+router.get('/plant-data', async (req, res) => {
+    try {
+        const plantPositions = await getLocalPlants();
+
+        // Format the data for the frontend
+        const plantData = plantPositions.map(plant => ({
+            id: plant.id,
+            name: plant.name,
+            position: {
+                x: plant.x,
+                y: plant.y,
+                z: plant.z
+            },
+            minimal_distance: plant.minimal_distance || 0,
+            seeding_depth: plant.meta.seeding_depth || 0
+        }));
+
+        res.json({
+            plants: plantData,
+            count: plantData.length
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
+ * GET /api/seedistance/plant-data/:plantType
+ * Gets plant data for a specific plant type
+ */
+router.get('/plant-data/:plantType', async (req, res) => {
+    try {
+        const { plantType } = req.params;
+        const plant = await Plant.findOne({ plant_type: plantType });
+
+        if (!plant) {
+            return res.status(404).json({ error: 'Plant type not found' });
+        }
+
+        // Validate and normalize the plant data
+        const validatedPlant = validatePlantData(plant);
+
+        // Format the data for the frontend
+        const plantData = {
+            id: validatedPlant.id,
+            name: validatedPlant.name,
+            position: {
+                x: validatedPlant.x,
+                y: validatedPlant.y,
+                z: validatedPlant.z
+            },
+            minimal_distance: validatedPlant.minimal_distance || 0,
+            seeding_depth: validatedPlant.meta.seeding_depth || 0
+        };
+
+        res.json(plantData);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
