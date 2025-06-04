@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import api from "../utils/api";
 
 const AddPlanttype = () => {
   const navigate = useNavigate();
@@ -13,22 +14,23 @@ const AddPlanttype = () => {
   const [distanceError, setDistanceError] = useState('');
 
   useEffect(() => {
-    fetch('/api/plant/types')
-      .then(res => res.json())
-      .then(data => setPlantTypes(data))
+    // GET plant types
+    api.get('/api/plant/types')
+      .then(response => setPlantTypes(response.data))
       .catch(() => console.error('Failed to fetch plant types'));
   }, []);
 
   // Load plant data on selection
-  const handlePlantClick = (type) => {
+  const handlePlantClick = async (type) => {
     setPlantType(type);
-    fetch(`/api/plant/${type}`)
-      .then(res => res.json())
-      .then(data => {
-        setDepth(data.seeding_depth);
-        setDistance(data.minimal_distance);
-      })
-      .catch(() => console.error('Failed to load plant details'));
+    try {
+      // GET plant details
+      const response = await api.get(`/api/plant/${type}`);
+      setDepth(response.data.seeding_depth);
+      setDistance(response.data.minimal_distance);
+    } catch {
+      console.error('Failed to load plant details');
+    }
   };
 
   const handleDepthChange = (e) => {
@@ -36,9 +38,9 @@ const AddPlanttype = () => {
     setDepth(value);
     const num = Number(value);
     if (value === '' || !Number.isFinite(num) || value.includes(' ') || isNaN(num)) {
-      setError('Please enter a valid number between 0 mm and -40 mm.');
-    } else if (num > 0 || num < -40) {
-      setError('Please enter a value between 0 mm and -40 mm.');
+      setError('Please enter a valid number between 0 mm and 40 mm.');
+    } else if (num < 0 || num > 40) {
+      setError('Please enter a value between 0 mm and 40 mm.');
     } else {
       setError('');
     }
@@ -65,7 +67,7 @@ const AddPlanttype = () => {
 
     const depthNum = Number(depth);
     const distNum = Number(distance);
-    if (isNaN(depthNum) || depthNum > 0 || depthNum < -40 || isNaN(distNum) || distNum < 50 || distNum > 1000) {
+    if (isNaN(depthNum) || depthNum < 0 || depthNum > 40 || isNaN(distNum) || distNum < 50 || distNum > 1000) {
       alert('Please enter valid values.');
       return;
     }
@@ -74,20 +76,19 @@ const AddPlanttype = () => {
 
     if (newPlantType.trim()) {
       try {
-        const res = await fetch('/api/plant/add-type', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ plant_type: newPlantType.trim() }),
+        // POST new plant type
+        const response = await api.post('/api/plant/add-type', {
+          plant_type: newPlantType.trim()
         });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Failed to add new plant type.');
+        const data = response.data;
         alert(data.message);
         finalPlantType = newPlantType.trim();
         setNewPlantType('');
-        const updatedTypes = await fetch('/api/plant/types').then(r => r.json());
-        setPlantTypes(updatedTypes);
+        // Refresh plant types
+        const typesRes = await api.get('/api/plant/types');
+        setPlantTypes(typesRes.data);
       } catch (err) {
-        alert(err.message);
+        alert(err.response?.data?.error || 'Failed to add new plant type.');
         return;
       }
     }
@@ -98,50 +99,27 @@ const AddPlanttype = () => {
     }
 
     try {
-      const response = await fetch('/api/plant/save', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          plantType: finalPlantType,
-          seeding_depth: depth,
-          minimal_distance: distance,
-        }),
+      // POST plant data
+      const response = await api.post('/api/plant/save', {
+        plantType: finalPlantType,
+        seeding_depth: depth,
+        minimal_distance: distance,
       });
-      const data = await response.json();
-      if (response.ok) {
-        alert('Data saved successfully!');
-        setPlantType('');
-        setDepth('');
-        setDistance('');
-      } else {
-        alert(data.error || 'Failed to save data.');
-      }
+      const data = await response.data;
+      alert('Data saved successfully!');
+      setPlantType('');
+      setDepth('');
+      setDistance('');
     } catch (err) {
-      alert('Network error.');
+      alert(err.response?.data?.error || 'Failed to save data.');
     }
   };
 
   return (
     <div style={styles.wrapper}>
       <div style={styles.container}>
-        <label style={styles.label}>
-          Choose existing plant type:
-        </label>
-        <div style={styles.buttonGroup}>
-          {plantTypes.map(type => (
-            <button
-              key={type}
-              onClick={() => handlePlantClick(type)}
-              style={{
-                ...styles.plantButton,
-                backgroundColor: plantType === type ? '#15803d' : '#bbf7d0',
-                color: plantType === type ? 'white' : '#064e3b'
-              }}
-            >
-              {type}
-            </button>
-          ))}
-        </div>
+        
+        
 
         <label style={styles.label}>
           Add new plant type:
@@ -159,8 +137,8 @@ const AddPlanttype = () => {
             type="number"
             value={depth}
             onChange={handleDepthChange}
-            min={-40}
-            max={0}
+            min={0}
+            max={40}
             style={styles.input}
           />
         </label>
