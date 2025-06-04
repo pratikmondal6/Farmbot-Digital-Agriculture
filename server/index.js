@@ -18,8 +18,14 @@ app.use(cookieParser());
 require("./startup/routes")(app);
 require("./startup/db")();
 require('dotenv').config();
+
+// Import routes
 const plantRoutes = require('./routes/plantRoutes');
+const seedistanceRoutes = require('./routes/seedistance');
+
+// Use routes
 app.use('/api/plant', plantRoutes);
+app.use('/api/seedistance', seedistanceRoutes);
 
 const port = process.env.PORT || 5000;
 

@@ -16,6 +16,19 @@ const plantscheme = new Schema({
     type: Number,
     required: false, // must be false or omitted
   },
+  x: {
+    type: Number,
+    required: false,
+  },
+  y: {
+    type: Number,
+    required: false,
+  },
+  planted_at: {
+    type: Date,
+    default: Date.now,
+    required: false,
+  },
 });
 
 module.exports = mongoose.model('Plant', plantscheme);
