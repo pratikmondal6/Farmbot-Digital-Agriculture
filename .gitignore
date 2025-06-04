@@ -8,3 +8,6 @@ node_modules/
 # Optional: ignore environment files and logs
 .env
 *.log
+
+# Ignore IntelliJ IDEA project files
+.idea/
