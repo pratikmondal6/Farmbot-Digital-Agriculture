@@ -1,12 +1,35 @@
 const fetch = require('node-fetch');
-const token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJ1bmtub3duIiwic3ViIjoyODIzOCwiaWF0IjoxNzQ3NjUyMzUwLCJqdGkiOiJkMjkwNmYxZS1lOTU4LTQzOGQtOTczNC05YmY1NDMyNTQyNGMiLCJpc3MiOiIvL215LmZhcm0uYm90OjQ0MyIsImV4cCI6MTc1MjgzNjM1MCwibXF0dCI6ImNsZXZlci1vY3RvcHVzLnJtcS5jbG91ZGFtcXAuY29tIiwiYm90IjoiZGV2aWNlXzI4MzQ2Iiwidmhvc3QiOiJ4aWNvbmZ1bSIsIm1xdHRfd3MiOiJ3c3M6Ly9jbGV2ZXItb2N0b3B1cy5ybXEuY2xvdWRhbXFwLmNvbTo0NDMvd3MvbXF0dCJ9.EbVjJwt-RZkHcY0GkHLaZCsekodTHsT0d5pPXZ0eCQrwqeGl_7MXh8gYuknNdll_RuABtJ85D3pBILO7CzbU8Zp9whUlQwmyI9-5mRVdwPJew-P96R4QAI6frPiY6yoWeGYQobppah1dlUdvxu3_MUsfrxvjQwftBcsj8xxD9eN5OUX110Ya1TLKj1dS0NG4XSa4M9WTvbDABCRM83XH25guBKKZo_mtVB0DoywD5IPEjswcUkYqrD9Lc48KWQ3eu4xRWMDo54FVf58Zd46UJEr38vXzvKmU0s6bVel1NUZ-cJqePEcsajwGRBaBKYb-xQNGMl76fxHkaxAuzXvGyw";
+const express = require('express');
+const router = express.Router();
+const Plant = require('../models/plan.js');
 
+// Configuration
 const config = {
     includeZAxis: true
 };
 
-let plantPositions = [];
+/**
+ * @typedef {Object} Point
+ * @property {number} x - X coordinate
+ * @property {number} y - Y coordinate
+ * @property {number} z - Z coordinate (optional)
+ */
 
+/**
+ * @typedef {Object} PlantPosition
+ * @property {number} x - X coordinate
+ * @property {number} y - Y coordinate
+ * @property {number} z - Z coordinate
+ * @property {string|number} id - Plant ID
+ * @property {string} name - Plant name
+ * @property {Object} meta - Additional metadata
+ */
+
+/**
+ * Validates and normalizes plant data
+ * @param {Object} plant - Raw plant data
+ * @returns {PlantPosition} - Validated plant position
+ */
 function validatePlantData(plant) {
     // Ensure required numeric coordinates
     if (typeof plant.x !== 'number' || typeof plant.y !== 'number') {
@@ -27,25 +50,12 @@ function validatePlantData(plant) {
     };
 }
 
-async function fetchWithAuth(url, options = {}) {
-    const headers = {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        ...options.headers
-    };
-
-    const response = await fetch(url, {
-        ...options,
-        headers
-    });
-
-    if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    return response.json();
-}
-
+/**
+ * Calculates distance between two points
+ * @param {Point} point1 - First point
+ * @param {Point} point2 - Second point
+ * @returns {number} - Distance between points
+ */
 function calculateDistance(point1, point2) {
     const dx = point1.x - point2.x;
     const dy = point1.y - point2.y;
@@ -58,50 +68,39 @@ function calculateDistance(point1, point2) {
     return Math.sqrt(dx * dx + dy * dy);
 }
 
-async function getPlants() {
+/**
+ * Fetches plant data from the database
+ * @returns {Promise<Array<PlantPosition>>} - Array of plant positions
+ */
+async function getLocalPlants() {
     try {
-        const plantsData = await fetchWithAuth("https://my.farm.bot/api/points?filter=plant");
+        const plants = await Plant.find({});
 
-        if (!Array.isArray(plantsData)) {
-            throw new Error("Invalid plant data format received");
-        }
-
-        plantPositions = plantsData.map(plant => {
-            try {
-                return validatePlantData(plant);
-            } catch (error) {
-                console.error(`Error processing plant ${plant.id}: ${error.message}`);
-                return null;
+        // Convert database plants to position format
+        const positions = plants.map(plant => ({
+            x: Math.random() * 1000, // Mock x position (replace with real data)
+            y: Math.random() * 1000, // Mock y position (replace with real data)
+            z: 0,                    // Mock z position (replace with real data)
+            id: plant._id,
+            name: plant.plant_type,
+            meta: {
+                planted_at: new Date().toISOString(),
+                openfarm_slug: plant.plant_type.toLowerCase().replace(/\s+/g, '_')
             }
-        }).filter(plant => plant !== null);
+        }));
 
-        console.log(`Found ${plantPositions.length} valid plants with z-axis data`);
-
-        const { distance, pair } = findMinimumDistance(plantPositions);
-        
-        if (distance !== 0) {
-            console.log(`Minimum seed distance: ${distance.toFixed(2)} mm`);
-            if (pair) {
-                console.log(`Closest pair: ${pair[0].name} and ${pair[1].name}`);
-            }
-        } else {
-            console.log("No valid plant pairs found for distance calculation");
-        }
-
-        return {
-            plantCount: plantPositions.length,
-            minDistance: distance,
-            closestPair: pair,
-            positions: plantPositions,
-            calculationMode: config.includeZAxis ? '3D' : '2D'
-        };
-
+        return positions;
     } catch (error) {
-        console.error("Error fetching plant data:", error.message);
+        console.error("Error fetching plants from database:", error);
         throw error;
     }
 }
 
+/**
+ * Finds minimum distance between plants for large datasets
+ * @param {Array<PlantPosition>} positions - Array of plant positions
+ * @returns {Object} - Minimum distance and closest pair
+ */
 function findMinimumDistanceLarge(positions) {
     // Implementation for large datasets
     let minDistance = Infinity;
@@ -124,6 +123,11 @@ function findMinimumDistanceLarge(positions) {
     };
 }
 
+/**
+ * Finds minimum distance between plants
+ * @param {Array<PlantPosition>} positions - Array of plant positions
+ * @returns {Object} - Minimum distance and closest pair
+ */
 function findMinimumDistance(positions) {
     if (positions.length < 2) {
         return {
@@ -156,48 +160,11 @@ function findMinimumDistance(positions) {
     };
 }
 
-async function main() {
-    try {
-        console.log(`Starting seed distance analysis in ${config.includeZAxis ? '3D' : '2D'} mode`);
-
-        // Test token first
-        const testResponse = await fetchWithAuth('https://my.farm.bot/api/token');
-        console.log("Token validation successful");
-
-        // Get plant data
-        const plantData = await getPlants();
-
-        // Additional 3D analysis could be added here
-        if (config.includeZAxis) {
-            console.log("Performing 3D analysis...");
-        }
-
-        return plantData;
-
-    } catch (error) {
-        console.error("Error in main function:", error);
-        process.exit(1);
-    }
-}
-
-main().then(result => {
-    console.log("\n=== Analysis Results ===");
-    console.log(`Mode: ${result.calculationMode}`);
-    console.log(`Plants analyzed: ${result.plantCount}`);
-    console.log(`Minimum distance: ${result.minDistance.toFixed(2)} mm`);
-
-    if (result.closestPair) {
-        console.log(`Closest pair locations:`);
-        console.log(`- ${result.closestPair[0].name}: X=${result.closestPair[0].x}, Y=${result.closestPair[0].y}, Z=${result.closestPair[0].z}`);
-        console.log(`- ${result.closestPair[1].name}: X=${result.closestPair[1].x}, Y=${result.closestPair[1].y}, Z=${result.closestPair[1].z}`);
-    }
-
-    console.log("\nScript completed successfully");
-}).catch(error => {
-    console.error("Script failed:", error);
-});
-
-// Add plant type statistics
+/**
+ * Gets plant type statistics
+ * @param {Array<PlantPosition>} positions - Array of plant positions
+ * @returns {Object} - Plant type statistics
+ */
 function getPlantTypeStats(positions) {
     const typeStats = {};
     positions.forEach(plant => {
@@ -207,10 +174,100 @@ function getPlantTypeStats(positions) {
     return typeStats;
 }
 
-module.exports = {
-    getPlants,
-    findMinimumDistance,
-    calculateDistance,
-    config,
-    getPlantTypeStats
-};
+/**
+ * Analyzes plant data to find minimum distances
+ * @returns {Promise<Object>} - Analysis results
+ */
+async function analyzePlantData() {
+    try {
+        // Get plant data from database
+        const plantPositions = await getLocalPlants();
+
+        if (plantPositions.length === 0) {
+            return {
+                plantCount: 0,
+                minDistance: 0,
+                closestPair: null,
+                positions: [],
+                calculationMode: config.includeZAxis ? '3D' : '2D',
+                typeStats: {}
+            };
+        }
+
+        // Calculate minimum distance
+        const { distance, pair } = findMinimumDistance(plantPositions);
+
+        // Get plant type statistics
+        const typeStats = getPlantTypeStats(plantPositions);
+
+        return {
+            plantCount: plantPositions.length,
+            minDistance: distance,
+            closestPair: pair,
+            positions: plantPositions,
+            calculationMode: config.includeZAxis ? '3D' : '2D',
+            typeStats
+        };
+    } catch (error) {
+        console.error("Error analyzing plant data:", error);
+        throw error;
+    }
+}
+
+// API Routes
+
+/**
+ * GET /api/seedistance/analyze
+ * Analyzes plant data to find minimum distances
+ */
+router.get('/analyze', async (req, res) => {
+    try {
+        const result = await analyzePlantData();
+        res.json(result);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
+ * GET /api/seedistance/config
+ * Gets the current configuration
+ */
+router.get('/config', (req, res) => {
+    res.json(config);
+});
+
+/**
+ * POST /api/seedistance/config
+ * Updates the configuration
+ */
+router.post('/config', (req, res) => {
+    const { includeZAxis } = req.body;
+
+    if (typeof includeZAxis === 'boolean') {
+        config.includeZAxis = includeZAxis;
+        res.json({ message: 'Configuration updated', config });
+    } else {
+        res.status(400).json({ error: 'Invalid configuration' });
+    }
+});
+
+/**
+ * GET /api/seedistance/minimum
+ * Gets the minimum distance between plants
+ */
+router.get('/minimum', async (req, res) => {
+    try {
+        const plantPositions = await getLocalPlants();
+        const { distance, pair } = findMinimumDistance(plantPositions);
+
+        res.json({
+            minDistance: distance,
+            closestPair: pair
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+module.exports = router;
