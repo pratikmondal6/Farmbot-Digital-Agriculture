@@ -32,18 +32,25 @@ const FarmbotMoving = () => {
     setLoading(true);
     setIsMoving(true);
     try {
-      // Ensure numbers are sent
       const { x, y, z } = customCoord || coord;
+      console.log('Raw values:', x, y, z);
+      // Check for empty fields
+      if (x === '' || y === '' || z === '') {
+        setError('Please enter values for X, Y, and Z.');
+        setLoading(false);
+        setIsMoving(false);
+        return;
+      }
       const nx = Number(x);
       const ny = Number(y);
       const nz = Number(z);
+      console.log('Parsed numbers:', nx, ny, nz);
       if (isNaN(nx) || isNaN(ny) || isNaN(nz)) {
         setError('Please enter valid numbers for X, Y, and Z.');
         setLoading(false);
         setIsMoving(false);
         return;
       }
-      console.log('Sending to backend:', { x: nx, y: ny, z: nz });
       const response = await api.post('/move', { x: nx, y: ny, z: nz });
       const result = response.data;
       console.log('Move to coordinate success:', result);
@@ -218,7 +225,7 @@ const FarmbotMoving = () => {
                 />
                 <button
                   style={styles.coordButton}
-                  onClick={handleMoveToCoord}
+                  onClick={() => handleMoveToCoord()}
                   disabled={loading}
                 >
                   Move
@@ -454,7 +461,7 @@ const styles = {
     alignItems: 'center',
   },
   coordInput: {
-    width: 60,
+    width: 100, // was 60
     padding: '6px 8px',
     borderRadius: '4px',
     border: '1px solid #22c55e',
