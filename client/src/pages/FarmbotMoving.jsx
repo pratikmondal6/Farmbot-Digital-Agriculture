@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../utils/api';
 import { useNavigate } from 'react-router-dom';
 import { FaArrowUp, FaArrowDown, FaArrowLeft, FaArrowRight, FaHome } from 'react-icons/fa';
+import FieldMap from '../components/FieldMap';
 
 const MOVE_UNITS = [1, 10, 100, 1000];
 
@@ -22,7 +23,7 @@ const FarmbotMoving = () => {
     }
   }, [navigate]);
 
-  const handleTabDoubleClick = () => setShowPanel((prev) => !prev);
+  // const handleTabDoubleClick = () => setShowPanel((prev) => !prev);
 
   const handleCoordChange = (axis, value) => {
     setCoord((prev) => ({ ...prev, [axis]: value }));
@@ -84,210 +85,218 @@ const FarmbotMoving = () => {
 
   return (
     <>
-      <div style={styles.header}>
-        <span></span>
-        <button
-          style={{
-            ...styles.tabButton,
-            width: 48,
-            height: 48,
-            minWidth: 48,
-            minHeight: 48,
-            marginRight: 16,
-            padding: 0,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: showPanel ? '#22c55e' : '#16a34a',
-          }}
-          onClick={handleTabDoubleClick}
-          title="Expand/collapse movement panel"
-        >
-          <span role="img" aria-label="control-panel" style={{ fontSize: 24 }}>🕹️</span>
-        </button>
-      </div>
-      {showPanel && (
-        <div style={styles.fixedPanel}>
-          <div style={styles.panel}>
-            {/* Units Selection */}
-            <div style={styles.unitsPanel}>
-              <div style={styles.unitsLabel}>Select a unit:</div>
-              <div style={styles.unitsList}>
-                {MOVE_UNITS.map(unit => (
-                  <button
-                    key={unit}
-                    style={{
-                      ...styles.unitButton,
-                      backgroundColor: moveUnit === unit ? '#22c55e' : '#fff',
-                      color: moveUnit === unit ? '#fff' : '#14532d',
-                      borderColor: moveUnit === unit ? '#22c55e' : '#22c55e',
-                    }}
-                    onClick={() => setMoveUnit(unit)}
-                    disabled={loading}
-                  >
-                    {unit} mm
-                  </button>
-                ))}
-              </div>
-            </div>
-            {/* Movement Grid */}
-            <div style={styles.moveGrid}>
-              {/* XY Grid */}
-              <div style={styles.xyGrid}>
-                {/* Add label for length and width control */}
-                <div style={{ fontWeight: 'bold', color: '#14532d', marginBottom: 4, fontSize: '1rem' }}>
-                  Control length and width:
-                </div>
-                <div style={styles.labelRow}>
-                  {/* (no axis label) */}
-                </div>
-                <button
-                  style={styles.arrowButton}
-                  onClick={() => handleMoveRelative('y', moveUnit)}
-                  disabled={loading}
-                  title="Move up (width)"
-                >
-                  <FaArrowUp />
-                </button>
-                <div style={styles.middleRow}>
-                  <button
-                    style={styles.arrowButton}
-                    onClick={() => handleMoveRelative('x', -moveUnit)}
-                    disabled={loading}
-                    title="Move left (length)"
-                  >
-                    <FaArrowLeft />
-                  </button>
-                  <div style={styles.centerDot}></div>
-                  <button
-                    style={styles.arrowButton}
-                    onClick={() => handleMoveRelative('x', moveUnit)}
-                    disabled={loading}
-                    title="Move right (length)"
-                  >
-                    <FaArrowRight />
-                  </button>
-                </div>
-                <button
-                  style={styles.arrowButton}
-                  onClick={() => handleMoveRelative('y', -moveUnit)}
-                  disabled={loading}
-                  title="Move down (width)"
-                >
-                  <FaArrowDown />
-                </button>
-                <div style={styles.labelRow}>
-                  {/* (no axis label) */}
-                </div>
-              </div>
-              {/* Z Axis Panel */}
-              <div style={styles.zPanel}>
-                {/* Add label for height control */}
-                <div style={{ fontWeight: 'bold', color: '#14532d', marginBottom: 4, fontSize: '1rem' }}>
-                  Control height:
-                </div>
-                <button
-                  style={styles.arrowButton}
-                  onClick={() => handleMoveRelative('z', moveUnit)}
-                  disabled={loading}
-                  title="Move up (Height)"
-                >
-                  <FaArrowUp />
-                </button>
-                <button
-                  style={styles.arrowButton}
-                  onClick={() => handleMoveRelative('z', -moveUnit)}
-                  disabled={loading}
-                  title="Move down (Height)"
-                >
-                  <FaArrowDown />
-                </button>
-                <button
-                  style={{
-                    ...styles.arrowButton,
-                    borderRadius: '50%',
-                    padding: 8,
-                    fontSize: '1.2rem',
-                    minWidth: 40,
-                    minHeight: 40,
-                    marginTop: 12
-                  }}
-                  onClick={() => {
-                    setCoord({ x: 0, y: 0, z: 0 });
-                    handleMoveToCoord({ x: 0, y: 0, z: 0 });
-                  }}
-                  disabled={loading}
-                  title="Move to Home Position"
-                >
-                  <FaHome />
-                </button>
-              </div>
-            </div>
-            {/* Move to coordinate */}
-            <div style={styles.coordPanel}>
-              <div style={styles.coordLabel}>Move to coordinate:</div>
-              <div style={styles.coordInputs}>
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <input
-                    style={styles.coordInput}
-                    type="number"
-                    placeholder="Length"
-                    value={coord.x}
-                    onChange={e => handleCoordChange('x', e.target.value)}
-                    disabled={loading}
-                    min={0}
-                    max={2600}
-                  />
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <input
-                    style={styles.coordInput}
-                    type="number"
-                    placeholder="Width"
-                    value={coord.y}
-                    onChange={e => handleCoordChange('y', e.target.value)}
-                    disabled={loading}
-                    min={0}
-                    max={1200}
-                  />
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <input
-                    style={styles.coordInput}
-                    type="number"
-                    placeholder="Height"
-                    value={coord.z}
-                    onChange={e => handleCoordChange('z', e.target.value)}
-                    disabled={loading}
-                    min={-800}
-                    max={0}
-                  />
-                </div>
-                <button
-                  style={styles.coordButton}
-                  onClick={handleMoveToCoord}
-                  disabled={loading || coordError.x || coordError.y || coordError.z}
-                >
-                  Move
-                </button>
-              </div>
-              {(coordError.x || coordError.y || coordError.z) && (
-                <div style={styles.coordErrorMsgGroup}>
-                  {[coordError.x, coordError.y, coordError.z]
-                    .filter(Boolean)
-                    .map((msg, idx) => (
-                      <div key={idx}>{msg}</div>
-                    ))}
-                </div>
-              )}
-            </div>
-            {/* Status messages INSIDE the panel */}
-            {error && <p style={styles.error}>{error}</p>}
-            {isMoving && <p style={styles.moving}>Moving...</p>}
-            
-          </div>
+      <FieldMap />
+
+      {/* Wrapper for icon and panel */}
+      <div
+        style={{ position: 'fixed', top: 0, right: 0, zIndex: 200 }}
+        onMouseEnter={() => setShowPanel(true)}
+        onMouseLeave={() => setShowPanel(false)}
+      >
+        <div style={styles.header}>
+          <span></span>
+          <button
+            style={{
+              ...styles.tabButton,
+              width: 48,
+              height: 48,
+              minWidth: 48,
+              minHeight: 48,
+              marginRight: 16,
+              padding: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: showPanel ? '#22c55e' : '#16a34a',
+            }}
+            title="Expand/collapse movement panel"
+          >
+            <span role="img" aria-label="control-panel" style={{ fontSize: 24 }}>🕹️</span>
+          </button>
         </div>
-      )}
+        {showPanel && (
+          <div style={styles.fixedPanel}>
+            <div style={styles.panel}>
+              {/* Units Selection */}
+              <div style={styles.unitsPanel}>
+                <div style={styles.unitsLabel}>Select a unit:</div>
+                <div style={styles.unitsList}>
+                  {MOVE_UNITS.map(unit => (
+                    <button
+                      key={unit}
+                      style={{
+                        ...styles.unitButton,
+                        backgroundColor: moveUnit === unit ? '#22c55e' : '#fff',
+                        color: moveUnit === unit ? '#fff' : '#14532d',
+                        borderColor: moveUnit === unit ? '#22c55e' : '#22c55e',
+                      }}
+                      onClick={() => setMoveUnit(unit)}
+                      disabled={loading}
+                    >
+                      {unit} mm
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {/* Movement Grid */}
+              <div style={styles.moveGrid}>
+                {/* XY Grid */}
+                <div style={styles.xyGrid}>
+                  {/* Add label for length and width control */}
+                  <div style={{ fontWeight: 'bold', color: '#14532d', marginBottom: 4, fontSize: '1rem' }}>
+                    Control length and width:
+                  </div>
+                  <div style={styles.labelRow}>
+                    {/* (no axis label) */}
+                  </div>
+                  <button
+                    style={styles.arrowButton}
+                    onClick={() => handleMoveRelative('y', moveUnit)}
+                    disabled={loading}
+                    title="Move up (width)"
+                  >
+                    <FaArrowUp />
+                  </button>
+                  <div style={styles.middleRow}>
+                    <button
+                      style={styles.arrowButton}
+                      onClick={() => handleMoveRelative('x', -moveUnit)}
+                      disabled={loading}
+                      title="Move left (length)"
+                    >
+                      <FaArrowLeft />
+                    </button>
+                    <div style={styles.centerDot}></div>
+                    <button
+                      style={styles.arrowButton}
+                      onClick={() => handleMoveRelative('x', moveUnit)}
+                      disabled={loading}
+                      title="Move right (length)"
+                    >
+                      <FaArrowRight />
+                    </button>
+                  </div>
+                  <button
+                    style={styles.arrowButton}
+                    onClick={() => handleMoveRelative('y', -moveUnit)}
+                    disabled={loading}
+                    title="Move down (width)"
+                  >
+                    <FaArrowDown />
+                  </button>
+                  <div style={styles.labelRow}>
+                    {/* (no axis label) */}
+                  </div>
+                </div>
+                {/* Z Axis Panel */}
+                <div style={styles.zPanel}>
+                  {/* Add label for height control */}
+                  <div style={{ fontWeight: 'bold', color: '#14532d', marginBottom: 4, fontSize: '1rem' }}>
+                    Control height:
+                  </div>
+                  <button
+                    style={styles.arrowButton}
+                    onClick={() => handleMoveRelative('z', moveUnit)}
+                    disabled={loading}
+                    title="Move up (Height)"
+                  >
+                    <FaArrowUp />
+                  </button>
+                  <button
+                    style={styles.arrowButton}
+                    onClick={() => handleMoveRelative('z', -moveUnit)}
+                    disabled={loading}
+                    title="Move down (Height)"
+                  >
+                    <FaArrowDown />
+                  </button>
+                  <button
+                    style={{
+                      ...styles.arrowButton,
+                      borderRadius: '50%',
+                      padding: 8,
+                      fontSize: '1.2rem',
+                      minWidth: 40,
+                      minHeight: 40,
+                      marginTop: 12
+                    }}
+                    onClick={() => {
+                      setCoord({ x: 0, y: 0, z: 0 });
+                      handleMoveToCoord({ x: 0, y: 0, z: 0 });
+                    }}
+                    disabled={loading}
+                    title="Move to Home Position"
+                  >
+                    <FaHome />
+                  </button>
+                </div>
+              </div>
+              {/* Move to coordinate */}
+              <div style={styles.coordPanel}>
+                <div style={styles.coordLabel}>Move to coordinate:</div>
+                <div style={styles.coordInputs}>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <input
+                      style={styles.coordInput}
+                      type="number"
+                      placeholder="Length"
+                      value={coord.x}
+                      onChange={e => handleCoordChange('x', e.target.value)}
+                      disabled={loading}
+                      min={0}
+                      max={2600}
+                    />
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <input
+                      style={styles.coordInput}
+                      type="number"
+                      placeholder="Width"
+                      value={coord.y}
+                      onChange={e => handleCoordChange('y', e.target.value)}
+                      disabled={loading}
+                      min={0}
+                      max={1200}
+                    />
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <input
+                      style={styles.coordInput}
+                      type="number"
+                      placeholder="Height"
+                      value={coord.z}
+                      onChange={e => handleCoordChange('z', e.target.value)}
+                      disabled={loading}
+                      min={-800}
+                      max={0}
+                    />
+                  </div>
+                  <button
+                    style={styles.coordButton}
+                    onClick={handleMoveToCoord}
+                    disabled={loading || coordError.x || coordError.y || coordError.z}
+                  >
+                    Move
+                  </button>
+                </div>
+                {(coordError.x || coordError.y || coordError.z) && (
+                  <div style={styles.coordErrorMsgGroup}>
+                    {[coordError.x, coordError.y, coordError.z]
+                      .filter(Boolean)
+                      .map((msg, idx) => (
+                        <div key={idx}>{msg}</div>
+                      ))}
+                  </div>
+                )}
+              </div>
+              {/* Status messages INSIDE the panel */}
+              {error && <p style={styles.error}>{error}</p>}
+              {isMoving && <p style={styles.moving}>Moving...</p>}
+              
+            </div>
+          </div>
+        )}
+      </div>
     </>
   );
 };
