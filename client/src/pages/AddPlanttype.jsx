@@ -66,21 +66,23 @@ const AddPlanttype = () => {
 
     try {
       if (plantTypes.includes(newPlantType)) {
-        await api.put('/api/plant/update', {
-          plantType: newPlantType,
-          seeding_depth: depth,
-          minimal_distance: distance,
+        // Update existing plant type
+        const response = await api.put('/api/plant/update', {
+          plantType: plantType,
+          newPlantType: newPlantType,
+          depth: Number(depth),
+          distance: Number(distance),
         });
+        const result = response.data;
         alert('Planttype aktualisiert');
       } else {
-        await api.post('/api/plant/add-type', {
-          plant_type: newPlantType.trim()
+        // Add new plant type with all details
+        const response = await api.post('/api/plant/add-type', {
+          plant_type: newPlantType.trim(),
+          minimal_distance: Number(distance),
+          seeding_depth: Number(depth)
         });
-        await api.post('/api/plant/save', {
-          plantType: newPlantType.trim(),
-          seeding_depth: depth,
-          minimal_distance: distance
-        });
+        const result = response.data;
         alert('Neuer Planttype hinzugefügt');
       }
 

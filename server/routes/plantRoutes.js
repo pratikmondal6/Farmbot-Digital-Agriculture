@@ -123,4 +123,43 @@ async function sendDepthToFarmbot(plantType, depth) {
   // return a result or throw an error if needed
 }
 
+// Update plant type details
+router.put('/update', async (req, res) => {
+  const { plantType, newPlantType, depth, distance } = req.body;
+  if (!plantType || !newPlantType) {
+    return res.status(400).json({ error: "plantType and newPlantType are required." });
+  }
+  if (!newPlantType.trim() || !depth || !distance) {
+    // This is wrong: alert() is frontend only!
+    alert('Please add valid numbers for all fields.');
+    return;
+  }
+
+  // Build update object
+  const update = { plant_type: newPlantType };
+  if (typeof depth === "number") update.seeding_depth = depth;
+  if (typeof distance === "number") update.minimal_distance = distance;
+
+  try {
+    await Plant.findOneAndUpdate(
+      { plant_type: plantType },
+      update,
+      { new: true }
+    );
+    console.log({
+      plantType: newPlantType,
+      seeding_depth: depth,
+      minimal_distance: distance,
+    });
+    await api.put('/api/plant/update', {
+      plantType: newPlantType,
+      seeding_depth: Number(depth),
+      minimal_distance: Number(distance),
+    });
+    res.json({ message: "Plant type updated successfully" });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to update plant type" });
+  }
+});
+
 module.exports = router;
