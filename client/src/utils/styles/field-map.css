@@ -65,3 +65,8 @@
 .action-modal-move-btn:hover {
     background-color: #15803d;
 }
+
+.robot-circle {
+    transition: cx 0.1s linear, cy 0.1s linear;
+    filter: drop-shadow(0 0 3px rgba(22, 163, 74, 0.5));
+}
