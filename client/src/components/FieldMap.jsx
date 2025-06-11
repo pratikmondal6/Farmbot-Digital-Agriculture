@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
-import '../utils/styles/field-map.css';
+import '../styles/field-map.css';
 
 const ActionModal = ({position, onMove}) => {
     const [z, setZ] = useState(0);
