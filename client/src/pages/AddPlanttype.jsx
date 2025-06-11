@@ -118,7 +118,24 @@ const AddPlanttype = () => {
   return (
     <div style={styles.wrapper}>
       <div style={styles.container}>
-        
+        <label style={styles.label}>
+          Choose existing plant type:
+        </label>
+        <div style={styles.buttonGroup}>
+          {plantTypes.map(type => (
+            <button
+              key={type}
+              onClick={() => handlePlantClick(type)}
+              style={{
+                ...styles.plantButton,
+                backgroundColor: plantType === type ? '#15803d' : '#bbf7d0',
+                color: plantType === type ? 'white' : '#064e3b'
+              }}
+            >
+              {type}
+            </button>
+          ))}
+        </div>        
         
 
         <label style={styles.label}>
