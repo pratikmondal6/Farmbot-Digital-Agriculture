@@ -18,8 +18,7 @@ app.use(cookieParser());
 require("./startup/routes")(app);
 require("./startup/db")();
 require('dotenv').config();
-
-// Import routes
+require('./services/farmbotStatusService');
 const plantRoutes = require('./routes/plantRoutes');
 const seedistanceRoutes = require('./routes/seedistance');
 

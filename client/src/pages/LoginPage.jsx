@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { saveToken } from '../utils/tokenManager';
 
 const LoginPage = ({setIsLoggedIn}) => {
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('df-labor2+2@cs.uni-kl.de');
+  const [password, setPassword] = useState('Red&Daikon');
   const [isHovered, setIsHovered] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -31,6 +32,7 @@ const LoginPage = ({setIsLoggedIn}) => {
 
       // console.log('Login success:', response.data);
       sessionStorage.setItem('token', response.data.token);
+      saveToken(response.data.token);
       setIsLoggedIn(true);
       navigate('/dashboard');
 
@@ -57,20 +59,24 @@ const LoginPage = ({setIsLoggedIn}) => {
 
         <label style={styles.label}>Email:</label>
         <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          style={styles.input}
-          required
+            type="email"
+            name="username"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Enter your email"
+            style={styles.input}
+            required
         />
 
         <label style={styles.label}>Password:</label>
         <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          style={styles.input}
-          required
+            type="password"
+            name="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Enter your password"
+            style={styles.input}
+            required
         />
 
         <button

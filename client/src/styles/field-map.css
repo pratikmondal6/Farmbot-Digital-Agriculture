@@ -1,0 +1,72 @@
+.field-map-container {
+    padding: 20px;
+    border-radius: 8px;
+    display: flex;
+    margin: 20px 0;
+}
+
+.field-map-container svg {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.action-modal {
+    position: absolute;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    z-index: 999;
+    width: 200px;
+}
+
+.action-modal-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.action-modal-input-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.action-modal-label {
+    min-width: 24px;
+    color: #333;
+    font-weight: 500;
+}
+
+.action-modal-input {
+    flex: 1;
+    padding: 6px 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 100%;
+}
+
+.action-modal-input:disabled {
+    background-color: #f5f5f5;
+    color: #666;
+}
+
+.action-modal-move-btn {
+    padding: 8px 12px;
+    background-color: #16a34a;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+    font-weight: 500;
+}
+
+.action-modal-move-btn:hover {
+    background-color: #15803d;
+}
+
+.robot-circle {
+    transition: cx 0.1s linear, cy 0.1s linear;
+    filter: drop-shadow(0 0 3px rgba(22, 163, 74, 0.5));
+}
