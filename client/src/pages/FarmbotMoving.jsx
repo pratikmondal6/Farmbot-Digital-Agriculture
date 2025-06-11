@@ -13,6 +13,7 @@ const FarmbotMoving = () => {
   const [showPanel, setShowPanel] = useState(true);
   const [moveUnit, setMoveUnit] = useState(10);
   const [coord, setCoord] = useState({ x: '', y: '', z: '' });
+  const [coordError, setCoordError] = useState({ x: '', y: '', z: '' });
 
   useEffect(() => {
     const token = sessionStorage.getItem("token");
@@ -25,6 +26,17 @@ const FarmbotMoving = () => {
 
   const handleCoordChange = (axis, value) => {
     setCoord((prev) => ({ ...prev, [axis]: value }));
+
+    let error = '';
+    const num = Number(value);
+    if (value === '' || isNaN(num)) {
+      error = 'Please enter a number.';
+    } else {
+      if (axis === 'x' && (num < 0 || num > 2600)) error = 'X must be 0 - 2600 mm';
+      if (axis === 'y' && (num < 0 || num > 1200)) error = 'Y must be 0 - 1200 mm';
+      if (axis === 'z' && (num > 0 || num < -1000)) error = 'Z must be 0 to -800 mm';
+    }
+    setCoordError((prev) => ({ ...prev, [axis]: error }));
   };
 
   const handleMoveToCoord = async (customCoord) => {
@@ -32,18 +44,23 @@ const FarmbotMoving = () => {
     setLoading(true);
     setIsMoving(true);
     try {
-      // Ensure numbers are sent
       const { x, y, z } = customCoord || coord;
       const nx = Number(x);
       const ny = Number(y);
       const nz = Number(z);
-      if (isNaN(nx) || isNaN(ny) || isNaN(nz)) {
-        setError('Please enter valid numbers for X, Y, and Z.');
+
+      // Restriction checks
+      if (
+        isNaN(nx) || isNaN(ny) || isNaN(nz) ||
+        nx < 0 || nx > 2600 ||
+        ny < 0 || ny > 1200 ||
+        nz > 0 || nz < -1000
+      ) {
+        setError('Please enter valid numbers for X (0 - 2600), Y (0 - 1200), Z (0 to -1000).');
         setLoading(false);
         setIsMoving(false);
         return;
       }
-      console.log('Sending to backend:', { x: nx, y: ny, z: nz });
       const response = await api.post('/move', { x: nx, y: ny, z: nz });
       const result = response.data;
       console.log('Move to coordinate success:', result);
@@ -207,42 +224,64 @@ const FarmbotMoving = () => {
             <div style={styles.coordPanel}>
               <div style={styles.coordLabel}>Move to coordinate:</div>
               <div style={styles.coordInputs}>
-                <input
-                  style={styles.coordInput}
-                  type="number"
-                  placeholder="X"
-                  value={coord.x}
-                  onChange={e => handleCoordChange('x', e.target.value)}
-                  disabled={loading}
-                />
-                <input
-                  style={styles.coordInput}
-                  type="number"
-                  placeholder="Y"
-                  value={coord.y}
-                  onChange={e => handleCoordChange('y', e.target.value)}
-                  disabled={loading}
-                />
-                <input
-                  style={styles.coordInput}
-                  type="number"
-                  placeholder="Z"
-                  value={coord.z}
-                  onChange={e => handleCoordChange('z', e.target.value)}
-                  disabled={loading}
-                />
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <input
+                    style={styles.coordInput}
+                    type="number"
+                    placeholder="X"
+                    value={coord.x}
+                    onChange={e => handleCoordChange('x', e.target.value)}
+                    disabled={loading}
+                    min={0}
+                    max={2600}
+                  />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <input
+                    style={styles.coordInput}
+                    type="number"
+                    placeholder="Y"
+                    value={coord.y}
+                    onChange={e => handleCoordChange('y', e.target.value)}
+                    disabled={loading}
+                    min={0}
+                    max={1200}
+                  />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <input
+                    style={styles.coordInput}
+                    type="number"
+                    placeholder="Z"
+                    value={coord.z}
+                    onChange={e => handleCoordChange('z', e.target.value)}
+                    disabled={loading}
+                    min={-800}
+                    max={0}
+                  />
+                </div>
                 <button
                   style={styles.coordButton}
                   onClick={handleMoveToCoord}
-                  disabled={loading}
+                  disabled={loading || coordError.x || coordError.y || coordError.z}
                 >
                   Move
                 </button>
               </div>
+              {(coordError.x || coordError.y || coordError.z) && (
+                <div style={styles.coordErrorMsgGroup}>
+                  {[coordError.x, coordError.y, coordError.z]
+                    .filter(Boolean)
+                    .map((msg, idx) => (
+                      <div key={idx}>{msg}</div>
+                    ))}
+                </div>
+              )}
             </div>
             {/* Status messages INSIDE the panel */}
             {error && <p style={styles.error}>{error}</p>}
             {isMoving && <p style={styles.moving}>Moving...</p>}
+            
           </div>
         </div>
       )}
@@ -493,6 +532,19 @@ const styles = {
   moving: {
     color: '#14532d',
     fontWeight: 'bold',
-    marginTop: 8,
+    textAlign: 'left',
+  },
+  coordErrorMsgGroup: {
+    color: '#dc2626',
+    fontWeight: 'bold',
+    fontSize: '0.95rem',
+    marginTop: '10px',
+    marginBottom: '14px',
+    textAlign: 'left', // <-- changed from 'right' to 'left'
+    minHeight: '20px',
+    letterSpacing: '0.2px',
+    lineHeight: 1.4,
+    width: '100%',
+    alignSelf: 'flex-end',
   },
 };
