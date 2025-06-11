@@ -32,9 +32,9 @@ const FarmbotMoving = () => {
     if (value === '' || isNaN(num)) {
       error = 'Please enter a number.';
     } else {
-      if (axis === 'x' && (num < 0 || num > 2600)) error = 'X must be 0 - 2600 mm';
-      if (axis === 'y' && (num < 0 || num > 1200)) error = 'Y must be 0 - 1200 mm';
-      if (axis === 'z' && (num > 0 || num < -1000)) error = 'Z must be 0 to -800 mm';
+      if (axis === 'x' && (num < 0 || num > 2600)) error = 'Length must be 0 - 2600 mm';
+      if (axis === 'y' && (num < 0 || num > 1200)) error = 'Width must be 0 - 1200 mm';
+      if (axis === 'z' && (num > 0 || num < -1000)) error = 'Height must be 0 to -1000 mm';
     }
     setCoordError((prev) => ({ ...prev, [axis]: error }));
   };
@@ -56,7 +56,7 @@ const FarmbotMoving = () => {
         ny < 0 || ny > 1200 ||
         nz > 0 || nz < -1000
       ) {
-        setError('Please enter valid numbers for X (0 - 2600), Y (0 - 1200), Z (0 to -1000).');
+        setError('Please enter valid numbers for Length (0 - 2600), Width (0 - 1200), Height (0 to -1000).');
         setLoading(false);
         setIsMoving(false);
         return;
@@ -134,71 +134,74 @@ const FarmbotMoving = () => {
             <div style={styles.moveGrid}>
               {/* XY Grid */}
               <div style={styles.xyGrid}>
+                {/* Add label for length and width control */}
+                <div style={{ fontWeight: 'bold', color: '#14532d', marginBottom: 4, fontSize: '1rem' }}>
+                  Control length and width:
+                </div>
                 <div style={styles.labelRow}>
-                  <span style={styles.axisLabel}>+Y</span>
+                  {/* (no axis label) */}
                 </div>
                 <button
                   style={styles.arrowButton}
-                  onClick={() => handleMoveRelative('y', moveUnit)} // for +Y
+                  onClick={() => handleMoveRelative('y', moveUnit)}
                   disabled={loading}
-                  title="Y Up"
+                  title="Move up (width)"
                 >
                   <FaArrowUp />
                 </button>
                 <div style={styles.middleRow}>
-                  <span style={styles.axisLabel}>-X</span>
                   <button
                     style={styles.arrowButton}
-                    onClick={() => handleMoveRelative('x', -moveUnit)} // for -X
+                    onClick={() => handleMoveRelative('x', -moveUnit)}
                     disabled={loading}
-                    title="X Left"
+                    title="Move left (length)"
                   >
                     <FaArrowLeft />
                   </button>
                   <div style={styles.centerDot}></div>
                   <button
                     style={styles.arrowButton}
-                    onClick={() => handleMoveRelative('x', moveUnit)}  // for +X
+                    onClick={() => handleMoveRelative('x', moveUnit)}
                     disabled={loading}
-                    title="X Right"
+                    title="Move right (length)"
                   >
                     <FaArrowRight />
                   </button>
-                  <span style={styles.axisLabel}>+X</span>
                 </div>
                 <button
                   style={styles.arrowButton}
-                  onClick={() => handleMoveRelative('y', -moveUnit)} // for -Y
+                  onClick={() => handleMoveRelative('y', -moveUnit)}
                   disabled={loading}
-                  title="Y Down"
+                  title="Move down (width)"
                 >
                   <FaArrowDown />
                 </button>
                 <div style={styles.labelRow}>
-                  <span style={styles.axisLabel}>-Y</span>
+                  {/* (no axis label) */}
                 </div>
               </div>
               {/* Z Axis Panel */}
               <div style={styles.zPanel}>
+                {/* Add label for height control */}
+                <div style={{ fontWeight: 'bold', color: '#14532d', marginBottom: 4, fontSize: '1rem' }}>
+                  Control height:
+                </div>
                 <button
                   style={styles.arrowButton}
-                  onClick={() => handleMoveRelative('z', moveUnit)} // for +Z
+                  onClick={() => handleMoveRelative('z', moveUnit)}
                   disabled={loading}
-                  title="Z Up"
+                  title="Move up (Height)"
                 >
-                  <div style={styles.axisLabel}>+Z</div>
                   <FaArrowUp />
                 </button>
                 <button
                   style={styles.arrowButton}
-                  onClick={() => handleMoveRelative('z', -moveUnit)} // for -Z
+                  onClick={() => handleMoveRelative('z', -moveUnit)}
                   disabled={loading}
-                  title="Z Down"
+                  title="Move down (Height)"
                 >
-                  <div style={styles.axisLabel}>-Z</div>
                   <FaArrowDown />
                 </button>
-                {/* Home button directly under Z arrows */}
                 <button
                   style={{
                     ...styles.arrowButton,
@@ -207,7 +210,7 @@ const FarmbotMoving = () => {
                     fontSize: '1.2rem',
                     minWidth: 40,
                     minHeight: 40,
-                    marginTop: 12 // add a little space below the -Z arrow
+                    marginTop: 12
                   }}
                   onClick={() => {
                     setCoord({ x: 0, y: 0, z: 0 });
@@ -228,7 +231,7 @@ const FarmbotMoving = () => {
                   <input
                     style={styles.coordInput}
                     type="number"
-                    placeholder="X"
+                    placeholder="Length"
                     value={coord.x}
                     onChange={e => handleCoordChange('x', e.target.value)}
                     disabled={loading}
@@ -240,7 +243,7 @@ const FarmbotMoving = () => {
                   <input
                     style={styles.coordInput}
                     type="number"
-                    placeholder="Y"
+                    placeholder="Width"
                     value={coord.y}
                     onChange={e => handleCoordChange('y', e.target.value)}
                     disabled={loading}
@@ -252,7 +255,7 @@ const FarmbotMoving = () => {
                   <input
                     style={styles.coordInput}
                     type="number"
-                    placeholder="Z"
+                    placeholder="Height"
                     value={coord.z}
                     onChange={e => handleCoordChange('z', e.target.value)}
                     disabled={loading}
@@ -296,27 +299,28 @@ const styles = {
   header: {
     position: 'fixed',
     top: 0,
-    left: 0,
-    width: '100%',
+    right: 0,
+    height: '100vh',
+    width: 72,
     background: '#16a34a',
     color: 'white',
     fontWeight: 'bold',
     fontSize: '2rem',
-    padding: '0 0 0 32px',
-    height: 72,
+    padding: '0',
     display: 'flex',
+    flexDirection: 'column',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
     letterSpacing: '1px',
     boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
     borderRadius: 0,
-    zIndex: 200,
+    zIndex: 1, // LOWER z-index for background
   },
   fixedPanel: {
     position: 'fixed',
     top: 72, // below header
-    right: 0, // flush with right edge
-    zIndex: 100,
+    right: 0,
+    zIndex: 100, // HIGHER z-index for foreground
     minWidth: 320,
     maxWidth: '60vw',
     background: 'transparent',
