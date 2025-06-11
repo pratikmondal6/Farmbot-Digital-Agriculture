@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from "../utils/api";
+import api from '../utils/api';
 
 const AddPlanttype = () => {
   const navigate = useNavigate();
-
+  const [isOpen, setIsOpen] = useState(false);
   const [plantTypes, setPlantTypes] = useState([]);
   const [plantType, setPlantType] = useState('');
   const [newPlantType, setNewPlantType] = useState('');
@@ -14,214 +14,213 @@ const AddPlanttype = () => {
   const [distanceError, setDistanceError] = useState('');
 
   useEffect(() => {
-    // GET plant types
-    api.get('/api/plant/types')
-      .then(response => setPlantTypes(response.data))
-      .catch(() => console.error('Failed to fetch plant types'));
-  }, []);
+    if (isOpen) {
+      loadPlantTypes();
+    }
+  }, [isOpen]);
 
-  // Load plant data on selection
+  const loadPlantTypes = async () => {
+    try {
+      const response = await api.get('/api/plant/types');
+      setPlantTypes(response.data);
+    } catch {
+      console.error('Fehler beim Laden der Planttypes');
+    }
+  };
+
   const handlePlantClick = async (type) => {
     setPlantType(type);
+    setNewPlantType(type);
     try {
-      // GET plant details
-      const response = await api.get(`/api/plant/${type}`);
-      setDepth(response.data.seeding_depth);
-      setDistance(response.data.minimal_distance);
+      const res = await api.get(`/api/plant/details/${type}`);
+      setDepth(res.data.seeding_depth);
+      setDistance(res.data.minimal_distance);
     } catch {
-      console.error('Failed to load plant details');
+      console.error('Fehler beim Laden der Pflanzdetails');
     }
   };
 
   const handleDepthChange = (e) => {
-    const value = e.target.value;
-    setDepth(value);
-    const num = Number(value);
-    if (value === '' || !Number.isFinite(num) || value.includes(' ') || isNaN(num)) {
-      setError('Please enter a valid number between 0 mm and 40 mm.');
-    } else if (num < 0 || num > 40) {
-      setError('Please enter a value between 0 mm and 40 mm.');
-    } else {
-      setError('');
-    }
+    const val = e.target.value;
+    setDepth(val);
+    const num = Number(val);
+    setError((val === '' || isNaN(num) || num < 0 || num > 40)
+      ? 'Bitte gültige Tiefe zwischen 0 und 40 mm eingeben.'
+      : '');
   };
 
   const handleDistanceChange = (e) => {
-    const value = e.target.value;
-    setDistance(value);
-    const num = Number(value);
-    if (value === '' || !Number.isFinite(num) || value.includes(' ') || isNaN(num)) {
-      setDistanceError('Please enter a valid number between 50 mm and 1000 mm.');
-    } else if (num < 50 || num > 1000) {
-      setDistanceError('Please enter a value between 50 mm and 1000 mm.');
-    } else {
-      setDistanceError('');
-    }
+    const val = e.target.value;
+    setDistance(val);
+    const num = Number(val);
+    setDistanceError((val === '' || isNaN(num) || num < 50 || num > 1000)
+      ? 'Bitte gültigen Abstand zwischen 50 und 1000 mm eingeben.'
+      : '');
   };
 
   const saveAll = async () => {
-    if (!depth || !distance) {
-      alert('Please fill in all fields.');
-      return;
-    }
-
-    const depthNum = Number(depth);
-    const distNum = Number(distance);
-    if (isNaN(depthNum) || depthNum < 0 || depthNum > 40 || isNaN(distNum) || distNum < 50 || distNum > 1000) {
-      alert('Please enter valid values.');
-      return;
-    }
-
-    let finalPlantType = plantType;
-
-    if (newPlantType.trim()) {
-      try {
-        // POST new plant type
-        const response = await api.post('/api/plant/add-type', {
-          plant_type: newPlantType.trim()
-        });
-        const data = response.data;
-        alert(data.message);
-        finalPlantType = newPlantType.trim();
-        setNewPlantType('');
-        // Refresh plant types
-        const typesRes = await api.get('/api/plant/types');
-        setPlantTypes(typesRes.data);
-      } catch (err) {
-        alert(err.response?.data?.error || 'Failed to add new plant type.');
-        return;
-      }
-    }
-
-    if (!finalPlantType) {
-      alert('Please select or enter a plant type.');
+    if (!depth || !distance || error || distanceError) {
+      alert('Bitte alle Felder korrekt ausfüllen.');
       return;
     }
 
     try {
-      // POST plant data
-      const response = await api.post('/api/plant/save', {
-        plantType: finalPlantType,
-        seeding_depth: depth,
-        minimal_distance: distance,
-      });
-      const data = await response.data;
-      alert('Data saved successfully!');
+      if (plantTypes.includes(newPlantType)) {
+        await api.put('/api/plant/update', {
+          plantType: newPlantType,
+          seeding_depth: depth,
+          minimal_distance: distance,
+        });
+        alert('Planttype aktualisiert');
+      } else {
+        await api.post('/api/plant/add-type', {
+          plant_type: newPlantType.trim()
+        });
+        await api.post('/api/plant/save', {
+          plantType: newPlantType.trim(),
+          seeding_depth: depth,
+          minimal_distance: distance
+        });
+        alert('Neuer Planttype hinzugefügt');
+      }
+
       setPlantType('');
+      setNewPlantType('');
       setDepth('');
       setDistance('');
+      loadPlantTypes();
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to save data.');
+      alert(err.response?.data?.error || 'Fehler beim Speichern');
     }
   };
 
   return (
     <div style={styles.wrapper}>
-      <div style={styles.container}>
-        <label style={styles.label}>
-          Choose existing plant type:
-        </label>
-        <div style={styles.buttonGroup}>
-          {plantTypes.map(type => (
-            <button
-              key={type}
-              onClick={() => handlePlantClick(type)}
-              style={{
-                ...styles.plantButton,
-                backgroundColor: plantType === type ? '#15803d' : '#bbf7d0',
-                color: plantType === type ? 'white' : '#064e3b'
-              }}
-            >
-              {type}
-            </button>
-          ))}
-        </div>        
-        
+      <button onClick={() => setIsOpen(!isOpen)} style={styles.toggleButton}>
+        {isOpen ? '✖ Formular schließen' : '➕ Planttype verwalten'}
+      </button>
 
-        <label style={styles.label}>
-          Add new plant type:
-          <input
-            type="text"
-            value={newPlantType}
-            onChange={(e) => setNewPlantType(e.target.value)}
-            style={styles.input}
-          />
-        </label>
+      {isOpen && (
+        <div style={styles.container}>
+          <label style={styles.label}>Wähle Planttype:</label>
+          <div style={styles.buttonGroup}>
+            {plantTypes.map(type => (
+              <button
+                key={type}
+                onClick={() => handlePlantClick(type)}
+                style={{
+                  ...styles.plantButton,
+                  backgroundColor: plantType === type ? '#15803d' : '#bbf7d0',
+                  color: plantType === type ? 'white' : '#064e3b'
+                }}
+              >
+                {type}
+              </button>
+            ))}
+          </div>
 
-        <label style={styles.label}>
-          Seeding depth (mm):
-          <input
-            type="number"
-            value={depth}
-            onChange={handleDepthChange}
-            min={0}
-            max={40}
-            style={styles.input}
-          />
-        </label>
-        {error && <div style={styles.error}>{error}</div>}
+          <label style={styles.label}>
+            Neuen Planttype:
+            <input
+              type="text"
+              value={newPlantType}
+              onChange={(e) => setNewPlantType(e.target.value)}
+              style={{ ...styles.input, backgroundColor: plantType ? '#f3f4f6' : 'white' }}
+              disabled={!!plantType}
+            />
+          </label>
 
-        <label style={styles.label}>
-          Minimum distance (mm):
-          <input
-            type="number"
-            value={distance}
-            onChange={handleDistanceChange}
-            min={50}
-            max={1000}
-            style={styles.input}
-          />
-        </label>
-        {distanceError && <div style={styles.error}>{distanceError}</div>}
+          <label style={styles.label}>
+            Seeding depth (mm):
+            <input
+              type="number"
+              value={depth}
+              onChange={handleDepthChange}
+              min={0}
+              max={40}
+              style={styles.input}
+            />
+          </label>
+          {error && <div style={styles.error}>{error}</div>}
 
-        <button onClick={saveAll} style={styles.button}>
-          Save
-        </button>
+          <label style={styles.label}>
+            Minimal distance (mm):
+            <input
+              type="number"
+              value={distance}
+              onChange={handleDistanceChange}
+              min={50}
+              max={1000}
+              style={styles.input}
+            />
+          </label>
+          {distanceError && <div style={styles.error}>{distanceError}</div>}
 
-        <button onClick={() => navigate('/')} style={styles.backButton}>
-          ← Back to Home
-        </button>
-      </div>
+          <button onClick={saveAll} style={styles.button}>Speichern</button>
+          <button onClick={() => navigate('/')} style={styles.backButton}>← Zurück</button>
+        </div>
+      )}
     </div>
   );
 };
 
 const styles = {
   wrapper: {
-    display: 'flex',
-    justifyContent: 'flex-start',
-    padding: '40px',
-  },
-  container: {
-    width: '400px',
-    backgroundColor: '#ecfdf5',
-    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-    padding: '24px',
-    borderRadius: '12px',
+    padding: '10px',
     display: 'flex',
     flexDirection: 'column',
-    gap: '16px',
+    alignItems: 'flex-end',
   },
-  label: {
-    color: '#14532d',
+  toggleButton: {
+    padding: '10px 16px',
+    backgroundColor: '#14b8a6',
+    color: 'white',
     fontWeight: 'bold',
+    border: 'none',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    marginBottom: '10px',
   },
+  container: {
+    backgroundColor: '#f0fdf4',
+    borderRadius: '10px',
+    padding: '5px',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+    width: '100%',
+    maxWidth: '300px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '14px',
+  },
+  label: { fontWeight: 'bold', color: '#14532d' },
   input: {
     width: '100%',
     padding: '8px',
-    marginTop: '4px',
-    border: '1px solid #ccc',
     borderRadius: '4px',
-    marginBottom: '4px',
+    border: '1px solid #ccc',
+    marginTop: '4px'
   },
   error: {
     color: '#dc2626',
     fontWeight: 'bold',
+    fontSize: '0.85rem'
+  },
+  buttonGroup: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '8px',
+  },
+  plantButton: {
+    padding: '6px 10px',
+    border: 'none',
+    borderRadius: '6px',
+    fontWeight: 'bold',
+    cursor: 'pointer',
   },
   button: {
-    padding: '10px',
     backgroundColor: '#22c55e',
     color: 'white',
+    padding: '10px',
     border: 'none',
     borderRadius: '5px',
     cursor: 'pointer',
@@ -233,19 +232,6 @@ const styles = {
     color: '#111827',
     border: 'none',
     borderRadius: '5px',
-    cursor: 'pointer',
-    fontWeight: 'bold',
-  },
-  buttonGroup: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: '8px',
-    marginBottom: '8px',
-  },
-  plantButton: {
-    padding: '6px 12px',
-    border: 'none',
-    borderRadius: '8px',
     fontWeight: 'bold',
     cursor: 'pointer',
   },
