@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { saveToken } from '../utils/tokenManager';
 
 const LoginPage = ({setIsLoggedIn}) => {
   const navigate = useNavigate();
@@ -31,6 +32,7 @@ const LoginPage = ({setIsLoggedIn}) => {
 
       // console.log('Login success:', response.data);
       sessionStorage.setItem('token', response.data.token);
+      saveToken(response.data.token);
       setIsLoggedIn(true);
       navigate('/dashboard');
 
