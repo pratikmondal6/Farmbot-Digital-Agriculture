@@ -24,7 +24,7 @@ const AddPlanttype = () => {
       const response = await api.get('/api/plant/types');
       setPlantTypes(response.data);
     } catch {
-      console.error('Fehler beim Laden der Planttypes');
+      console.error('Error while loading Planttypes');
     }
   };
 
@@ -36,7 +36,7 @@ const AddPlanttype = () => {
       setDepth(res.data.seeding_depth);
       setDistance(res.data.minimal_distance);
     } catch {
-      console.error('Fehler beim Laden der Pflanzdetails');
+      console.error('Error while loading plant details');
     }
   };
 
@@ -45,7 +45,7 @@ const AddPlanttype = () => {
     setDepth(val);
     const num = Number(val);
     setError((val === '' || isNaN(num) || num < 0 || num > 40)
-      ? 'Bitte gültige Tiefe zwischen 0 und 40 mm eingeben.'
+      ? 'Please enter valid value between 0 and 40mm'
       : '');
   };
 
@@ -54,13 +54,13 @@ const AddPlanttype = () => {
     setDistance(val);
     const num = Number(val);
     setDistanceError((val === '' || isNaN(num) || num < 50 || num > 1000)
-      ? 'Bitte gültigen Abstand zwischen 50 und 1000 mm eingeben.'
+      ? 'Please enter a valid number between 50 and 1000mm'
       : '');
   };
 
   const saveAll = async () => {
     if (!depth || !distance || error || distanceError) {
-      alert('Bitte alle Felder korrekt ausfüllen.');
+      alert('Please enter all fields correctly');
       return;
     }
 
@@ -74,7 +74,7 @@ const AddPlanttype = () => {
           distance: Number(distance),
         });
         const result = response.data;
-        alert('Planttype aktualisiert');
+        alert('Planttype changed');
       } else {
         // Add new plant type with all details
         const response = await api.post('/api/plant/add-type', {
@@ -83,7 +83,7 @@ const AddPlanttype = () => {
           seeding_depth: Number(depth)
         });
         const result = response.data;
-        alert('Neuer Planttype hinzugefügt');
+        alert('New Planttype created');
       }
 
       setPlantType('');
@@ -99,12 +99,12 @@ const AddPlanttype = () => {
   return (
     <div style={styles.wrapper}>
       <button onClick={() => setIsOpen(!isOpen)} style={styles.toggleButton}>
-        {isOpen ? '✖ Formular schließen' : '➕ Planttype verwalten'}
+        {isOpen ? '✖ Close' : '➕ Create Planttype'}
       </button>
 
       {isOpen && (
         <div style={styles.container}>
-          <label style={styles.label}>Wähle Planttype:</label>
+          <label style={styles.label}>Choose Planttype:</label>
           <div style={styles.buttonGroup}>
             {plantTypes.map(type => (
               <button
@@ -122,7 +122,7 @@ const AddPlanttype = () => {
           </div>
 
           <label style={styles.label}>
-            Neuen Planttype:
+            New Planttype:
             <input
               type="text"
               value={newPlantType}
