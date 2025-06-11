@@ -18,6 +18,7 @@ app.use(cookieParser());
 require("./startup/routes")(app);
 require("./startup/db")();
 require('dotenv').config();
+require('./services/farmbotStatusService');
 const plantRoutes = require('./routes/plantRoutes');
 app.use('/api/plant', plantRoutes);
 

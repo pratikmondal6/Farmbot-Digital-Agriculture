@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {FiArrowLeft} from 'react-icons/fi';
 import Button from "../components/Button";
-import api from "../utils/api";
+import instance from "../utils/api";
 import {firmware_hardware, firmware_path, rpiVersions, timezones, updateTime} from "../utils/botConfigUtils";
 
 function FarmbotConfig({onBack}) {
@@ -30,12 +30,13 @@ function FarmbotConfig({onBack}) {
         raspberryPiModel: '',
     });
 
+    // Fetch bot configuration data when component mounts
     useEffect(() => {
         const fetchBotConfig = async () => {
             try {
                 setLoading(true);
 
-                const response = await api.get('/api/botConfig')
+                const response = await instance.get('/api/botConfig')
                 const result = await response.data;
 
                 if (result.error) {
@@ -55,10 +56,11 @@ function FarmbotConfig({onBack}) {
         fetchBotConfig();
     }, []);
 
+    // Handle form submission
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await api.put('/api/botConfig', botConfig)
+            const response = await instance.put('/api/botConfig', botConfig)
 
             const result = await response.data;
 
@@ -101,7 +103,7 @@ function FarmbotConfig({onBack}) {
         }
     };
 
-    return (<div className="farmbot-config text-black">
+    return (<div className="farmbot-config">
         <div className="back-button" onClick={onBack}>
             <FiArrowLeft size={20}/>
         </div>
@@ -116,29 +118,26 @@ function FarmbotConfig({onBack}) {
                 <Button onClick={() => window.location.reload()}>Retry</Button>
             </div>
         ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
-                <label className="block">
-                    <span className="block text-sm font-medium">Name:</span>
+            <form onSubmit={handleSubmit}>
+                <label>
+                    Name:
                     <input
                         type="text"
-                        className="w-full border rounded px-2 py-1 text-black"
                         value={botConfig.name}
                         onChange={(e) => handleChange(e, 'name')}
                     />
                 </label>
-                <label className="block">
-                    <span className="block text-sm font-medium">Order Number:</span>
+                <label>
+                    Order Number:
                     <input
                         type="text"
-                        className="w-full border rounded px-2 py-1 text-black"
                         value={botConfig.orderNumber}
                         onChange={(e) => handleChange(e, 'orderNumber')}
                     />
                 </label>
-                <label className="block">
-                    <span className="block text-sm font-medium">Timezone:</span>
+                <label>
+                    Timezone:
                     <select
-                        className="w-full border rounded px-2 py-1 text-black bg-white"
                         value={botConfig.timezone}
                         onChange={(e) => handleChange(e, 'timezone')}
                     >
@@ -149,37 +148,34 @@ function FarmbotConfig({onBack}) {
                         ))}
                     </select>
                 </label>
-                <label className="block">
-                    <span className="block text-sm font-medium">Location:</span>
-                    <div className="flex gap-2">
+                <label>
+                    Location:
+                    <div className="location-inputs">
                         <input
                             type="text"
                             placeholder="Latitude"
-                            className="flex-1 border rounded px-2 py-1 text-black"
                             value={botConfig.location.lat}
                             onChange={(e) => handleChange(e, 'location', 'lat')}
                         />
                         <input
                             type="text"
                             placeholder="Longitude"
-                            className="flex-1 border rounded px-2 py-1 text-black"
                             value={botConfig.location.long}
                             onChange={(e) => handleChange(e, 'location', 'long')}
                         />
                     </div>
                 </label>
-                <label className="flex items-center gap-2 text-sm font-medium">
-                    <span>Indoor:</span>
+                <label>
+                    Indoor:
                     <input
                         type="checkbox"
                         checked={botConfig.indoor}
                         onChange={(e) => handleCheckboxChange(e, 'indoor')}
                     />
                 </label>
-                <label className="block">
-                    <span className="block text-sm font-medium">Auto Update:</span>
+                <label>
+                    Auto Update:
                     <select
-                        className="w-full border rounded px-2 py-1 text-black bg-white"
                         value={botConfig.autoUpdate}
                         onChange={(e) => handleChange(e, 'autoUpdate')}
                     >
@@ -190,27 +186,33 @@ function FarmbotConfig({onBack}) {
                         ))}
                     </select>
                 </label>
-                <label className="block">
-                    <span className="block text-sm font-medium">OS Version{botConfig.os.version ? ` (${botConfig.os.version})` : ''}:</span>
-                    {botConfig.os.isUpdateAvailable ? (
-                        <Button className="update-button" onClick={handleUpdateClick}>Update</Button>
-                    ) : (
-                        <Button isDisabled={true} type="button" className="update-button">Up To date</Button>
-                    )}
+                <label>
+                    OS Version{botConfig.os.version ? `(${botConfig.os.version})` : ''}:
+                    {botConfig.os.isUpdateAvailable ? <Button
+                        className="update-button"
+                        onClick={handleUpdateClick}
+                    >
+                        Update
+                    </Button> : <Button
+                        isDisabled={true}
+                        type="button"
+                        className="update-button"
+                    >
+                        Up To date
+                    </Button>}
+
                 </label>
-                <label className="block">
-                    <span className="block text-sm font-medium">Boot Sequence:</span>
+                <label>
+                    Boot Sequence:
                     <input
                         type="text"
-                        className="w-full border rounded px-2 py-1 text-black"
                         value={botConfig.bootSequence}
                         onChange={(e) => handleChange(e, 'bootSequence')}
                     />
                 </label>
-                <label className="block">
-                    <span className="block text-sm font-medium">Firmware:</span>
+                <label>
+                    Firmware:
                     <select
-                        className="w-full border rounded px-2 py-1 text-black bg-white"
                         value={botConfig.firmware}
                         onChange={(e) => handleChange(e, 'firmware')}
                     >
@@ -221,10 +223,9 @@ function FarmbotConfig({onBack}) {
                         ))}
                     </select>
                 </label>
-                <label className="block">
-                    <span className="block text-sm font-medium">Firmware Path:</span>
+                <label>
+                    Firmware Path:
                     <select
-                        className="w-full border rounded px-2 py-1 text-black bg-white"
                         value={botConfig.firmwarePath}
                         onChange={(e) => handleChange(e, 'firmwarePath')}
                     >
@@ -236,10 +237,9 @@ function FarmbotConfig({onBack}) {
                         ))}
                     </select>
                 </label>
-                <label className="block">
-                    <span className="block text-sm font-medium">Raspberry Pi Model:</span>
+                <label>
+                    Raspberry Pi Model:
                     <select
-                        className="w-full border rounded px-2 py-1 text-black bg-white"
                         value={botConfig.raspberryPiModel}
                         onChange={(e) => handleChange(e, 'raspberryPiModel')}
                     >
@@ -251,7 +251,7 @@ function FarmbotConfig({onBack}) {
                         ))}
                     </select>
                 </label>
-                <Button type="submit" className="save-button">Submit</Button>
+                <Button type="submit" className="save-button"> Submit</Button>
             </form>
         )}
     </div>);
