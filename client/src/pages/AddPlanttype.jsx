@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
+import FieldMap from '../components/FieldMap';
+
 
 const AddPlanttype = () => {
   const navigate = useNavigate();
@@ -97,6 +99,8 @@ const AddPlanttype = () => {
   };
 
   return (
+    <div style={styles.wholedesign}>
+      <FieldMap />
     <div style={styles.wrapper}>
       <button onClick={() => setIsOpen(!isOpen)} style={styles.toggleButton}>
         {isOpen ? '✖ Close' : '➕ Create Planttype'}
@@ -163,10 +167,15 @@ const AddPlanttype = () => {
         </div>
       )}
     </div>
+    </div>
   );
 };
 
 const styles = {
+  wholedesign: {
+    display: 'flex',
+    flexDirection: 'column'
+  },
   wrapper: {
     padding: '10px',
     display: 'flex',

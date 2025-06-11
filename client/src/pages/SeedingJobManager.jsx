@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import '../farmbot-dashboard.css';
+import '../styles/farmbot-dashboard.css';
 
 const SeedingJobManager = () => {
   const [jobs, setJobs] = useState([]);
