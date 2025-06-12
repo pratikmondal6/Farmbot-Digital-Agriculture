@@ -15,16 +15,17 @@ app.use(cookieParser());
 //     allowedHeaders: ['Content-Type', 'Authorization']
 // }));
 
-require("./startup/routes")(app);
-require("./startup/db")();
-require('dotenv').config();
+require('./startup/db')();
 require('./services/farmbotStatusService');
+
 const plantRoutes = require('./routes/plantRoutes');
 const seedistanceRoutes = require('./routes/seedistance');
 
-// Use routes
 app.use('/api/plant', plantRoutes);
 app.use('/api/seedistance', seedistanceRoutes);
+
+// 🚨 routes(app) ganz am Ende, damit 404-Fallback nicht alles abfängt
+require('./startup/routes')(app);
 
 const port = process.env.PORT || 5000;
 
