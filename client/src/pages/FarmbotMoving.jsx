@@ -33,9 +33,9 @@ const FarmbotMoving = () => {
     if (value === '' || isNaN(num)) {
       error = 'Please enter a number.';
     } else {
-      if (axis === 'x' && (num < 0 || num > 2600)) error = 'Length must be 0 - 2600 mm';
+      if (axis === 'x' && (num < 0 || num > 2700)) error = 'Length must be 0 - 2700 mm';
       if (axis === 'y' && (num < 0 || num > 1200)) error = 'Width must be 0 - 1200 mm';
-      if (axis === 'z' && (num > 0 || num < -1000)) error = 'Height must be 0 to -1000 mm';
+      if (axis === 'z' && (num > 0 || num < -600)) error = 'Height must be 0 to -600 mm';
     }
     setCoordError((prev) => ({ ...prev, [axis]: error }));
   };
@@ -45,19 +45,32 @@ const FarmbotMoving = () => {
     setLoading(true);
     setIsMoving(true);
     try {
-      const { x, y, z } = customCoord || coord;
+      // Fallback to coord if customCoord is not provided
+      const { x = '', y = '', z = '' } = customCoord || coord || {};
+
+      // Check for empty fields first
+      if (x === '' || y === '' || z === '') {
+        setError('Please fill in all coordinate fields.');
+        setLoading(false);
+        setIsMoving(false);
+        return;
+      }
+
       const nx = Number(x);
       const ny = Number(y);
       const nz = Number(z);
 
+      // Debug log
+      console.log({ x, y, z, nx, ny, nz });
+
       // Restriction checks
       if (
         isNaN(nx) || isNaN(ny) || isNaN(nz) ||
-        nx < 0 || nx > 2600 ||
+        nx < 0 || nx > 2700 ||
         ny < 0 || ny > 1200 ||
-        nz > 0 || nz < -1000
+        nz > 0 || nz < -600
       ) {
-        setError('Please enter valid numbers for Length (0 - 2600), Width (0 - 1200), Height (0 to -1000).');
+        setError('Please enter valid numbers for Length (0 - 2700), Width (0 - 1200), Height (0 to -600).');
         setLoading(false);
         setIsMoving(false);
         return;
@@ -79,8 +92,17 @@ const FarmbotMoving = () => {
     const z = Number(coord.z) || 0;
     let newCoord = { x, y, z };
     newCoord[axis] += delta;
-    setCoord(newCoord);
-    handleMoveToCoord(newCoord);
+    // Convert back to strings for input compatibility
+    setCoord({
+      x: String(newCoord.x),
+      y: String(newCoord.y),
+      z: String(newCoord.z),
+    });
+    handleMoveToCoord({
+      x: String(newCoord.x),
+      y: String(newCoord.y),
+      z: String(newCoord.z),
+    });
   };
 
   return (
@@ -139,9 +161,15 @@ const FarmbotMoving = () => {
                 </div>
               </div>
               {/* Movement Grid */}
-              <div style={styles.moveGrid}>
+              <div style={{
+                ...styles.moveGrid,
+                ...(isMoving ? styles.coordPanelDisabled : {})
+              }}>
                 {/* XY Grid */}
-                <div style={styles.xyGrid}>
+                <div style={{
+                  ...styles.xyGrid,
+                  ...(isMoving ? styles.coordPanelDisabled : {})
+                }}>
                   {/* Add label for length and width control */}
                   <div style={{ fontWeight: 'bold', color: '#14532d', marginBottom: 4, fontSize: '1rem' }}>
                     Control length and width:
@@ -159,9 +187,14 @@ const FarmbotMoving = () => {
                   </button>
                   <div style={styles.middleRow}>
                     <button
-                      style={styles.arrowButton}
+                      style={{
+                        ...styles.arrowButton,
+                        ...(loading || isMoving || Number(coord.x) <= 0
+                          ? { backgroundColor: '#e5e7eb', color: '#a3a3a3', borderColor: '#d1d5db', cursor: 'not-allowed' }
+                          : {})
+                      }}
                       onClick={() => handleMoveRelative('x', -moveUnit)}
-                      disabled={loading}
+                      disabled={loading || isMoving || Number(coord.x) <= 0}
                       title="Move left (length)"
                     >
                       <FaArrowLeft />
@@ -177,9 +210,14 @@ const FarmbotMoving = () => {
                     </button>
                   </div>
                   <button
-                    style={styles.arrowButton}
+                    style={{
+                      ...styles.arrowButton,
+                      ...(loading || isMoving || Number(coord.y) <= 0
+                        ? { backgroundColor: '#e5e7eb', color: '#a3a3a3', borderColor: '#d1d5db', cursor: 'not-allowed' }
+                        : {})
+                    }}
                     onClick={() => handleMoveRelative('y', -moveUnit)}
-                    disabled={loading}
+                    disabled={loading || isMoving || Number(coord.y) <= 0}
                     title="Move down (width)"
                   >
                     <FaArrowDown />
@@ -189,7 +227,10 @@ const FarmbotMoving = () => {
                   </div>
                 </div>
                 {/* Z Axis Panel */}
-                <div style={styles.zPanel}>
+                <div style={{
+                  ...styles.zPanel,
+                  ...(isMoving ? styles.coordPanelDisabled : {})
+                }}>
                   {/* Add label for height control */}
                   <div style={{ fontWeight: 'bold', color: '#14532d', marginBottom: 4, fontSize: '1rem' }}>
                     Control height:
@@ -232,7 +273,12 @@ const FarmbotMoving = () => {
                 </div>
               </div>
               {/* Move to coordinate */}
-              <div style={styles.coordPanel}>
+              <div
+                style={{
+                  ...styles.coordPanel,
+                  ...(isMoving ? styles.coordPanelDisabled : {})
+                }}
+              >
                 <div style={styles.coordLabel}>Move to coordinate:</div>
                 <div style={styles.coordInputs}>
                   <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -242,9 +288,9 @@ const FarmbotMoving = () => {
                       placeholder="Length"
                       value={coord.x}
                       onChange={e => handleCoordChange('x', e.target.value)}
-                      disabled={loading}
+                      disabled={loading || isMoving}
                       min={0}
-                      max={2600}
+                      max={2700}
                     />
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -254,7 +300,7 @@ const FarmbotMoving = () => {
                       placeholder="Width"
                       value={coord.y}
                       onChange={e => handleCoordChange('y', e.target.value)}
-                      disabled={loading}
+                      disabled={loading || isMoving}
                       min={0}
                       max={1200}
                     />
@@ -266,15 +312,15 @@ const FarmbotMoving = () => {
                       placeholder="Height"
                       value={coord.z}
                       onChange={e => handleCoordChange('z', e.target.value)}
-                      disabled={loading}
-                      min={-800}
+                      disabled={loading || isMoving}
+                      min={-600}
                       max={0}
                     />
                   </div>
                   <button
                     style={styles.coordButton}
-                    onClick={handleMoveToCoord}
-                    disabled={loading || coordError.x || coordError.y || coordError.z}
+                    onClick={() => handleMoveToCoord()}
+                    disabled={loading || isMoving || coordError.x || coordError.y || coordError.z}
                   >
                     Move
                   </button>
@@ -559,5 +605,11 @@ const styles = {
     lineHeight: 1.4,
     width: '100%',
     alignSelf: 'flex-end',
+  },
+  coordPanelDisabled: {
+    opacity: 0.6,
+    pointerEvents: 'none',
+    background: '#e5e7eb', // light grey
+    borderRadius: '8px',
   },
 };
