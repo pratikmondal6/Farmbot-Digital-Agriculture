@@ -16,7 +16,7 @@ router.post("/", async (req, res) => {
   const token = req.headers["auth-token"];
   let bot = new Farmbot({ token: token });
 
-  if (!req.body.x && !req.body.x && !req.body.z) {
+  if (req.body.x === undefined || req.body.y === undefined || req.body.z === undefined) {
     return res.status(500).send({
       "status": 500,
       "message": "x, y and z is not sent in body"
