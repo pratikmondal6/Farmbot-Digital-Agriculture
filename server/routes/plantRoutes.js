@@ -6,6 +6,7 @@
 
   // Save minimal_distance or seeding_depth based on valueType
   router.post('/save', async (req, res) => {
+      console.log('📦 [POST /save] Request body:', req.body); // 🐞 Debug
     const { plantType, valueType, value } = req.body;
     if (!plantType || !valueType || typeof value !== "number") {
       return res.status(400).json({ error: "Missing or invalid fields." });
@@ -39,6 +40,7 @@
 
   // Add a new plant type
   router.post('/add-type', async (req, res) => {
+      console.log('📦 [POST /add-type] Request body:', req.body); // 🐞 Debug
     const { plant_type, minimal_distance = 0, seeding_depth = 0 } = req.body;
 
     // Validation: plant_type must be provided and not empty
@@ -125,29 +127,44 @@
 
   // Update plant type details
   router.put('/update', async (req, res) => {
-    const { plantType, newPlantType, depth, distance } = req.body;
-    if (!plantType || !newPlantType) {
-      return res.status(400).json({ error: "plantType and newPlantType are required." });
-    }
-    if (!newPlantType.trim() || !depth || !distance) {
-      return res.status(400).json({ error: "Please add valid numbers for all fields." });
+    console.log('📦 [PUT /update] Request body:', req.body);
+  const { plantType, newPlantType, seeding_depth, minimal_distance } = req.body;
+
+  if (!plantType || !newPlantType) {
+    return res.status(400).json({ error: "plantType and newPlantType are required." });
+  }
+
+  try {
+    const existing = await Plant.findOne({ plant_type: plantType });
+    if (!existing) {
+      return res.status(404).json({ error: "Plant not found" });
     }
 
-    const update = { plant_type: newPlantType };
-    if (typeof depth === "number") update.seeding_depth = depth;
-    if (typeof distance === "number") update.minimal_distance = distance;
-
-    try {
-      await Plant.findOneAndUpdate(
-        { plant_type: plantType },
-        update,
-        { new: true }
-      );
-      res.json({ message: "Plant type updated successfully" });
-    } catch (err) {
-      res.status(500).json({ error: "Failed to update plant type" });
+    // Prüfen ob der neue Name schon existiert
+    if (plantType !== newPlantType) {
+      const duplicate = await Plant.findOne({ plant_type: newPlantType });
+      if (duplicate) {
+        return res.status(409).json({ error: "Plant type already exists." });
+      }
+      existing.plant_type = newPlantType;
     }
-  });
+
+    if (typeof seeding_depth === "number") {
+      existing.seeding_depth = seeding_depth;
+    }
+
+    if (typeof minimal_distance === "number") {
+      existing.minimal_distance = minimal_distance;
+    }
+
+    await existing.save();
+    res.json({ message: "Plant type updated successfully" });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to update plant type" });
+  }
+});
 
   router.get('/all', async (req, res) => {
     try {

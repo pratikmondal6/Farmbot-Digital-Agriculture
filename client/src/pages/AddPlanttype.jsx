@@ -83,17 +83,17 @@ const AddPlanttype = () => {
   }
 
   try {
-    if (plantType && newPlantType.trim()) {
-      // 🔁 UPDATE (bestehender Typ wurde angeklickt)
+    if (plantType) {
+      // UPDATE-Modus (auch wenn der Name geändert wurde)
       await api.put('/api/plant/update', {
-        plantType, // alter Name
-        newPlantType: newPlantType.trim(), // evtl. neuer Name
+        plantType, // Originalname
+        newPlantType: newPlantType.trim(), // Neuer Name (kann auch gleich bleiben)
         seeding_depth: Number(depth),
         minimal_distance: Number(distance),
       });
       alert('Planttype updated');
     } else {
-      // ➕ CREATE (neuer Typ)
+      // CREATE-Modus
       await api.post('/api/plant/add-type', {
         plant_type: newPlantType.trim(),
         minimal_distance: Number(distance),
@@ -102,7 +102,7 @@ const AddPlanttype = () => {
       alert('New Planttype created');
     }
 
-    // Felder leeren & neu laden
+    // Felder zurücksetzen
     setPlantType('');
     setNewPlantType('');
     setDepth('');
@@ -265,7 +265,7 @@ const styles = {
   },
   toggleButton: {
     padding: '10px 16px',
-    backgroundColor: '#14b8a6',
+    backgroundColor: '#22c55e',
     color: 'white',
     fontWeight: 'bold',
     border: 'none',

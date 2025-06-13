@@ -6,14 +6,12 @@ const config = require('config');
 const routes = require('./startup/routes');
 
 app.use(cors());
+
+// ✅ JSON-Body-Parser hinzufügen
+app.use(express.json());
+
 // for getting cookies
 app.use(cookieParser());
-// CORS configuration
-// app.use(cors({
-//     origin: 'http://localhost:3000', // Allow requests from React client
-//     methods: ['GET', 'POST', 'PUT', 'DELETE'],
-//     allowedHeaders: ['Content-Type', 'Authorization']
-// }));
 
 require('./startup/db')();
 require('./services/farmbotStatusService');
@@ -26,6 +24,7 @@ app.use('/api/seedistance', seedistanceRoutes);
 
 // 🚨 routes(app) ganz am Ende, damit 404-Fallback nicht alles abfängt
 require('./startup/routes')(app);
+
 
 const port = process.env.PORT || 5000;
 
