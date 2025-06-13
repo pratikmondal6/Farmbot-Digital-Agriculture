@@ -1,13 +1,14 @@
 import React, {useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
 import '../styles/field-map.css';
+import instance from "../utils/api";
 
-const ActionModal = ({position, onMove}) => {
-    const [z, setZ] = useState(0);
+const ActionModal = ({position, onMove, previousZ}) => {
+    const [z, setZ] = useState(previousZ || 0);
 
     const handleZChange = (e) => {
         const value = Number(e.target.value);
-        if (value >= 0 && value <= 100) {
+        if (value >= 0) {
             setZ(value);
         }
     };
@@ -16,31 +17,30 @@ const ActionModal = ({position, onMove}) => {
         <div className="action-modal" style={{left: position.x, top: position.y}}>
             <div className="action-modal-content">
                 <div className="action-modal-input-container">
-                    <label className="action-modal-label">X:</label>
+                    <label className="action-modal-label">Width:</label>
                     <input
                         type="number"
-                        value={position.meterX}
+                        value={position.x}
                         disabled
                         className="action-modal-input"
                     />
                 </div>
                 <div className="action-modal-input-container">
-                    <label className="action-modal-label">Y:</label>
+                    <label className="action-modal-label">Height:</label>
                     <input
                         type="number"
-                        value={position.meterY}
+                        value={position.y}
                         disabled
                         className="action-modal-input"
                     />
                 </div>
                 <div className="action-modal-input-container">
-                    <label className="action-modal-label">Z:</label>
+                    <label className="action-modal-label">Depth:</label>
                     <input
                         type="number"
                         value={z}
                         onChange={handleZChange}
                         min={0}
-                        max={100}
                         className="action-modal-input"
                     />
                 </div>
@@ -55,7 +55,7 @@ const ActionModal = ({position, onMove}) => {
     );
 };
 
-const FieldMap = ({widthInMeter = 1800, heightInMeter = 1400}) => {
+const FieldMap = ({widthInMeter = 2600, heightInMeter = 1000}) => {
         const containerWidth = 1200;
         const containerHeight = 750;
         const margin = 2;
@@ -64,29 +64,32 @@ const FieldMap = ({widthInMeter = 1800, heightInMeter = 1400}) => {
         const [selectedPoint, setSelectedPoint] = useState(null);
         const [currentPosition, setCurrentPosition] = useState({x: 0, y: 0});
         const [targetPosition, setTargetPosition] = useState({x: 0, y: 0});
-        const [step, setStep] = useState(0);
-
+        const [isRobotHovered, setIsRobotHovered] = useState(false);
+        // const [step, setStep] = useState(0);
+        // const intervalRef = React.useRef(null);
 
         const scaleX = containerWidth / widthInMeter;
         const scaleY = containerHeight / heightInMeter;
         const marginPx = margin * scaleX;
 
-        const intervalRef = React.useRef(null);
         const animationFrameRef = React.useRef(null);
+
+        // Add these event handlers
+        const handleRobotMouseEnter = () => {
+            setIsRobotHovered(true);
+        };
+
+        const handleRobotMouseLeave = () => {
+            setIsRobotHovered(false);
+        };
 
         // Animation function
         const animate = () => {
             const speed = 0.05; // Adjust for smoother/faster movement
 
             setCurrentPosition(prev => {
-                console.log('Current position:', prev);
-                console.log('Target position:', targetPosition);
-
                 const dx = targetPosition.x - prev.x;
                 const dy = targetPosition.y - prev.y;
-
-                console.log('dx:', dx);
-                console.log('dy:', dy);
 
                 // If we're close enough to target, snap to it
                 if (Math.abs(dx) < 0.1 && Math.abs(dy) < 0.1) {
@@ -118,41 +121,36 @@ const FieldMap = ({widthInMeter = 1800, heightInMeter = 1400}) => {
         }, [targetPosition]);
 
         // Fetch robot position
-        const fetchRobotPosition = async () => {
-            try {
-                // Uncomment for real API
-                // const response = await fetch('/api/robot/position');
-                // const data = await response.json();
-                // setTargetPosition(data.position);
+        // const fetchRobotPosition = async () => {
+        //     try {
+        //         // Uncomment for real API
+        //         // const response = await fetch('/api/robot/position');
+        //         // const data = await response.json();
+        //         // setTargetPosition(data.position);
+        //
+        //         // Mock data for demonstration
+        //         console.log('Fetching robot position...');
+        //         setStep(prev => prev + 1);
+        //     } catch
+        //         (error) {
+        //         console.error('Failed to fetch robot position:', error);
+        //     }
+        // };
 
-                // Mock data for demonstration
-                console.log('Fetching robot position...');
-                setTargetPosition(
-                    {
-                        x: Math.random() * widthInMeter,
-                        y: Math.random() * heightInMeter
-                    });
-                setStep(prev => prev + 1);
-            } catch
-                (error) {
-                console.error('Failed to fetch robot position:', error);
-            }
-        };
+        // Set up polling interval
+        // useEffect(() => {
+        //     fetchRobotPosition();
+        //     // Set up interval to fetch position every 2 seconds
+        //     // intervalRef.current = setInterval(fetchRobotPosition, 2000);
+        //
+        //     return () => {
+        //         if (intervalRef.current) {
+        //             clearInterval(intervalRef.current);
+        //         }
+        //     };
+        // }, []);
 
-// Set up polling interval
-        useEffect(() => {
-            fetchRobotPosition();
-            // Set up interval to fetch position every 5 seconds
-            intervalRef.current = setInterval(fetchRobotPosition, 5000);
-
-            return () => {
-                if (intervalRef.current) {
-                    clearInterval(intervalRef.current);
-                }
-            };
-        }, []);
-
-// Grid drawing and event handlers remain the same...
+        // Grid drawing
         const drawGrid = () => {
             const elements = [];
 
@@ -202,9 +200,9 @@ const FieldMap = ({widthInMeter = 1800, heightInMeter = 1400}) => {
                 const isNearTop = pixelY < containerHeight * 0.2;
 
                 setHoverPoint({
+                    ...hoverPoint,
                     x: meterX,
                     y: meterY,
-                    z: 0,
                     pixelX,
                     pixelY,
                     isNearLeft,
@@ -223,21 +221,38 @@ const FieldMap = ({widthInMeter = 1800, heightInMeter = 1400}) => {
 
         const handleClick = (event) => {
             if (hoverPoint) {
-                const svgRect = event.currentTarget.getBoundingClientRect();
                 setSelectedPoint({
+                    ...hoverPoint,
                     x: event.clientX,
                     y: event.clientY,
                     meterX: hoverPoint.x,
                     meterY: hoverPoint.y,
-                    meterZ: 0,
                 });
                 setHoverPoint(null);
             }
         };
 
-        const handleMove = (xNew, yNew) => {
-            console.log(`Moving to position (${xNew}, ${yNew})`);
+        const handleMove = async (xNew, yNew, zNew) => {
+            console.log(`Moving to position (${xNew}, ${yNew}, ${zNew})`);
             setSelectedPoint(null);
+
+            try {
+                await instance.post('/move', {
+                    x: xNew,
+                    y: yNew,
+                    z: -zNew
+                });
+
+                // Set target position after successful API call
+                setTargetPosition({
+                    x: xNew,
+                    y: yNew,
+                    z: zNew,
+                });
+                setSelectedPoint(null);
+            } catch (error) {
+                console.error('Error moving robot:', error);
+            }
         };
 
         return (
@@ -306,6 +321,7 @@ const FieldMap = ({widthInMeter = 1800, heightInMeter = 1400}) => {
                     <ActionModal
                         position={selectedPoint}
                         onMove={handleMove}
+                        previousZ={targetPosition.z}
                     />
                 )}
             </div>
