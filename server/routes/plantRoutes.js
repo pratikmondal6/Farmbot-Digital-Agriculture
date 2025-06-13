@@ -6,7 +6,7 @@
 
   // Save minimal_distance or seeding_depth based on valueType
   router.post('/save', async (req, res) => {
-      console.log('📦 [POST /save] Request body:', req.body); // 🐞 Debug
+      console.log(' [POST /save] Request body:', req.body);
     const { plantType, valueType, value } = req.body;
     if (!plantType || !valueType || typeof value !== "number") {
       return res.status(400).json({ error: "Missing or invalid fields." });
@@ -40,7 +40,7 @@
 
   // Add a new plant type
   router.post('/add-type', async (req, res) => {
-      console.log('📦 [POST /add-type] Request body:', req.body); // 🐞 Debug
+      console.log(' [POST /add-type] Request body:', req.body);
     const { plant_type, minimal_distance = 0, seeding_depth = 0 } = req.body;
 
     // Validation: plant_type must be provided and not empty
@@ -127,7 +127,7 @@
 
   // Update plant type details
   router.put('/update', async (req, res) => {
-    console.log('📦 [PUT /update] Request body:', req.body);
+    console.log(' [PUT /update] Request body:', req.body);
   const { plantType, newPlantType, seeding_depth, minimal_distance } = req.body;
 
   if (!plantType || !newPlantType) {
@@ -140,7 +140,7 @@
       return res.status(404).json({ error: "Plant not found" });
     }
 
-    // Prüfen ob der neue Name schon existiert
+
     if (plantType !== newPlantType) {
       const duplicate = await Plant.findOne({ plant_type: newPlantType });
       if (duplicate) {

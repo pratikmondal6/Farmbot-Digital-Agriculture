@@ -21,7 +21,7 @@ const AddPlanttype = () => {
       const response = await api.get('/api/plant/all');
       setAllPlants(response.data);
     } catch (err) {
-      console.error('Fehler beim Laden der Pflanzenliste:', err);
+      console.error('Error while loading plant list:', err);
     }
   };
 
@@ -48,7 +48,6 @@ const AddPlanttype = () => {
     const res = await api.get(`/api/plant/details/${type}`);
     const data = res.data;
 
-    // 🛡 Fallback auf leeren String, wenn nicht gesetzt
     setDepth(data?.seeding_depth?.toString() ?? '');
     setDistance(data?.minimal_distance?.toString() ?? '');
   } catch (err) {
@@ -84,16 +83,16 @@ const AddPlanttype = () => {
 
   try {
     if (plantType) {
-      // UPDATE-Modus (auch wenn der Name geändert wurde)
+      // UPDATE-Mode
       await api.put('/api/plant/update', {
-        plantType, // Originalname
-        newPlantType: newPlantType.trim(), // Neuer Name (kann auch gleich bleiben)
+        plantType, // Original name
+        newPlantType: newPlantType.trim(), // New name (can stay the same)
         seeding_depth: Number(depth),
         minimal_distance: Number(distance),
       });
       alert('Planttype updated');
     } else {
-      // CREATE-Modus
+      // CREATE-Mode
       await api.post('/api/plant/add-type', {
         plant_type: newPlantType.trim(),
         minimal_distance: Number(distance),
@@ -102,7 +101,7 @@ const AddPlanttype = () => {
       alert('New Planttype created');
     }
 
-    // Felder zurücksetzen
+    // Reset input fields
     setPlantType('');
     setNewPlantType('');
     setDepth('');
@@ -119,19 +118,15 @@ const AddPlanttype = () => {
 
   return (
   <div style={styles.wholedesign}>
-    <FieldMap />
 
     <div style={styles.contentRow}>
-      {/* Linke Spalte: Formular */}
       <div style={styles.wrapper}>
         <button onClick={() => setIsOpen(!isOpen)} style={styles.toggleButton}>
-          {isOpen ? '✖ Close' : '➕ Create Planttype'}
+          {isOpen ? 'Close' : 'Create Planttype'}
         </button>
 
         {isOpen && (
           <div style={styles.container}>
-            {/* Formular-Felder */}
-            {/* ... dein bisheriger Formularinhalt ... */}
             <label style={styles.label}>Choose Planttype:</label>
             <div style={styles.buttonGroup}>
               {plantTypes.map(type => (
@@ -192,11 +187,10 @@ const AddPlanttype = () => {
 
       </div>
 
-      {/* Rechte Spalte: Tabelle */}
       <div style={styles.tableWrapper}>
-        <h3 style={{ color: '#065f46' }}>Gespeicherte Pflanzentypen</h3>
+        <h3 style={{ color: '#065f46' }}>Saved Planttype</h3>
         {allPlants.length === 0 ? (
-          <p>Keine Pflanzentypen vorhanden.</p>
+          <p>No planttypes saved</p>
         ) : (
           <table style={styles.table}>
             <thead>
