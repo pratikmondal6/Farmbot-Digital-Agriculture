@@ -4,6 +4,7 @@ const signup = require("../routes/signup");
 const plant = require("../routes/plantRoutes");
 const farmbotConfig = require("../routes/farmbotConfig");
 const statusRoutes = require("../routes/statusRoutes");
+const farmbotPosition = require("../routes/farmbotPosition");
 const notFound = require("../routes/notFound");
 const error = require("../middleware/error");
 
@@ -12,6 +13,7 @@ module.exports = function (app) {
   app.use("/login", login);
   app.use("/signup", signup);
   app.use("/plant", plant);
+  app.use('/farmbotPosition', farmbotPosition);
   app.use("/api/botConfig", farmbotConfig);
   app.use('/api/status', statusRoutes);
   app.use("*", notFound);
