@@ -60,3 +60,13 @@ PUT:
 const response = await api.put('/api/...', {...})
 const result = await response.data;
 ```
+
+## Some APIs:
+
+Moving Farmbot:
+```
+import api from "../utils/api";
+
+const response = await api.post('http://localhost:5000/move, {x: 200, y: 500, z: 0})
+const result = await response.data;
+```

@@ -4,7 +4,7 @@ import AddPlanttype from './pages/AddPlanttype.jsx';
 import FarmBotDashboard from './pages/FarmBotDashboard';
 import SeedingJobManager from './pages/SeedingJobManager';
 
-
+import FarmbotMoving from './pages/FarmbotMoving.jsx'; 
 import './App.css';
 import WorkArea from "./components/workarea";
 import LoginPage from "./pages/LoginPage";
@@ -34,6 +34,7 @@ function App() {
                 {isLoggedIn && <Route path="/seeding/parameters" element={<AddPlanttype />} />}
                 {isLoggedIn && <Route path="/seeding/workarea" element={<WorkArea />} />}
                 {isLoggedIn && <Route path="/settings" element={<Settings/>}/>}
+                {isLoggedIn && <Route path="/farmbot-moving" element={<FarmbotMoving />} />}
                 <Route path="*" element={<NotFoundPage/>}/>
                 <Route path="/seeding/jobs" element={<SeedingJobManager />} />
                 <Route path="/fieldmap" element={<FieldMap />} />
