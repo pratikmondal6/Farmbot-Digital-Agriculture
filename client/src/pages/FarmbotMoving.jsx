@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../utils/api';
 import { useNavigate } from 'react-router-dom';
 import { FaArrowUp, FaArrowDown, FaArrowLeft, FaArrowRight, FaHome } from 'react-icons/fa';
+import { GiPlantSeed } from 'react-icons/gi';
 import FieldMap from '../components/FieldMap';
 
 const MOVE_UNITS = [1, 10, 100, 1000];
@@ -33,7 +34,7 @@ const FarmbotMoving = () => {
     if (value === '' || isNaN(num)) {
       error = 'Please enter a number.';
     } else {
-      if (axis === 'x' && (num < 0 || num > 2700)) error = 'Length must be 0 - 2700 mm';
+      if (axis === 'x' && (num < 0 || num > 2680)) error = 'Length must be 0 - 2680 mm';
       if (axis === 'y' && (num < 0 || num > 1200)) error = 'Width must be 0 - 1200 mm';
       if (axis === 'z' && (num > 0 || num < -600)) error = 'Height must be 0 to -600 mm';
     }
@@ -66,11 +67,11 @@ const FarmbotMoving = () => {
       // Restriction checks
       if (
         isNaN(nx) || isNaN(ny) || isNaN(nz) ||
-        nx < 0 || nx > 2700 ||
+        nx < 0 || nx > 2680 ||
         ny < 0 || ny > 1200 ||
         nz > 0 || nz < -600
       ) {
-        setError('Please enter valid numbers for Length (0 - 2700), Width (0 - 1200), Height (0 to -600).');
+        setError('Please enter valid numbers for Length (0 - 2680), Width (0 - 1200), Height (0 to -600).');
         setLoading(false);
         setIsMoving(false);
         return;
@@ -178,9 +179,14 @@ const FarmbotMoving = () => {
                     {/* (no axis label) */}
                   </div>
                   <button
-                    style={styles.arrowButton}
+                    style={{
+                      ...styles.arrowButton,
+                      ...(loading || isMoving || Number(coord.y) >= 1200
+                        ? { backgroundColor: '#e5e7eb', color: '#a3a3a3', borderColor: '#d1d5db', cursor: 'not-allowed' }
+                        : { backgroundColor: '#fff', color: '#14532d', borderColor: '#22c55e', cursor: 'pointer' })
+                    }}
                     onClick={() => handleMoveRelative('y', moveUnit)}
-                    disabled={loading}
+                    disabled={loading || isMoving || Number(coord.y) >= 1200}
                     title="Move up (width)"
                   >
                     <FaArrowUp />
@@ -191,7 +197,7 @@ const FarmbotMoving = () => {
                         ...styles.arrowButton,
                         ...(loading || isMoving || Number(coord.x) <= 0
                           ? { backgroundColor: '#e5e7eb', color: '#a3a3a3', borderColor: '#d1d5db', cursor: 'not-allowed' }
-                          : {})
+                          : { backgroundColor: '#fff', color: '#14532d', borderColor: '#22c55e', cursor: 'pointer' })
                       }}
                       onClick={() => handleMoveRelative('x', -moveUnit)}
                       disabled={loading || isMoving || Number(coord.x) <= 0}
@@ -201,9 +207,14 @@ const FarmbotMoving = () => {
                     </button>
                     <div style={styles.centerDot}></div>
                     <button
-                      style={styles.arrowButton}
+                      style={{
+                        ...styles.arrowButton,
+                        ...(loading || isMoving || Number(coord.x) >= 2680
+                          ? { backgroundColor: '#e5e7eb', color: '#a3a3a3', borderColor: '#d1d5db', cursor: 'not-allowed' }
+                          : { backgroundColor: '#fff', color: '#14532d', borderColor: '#22c55e', cursor: 'pointer' })
+                      }}
                       onClick={() => handleMoveRelative('x', moveUnit)}
-                      disabled={loading}
+                      disabled={loading || isMoving || Number(coord.x) >= 2680}
                       title="Move right (length)"
                     >
                       <FaArrowRight />
@@ -214,7 +225,7 @@ const FarmbotMoving = () => {
                       ...styles.arrowButton,
                       ...(loading || isMoving || Number(coord.y) <= 0
                         ? { backgroundColor: '#e5e7eb', color: '#a3a3a3', borderColor: '#d1d5db', cursor: 'not-allowed' }
-                        : {})
+                        : { backgroundColor: '#fff', color: '#14532d', borderColor: '#22c55e', cursor: 'pointer' })
                     }}
                     onClick={() => handleMoveRelative('y', -moveUnit)}
                     disabled={loading || isMoving || Number(coord.y) <= 0}
@@ -262,6 +273,25 @@ const FarmbotMoving = () => {
                       marginTop: 12
                     }}
                     onClick={() => {
+                      setCoord({ x: '2630', y: '245', z: '-395' });
+                      handleMoveToCoord({ x: '2630', y: '245', z: '-395' });
+                    }}
+                    disabled={loading}
+                    title="move to seeder position"
+                  >
+                    <GiPlantSeed />
+                  </button>
+                  <button
+                    style={{
+                      ...styles.arrowButton,
+                      borderRadius: '50%',
+                      padding: 8,
+                      fontSize: '1.2rem',
+                      minWidth: 40,
+                      minHeight: 40,
+                      marginTop: 12
+                    }}
+                    onClick={() => {
                       setCoord({ x: 0, y: 0, z: 0 });
                       handleMoveToCoord({ x: 0, y: 0, z: 0 });
                     }}
@@ -290,7 +320,7 @@ const FarmbotMoving = () => {
                       onChange={e => handleCoordChange('x', e.target.value)}
                       disabled={loading || isMoving}
                       min={0}
-                      max={2700}
+                      max={2680}
                     />
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column' }}>
