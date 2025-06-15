@@ -4,9 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="1528bf26-86b8-43d1-87cc-9623365f037f" name="Changes" comment="m">
-      <change beforePath="$PROJECT_DIR$/client/src/components/Dashboard/Header.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/components/Dashboard/Header.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/styles/header.css" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/styles/header.css" afterDir="false" />
+    <list default="true" id="1528bf26-86b8-43d1-87cc-9623365f037f" name="Changes" comment="logout button">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/components/Dashboard/FarmBotControlPanel.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/components/Dashboard/FarmBotControlPanel.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/pages/FarmbotMoving.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/FarmbotMoving.jsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -179,13 +180,13 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-6a121458b545-JavaScript-WS-251.25410.117" />
+        <option value="bundled-js-predefined-d6986cc7102b-b26f3e71634d-JavaScript-WS-251.26094.131" />
       </set>
     </attachedChunks>
   </component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="5967244a-5a94-4068-b152-342f43b305a9" name="Changes" comment="" />
+      <changelist id="1528bf26-86b8-43d1-87cc-9623365f037f" name="Changes" comment="logout button" />
       <created>1746442708274</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
@@ -198,7 +199,17 @@
       <workItem from="1747989351965" duration="7962000" />
       <workItem from="1748004271586" duration="1584000" />
       <workItem from="1749148043139" duration="685000" />
+      <workItem from="1750018237700" duration="1181000" />
     </task>
+    <task id="LOCAL-00001" summary="logout button">
+      <option name="closed" value="true" />
+      <created>1750003681396</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1750003681396</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -214,5 +225,9 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="logout button" />
+    <option name="LAST_COMMIT_MESSAGE" value="logout button" />
   </component>
 </project>

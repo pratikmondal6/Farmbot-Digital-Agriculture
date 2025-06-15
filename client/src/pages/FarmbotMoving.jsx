@@ -106,10 +106,46 @@ const FarmbotMoving = () => {
     });
   };
 
-  return (
-    <>
-      <FieldMap />
+  const handleBack = () => {
+    navigate('/dashboard');
+  };
 
+  return (
+    <div style={{ position: 'relative' }}>  {/* Add a wrapper div */}
+      <div style={{
+        width: '100%',
+        padding: '10px',
+        backgroundColor: '#ecfdf5',
+        borderBottom: '1px solid #22c55e',
+        display: 'flex',
+        alignItems: 'center'
+      }}>
+        <button
+          onClick={handleBack}
+          style={{
+            padding: '8px 16px',
+            backgroundColor: '#16a34a',
+            color: 'white',
+            border: 'none',
+            borderRadius: '5px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            fontSize: '14px',
+            fontWeight: 'bold',
+            transition: 'background-color 0.3s ease'
+          }}
+          onMouseOver={(e) => e.target.style.backgroundColor = '#22c55e'}
+          onMouseOut={(e) => e.target.style.backgroundColor = '#16a34a'}
+        >
+          ← Back to Dashboard
+        </button>
+      </div>
+
+      {/* Rest of your existing component */}
+      <FieldMap />
+      {/* ... rest of the existing JSX ... */}
       {/* Wrapper for icon and panel */}
       <div
         style={{ position: 'fixed', top: 0, right: 0, zIndex: 200 }}
@@ -373,7 +409,7 @@ const FarmbotMoving = () => {
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 };
 
