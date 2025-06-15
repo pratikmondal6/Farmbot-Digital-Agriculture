@@ -26,6 +26,12 @@ router.post("/start", async (req, res) => {
   let bot = new Farmbot({ token: token });
   await bot.connect()
 
+  const seedX = req.body.seedX
+  const seedY = req.body.seedY
+  const destX = req.body.x
+  const destY = req.body.y
+  const depth = req.body.z
+
   // Go to higher than seeder object
   await move(bot, x=2630, y=245, z=-395)
 
@@ -35,8 +41,8 @@ router.post("/start", async (req, res) => {
   // Go a little outside to take it out
   await move(bot, x=2500, y=245, z=-410)
 
-  // Go to a little higher from seed
-  await move(bot, x=2130, y=25, z=-410)
+  // Go to a little higher from seed (x=2130, y=25)
+  await move(bot, x=seedX, y=seedY, z=-410)
 
   // Start suction
   await bot.writePin({
@@ -46,16 +52,16 @@ router.post("/start", async (req, res) => {
   });
 
   // Go down to get seed
-  await move(bot, x=2130, y=25, z=-520)
+  await move(bot, x=seedX, y=seedY, z=-520)
 
   // Go higher
-  await move(bot, x=2130, y=25, z=-480)
+  await move(bot, x=seedX, y=seedY, z=-480)
 
   // Go to location of seeding
-  await move(bot, x=req.body.x, y=req.body.y, z=-480)
+  await move(bot, x=destX, y=destY, z=-480)
 
   // Go down and seed
-  await move(bot, x=req.body.x, y=req.body.y, z=-520 - req.body.z)
+  await move(bot, x=destX, y=destY, z=-520 - depth)
 
   // Stop suction
   await bot.writePin({
@@ -65,14 +71,14 @@ router.post("/start", async (req, res) => {
   });
 
   // Go up
-  await move(bot, x=req.body.x, y=req.body.y, z=-480)
+  await move(bot, x=destX, y=destY, z=-480)
 
   const seed = new Seed({
     seed_name: req.body.seed_name ? req.body.seed_name : "random_seed",
     seeding_date: req.body.seeding_date ? req.body.seeding_date : Date.now(),
-    x: req.body.x,
-    y: req.body.y,
-    z: req.body.z,
+    x: destX,
+    y: destY,
+    z: depth,
   });
 
   await seed.save();
