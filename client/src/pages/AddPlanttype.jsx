@@ -183,7 +183,7 @@ const AddPlanttype = () => {
             <button onClick={saveAll} style={styles.button}>Speichern</button>
           </div>
         )}
-              <button onClick={() => navigate('/')} style={styles.backButton}>← Zurück</button>
+              <button onClick={() => navigate('/')} style={styles.backButton}>← Back to Dashboard</button>
 
       </div>
 
