@@ -11,6 +11,7 @@ import LoginPage from "./pages/LoginPage";
 import Settings from "./pages/Setting";
 import NotFoundPage from './pages/NotFoundPage.jsx';
 import FieldMap from "./components/FieldMap";
+import SeedingPage from './pages/SeedingPage.jsx';
 
 function App() {
     const [isLoggedIn, setIsLoggedIn] = useState(!!sessionStorage.getItem("token"));
@@ -31,6 +32,7 @@ function App() {
                 <Route path="/" element={<LoginPage setIsLoggedIn={setIsLoggedIn} />} />
                 <Route path="/login" element={<LoginPage setIsLoggedIn={setIsLoggedIn} />} />
                 {isLoggedIn && <Route path="/dashboard" element={<FarmBotDashboard />} />}
+                {isLoggedIn && <Route path="/seedingJob" element={<SeedingPage />} />}
                 {isLoggedIn && <Route path="/seeding/parameters" element={<AddPlanttype />} />}
                 {isLoggedIn && <Route path="/seeding/workarea" element={<WorkArea />} />}
                 {isLoggedIn && <Route path="/settings" element={<Settings/>}/>}

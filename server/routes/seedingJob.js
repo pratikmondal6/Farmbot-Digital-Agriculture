@@ -26,11 +26,11 @@ router.post("/start", async (req, res) => {
   let bot = new Farmbot({ token: token });
   await bot.connect()
 
-  const seedX = req.body.seedX
-  const seedY = req.body.seedY
-  const destX = req.body.x
-  const destY = req.body.y
-  const depth = req.body.z
+  const seedX = parseInt(req.body.seedX)
+  const seedY = parseInt(req.body.seedY)
+  const destX = parseInt(req.body.x)
+  const destY = parseInt(req.body.y)
+  const depth = parseInt(req.body.z)
 
   // Go to higher than seeder object
   await move(bot, x=2630, y=245, z=-395)
