@@ -11,8 +11,13 @@ export default function MainLayout() {
         <div className="dashboard-layout">
             <Sidebar />
             <main className="dashboard-main">
-                <Card icon="🌱" title="Seeding">
+                <Card icon="🌱" title="Add plant type">
                     <Link to="/seeding/parameters">
+                        <button className="card-button">View Jobs</button>
+                    </Link>
+                </Card>
+                <Card icon="🌱" title="Seeding Job">
+                    <Link to="/seedingJob">
                         <button className="card-button">View Jobs</button>
                     </Link>
                 </Card>
@@ -27,7 +32,7 @@ export default function MainLayout() {
                 // </Card>*/}
                 <StatusCard />
                 {/*<ActivityCard />*/}
-            <FarmBotControlPanel/>
+                <FarmBotControlPanel/>
             </main>
         </div>
     );
