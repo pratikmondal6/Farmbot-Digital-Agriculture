@@ -4,6 +4,7 @@ import Card from './Card';
 import StatusCard from './StatusCard';
 import ActivityCard from './ActivityCard';
 import { Link } from 'react-router-dom';
+import FarmBotControlPanel from "./FarmBotControlPanel";
 
 export default function MainLayout() {
     return (
@@ -26,6 +27,7 @@ export default function MainLayout() {
                 // </Card>*/}
                 <StatusCard />
                 {/*<ActivityCard />*/}
+            <FarmBotControlPanel/>
             </main>
         </div>
     );
