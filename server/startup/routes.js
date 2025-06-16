@@ -7,6 +7,7 @@ const statusRoutes = require("../routes/statusRoutes");
 const seedingJob = require("../routes/seedingJob");
 const notFound = require("../routes/notFound");
 const moveFarmbot = require("../routes/moveFarmbot");
+const moveRelative = require("../routes/moveRelative");
 const error = require("../middleware/error");
 
 module.exports = function (app) {
@@ -15,6 +16,7 @@ module.exports = function (app) {
   app.use("/signup", signup);
   app.use("/plant", plant);
   app.use("/move", moveFarmbot);
+  app.use("/moveRelative", moveRelative);
   app.use("/seedingJob", seedingJob);
   app.use("/api/botConfig", farmbotConfig);
   app.use('/api/status', statusRoutes);
