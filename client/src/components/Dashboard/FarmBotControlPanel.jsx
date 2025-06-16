@@ -8,6 +8,7 @@ export default function FarmBotControlPanel() {
         navigate('/farmbot-moving');
     };
 
+
     return (
         <div className="dashboard-card">
             <div className="card-icon">🕹️</div>
