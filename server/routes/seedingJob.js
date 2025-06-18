@@ -7,6 +7,10 @@ const move = async (bot, x, y, z) => {
   await bot.moveAbsolute({ x: x, y: y, z: z, speed: 100 });
 }
 
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 router.post("/start", async (req, res) => {
   if (!req.headers["auth-token"]) {
     return res.status(401).send({
@@ -26,11 +30,11 @@ router.post("/start", async (req, res) => {
   let bot = new Farmbot({ token: token });
   await bot.connect()
 
-  const seedX = req.body.seedX
-  const seedY = req.body.seedY
-  const destX = req.body.x
-  const destY = req.body.y
-  const depth = req.body.z
+  const seedX = parseInt(req.body.seedX)
+  const seedY = parseInt(req.body.seedY)
+  const destX = parseInt(req.body.x)
+  const destY = parseInt(req.body.y)
+  const depth = parseInt(req.body.z)
 
   // Go to higher than seeder object
   await move(bot, x=2630, y=245, z=-395)
@@ -42,7 +46,7 @@ router.post("/start", async (req, res) => {
   await move(bot, x=2500, y=245, z=-410)
 
   // Go to a little higher from seed (x=2130, y=25)
-  await move(bot, x=seedX, y=seedY, z=-410)
+  await move(bot, x=seedX, y=seedY, z=-480)
 
   // Start suction
   await bot.writePin({
@@ -52,7 +56,7 @@ router.post("/start", async (req, res) => {
   });
 
   // Go down to get seed
-  await move(bot, x=seedX, y=seedY, z=-520)
+  await move(bot, x=seedX, y=seedY, z=-530)
 
   // Go higher
   await move(bot, x=seedX, y=seedY, z=-480)
@@ -61,7 +65,7 @@ router.post("/start", async (req, res) => {
   await move(bot, x=destX, y=destY, z=-480)
 
   // Go down and seed
-  await move(bot, x=destX, y=destY, z=-520 - depth)
+  await move(bot, x=destX, y=destY, z=-550 - depth)
 
   // Stop suction
   await bot.writePin({
@@ -80,6 +84,31 @@ router.post("/start", async (req, res) => {
     y: destY,
     z: depth,
   });
+
+  // Turn on water (usually pin 8 for standard kits)
+  await bot.writePin({
+    pin_number: 8,
+    pin_value: 1,    // 1 = watering on, 0 = watering off
+    pin_mode: 0      // 0 = digital, 1 = analog
+  });
+
+  await sleep(2000)
+
+  // Turn off water
+  await bot.writePin({
+    pin_number: 8,
+    pin_value: 0,    // 1 = watering on, 0 = watering off
+    pin_mode: 0      // 0 = digital, 1 = analog
+  });
+
+  // // Wait 1 second and turn it off
+  // (async () => {
+  //   await bot.writePin({
+  //     pin_number: 8,
+  //     pin_value: 0,
+  //     pin_mode: 0
+  //   });
+  // }, 2000);
 
   await seed.save();
 
