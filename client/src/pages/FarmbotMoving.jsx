@@ -113,8 +113,6 @@ const FarmbotMoving = () => {
       {/* Wrapper for icon and panel */}
       <div
         style={{ position: 'fixed', top: 0, right: 0, zIndex: 200 }}
-        onMouseEnter={() => setShowPanel(true)}
-        onMouseLeave={() => setShowPanel(false)}
       >
         <div style={styles.header}>
           <span></span>
@@ -133,12 +131,17 @@ const FarmbotMoving = () => {
               backgroundColor: showPanel ? '#22c55e' : '#16a34a',
             }}
             title="Expand/collapse movement panel"
+            onMouseEnter={() => setShowPanel(true)}
           >
             <span role="img" aria-label="control-panel" style={{ fontSize: 24 }}>🕹️</span>
           </button>
         </div>
         {showPanel && (
-          <div style={styles.fixedPanel}>
+          <div
+            style={styles.fixedPanel}
+            onMouseLeave={() => setShowPanel(false)}
+            onMouseEnter={() => setShowPanel(true)}
+          >
             <div style={styles.panel}>
               {/* Units Selection */}
               <div style={styles.unitsPanel}>
