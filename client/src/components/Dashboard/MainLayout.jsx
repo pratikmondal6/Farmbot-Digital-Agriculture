@@ -26,10 +26,12 @@ export default function MainLayout() {
                 </Card>
                 <Card icon="🌿" title="Weed Control">
                     <button className="card-button">View Jobs</button>
+                </Card>*/}
+                <Card icon="💧" title="Soil Humidity Check">
+                    <Link to="/humidity-check">
+                        <button className="card-button">Check Humidity</button>
+                    </Link>
                 </Card>
-                <Card icon="💨" title="Humidity">
-                    <button className="card-button">View Jobs</button>
-                // </Card>*/}
                 <StatusCard />
                 {/*<ActivityCard />*/}
                 <FarmBotControlPanel/>

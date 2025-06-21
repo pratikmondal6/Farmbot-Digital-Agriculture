@@ -12,6 +12,7 @@ import Settings from "./pages/Setting";
 import NotFoundPage from './pages/NotFoundPage.jsx';
 import FieldMap from "./components/FieldMap";
 import SeedingPage from './pages/SeedingPage.jsx';
+import HumidityCheckPage from './pages/HumidityCheckPage.jsx';
 
 function App() {
     const [isLoggedIn, setIsLoggedIn] = useState(!!sessionStorage.getItem("token"));
@@ -20,9 +21,9 @@ function App() {
         const handleStorageChange = () => {
           setIsLoggedIn(!!sessionStorage.getItem("token"));
         };
-    
+
         window.addEventListener("storage", handleStorageChange);
-    
+
         return () => window.removeEventListener("storage", handleStorageChange);
     }, []);
 
@@ -37,6 +38,7 @@ function App() {
                 {isLoggedIn && <Route path="/seeding/workarea" element={<WorkArea />} />}
                 {isLoggedIn && <Route path="/settings" element={<Settings/>}/>}
                 {isLoggedIn && <Route path="/farmbot-moving" element={<FarmbotMoving />} />}
+                {isLoggedIn && <Route path="/humidity-check" element={<HumidityCheckPage />} />}
                 <Route path="*" element={<NotFoundPage/>}/>
                 <Route path="/seeding/jobs" element={<SeedingJobManager />} />
                 <Route path="/fieldmap" element={<FieldMap />} />
