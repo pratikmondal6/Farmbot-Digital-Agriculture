@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FaTint, FaRegCalendarAlt } from "react-icons/fa";
-import api from '../utils/api'; 
+import api from "../utils/api";
 
 const DEFAULT_Z = -100;
 const DEFAULT_INTERVAL = 24;
@@ -16,44 +16,58 @@ const WateringJobPage = () => {
   const [interval, setInterval] = useState(DEFAULT_INTERVAL);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [wateringJobs, setWateringJobs] = useState([]);
-  const [plants, setPlants] = useState([]);
-  const [selectedPlantIds, setSelectedPlantIds] = useState([]);
   const [editingJobId, setEditingJobId] = useState(null);
+  const [error, setError] = useState(""); // Error state
 
   // Fetch plant types from the API
   useEffect(() => {
-    api.get("/api/plant/all")
-      .then((res) => {
-        const types = res.data.map(pt => ({
+    const fetchPlantTypes = async () => {
+      try {
+        const response = await api.get("/api/plant/all");
+        const result = response.data;
+        const types = result.map(pt => ({
           id: pt._id,
           name: pt.plant_type
         }));
         setPlantTypes(types);
-        // Do NOT select any plant type by default:
-        // setSelectedPlantTypes([]); // This is already the default
-        // Set default water amounts for all types
+        // Set default water amounts as string "50"
         const defaults = {};
-        types.forEach(pt => { defaults[pt.id] = 50; });
+        types.forEach(pt => { defaults[pt.id] = "50"; });
         setWaterAmounts(defaults);
-      })
-      .catch(() => setPlantTypes([]));
+      } catch {
+        setPlantTypes([]);
+      }
+    };
+    fetchPlantTypes();
   }, []);
 
   // Fetch existing watering jobs
   useEffect(() => {
-    api.get("/api/watering-jobs")
-      .then((res) => setWateringJobs(res.data))
-      .catch(() => setWateringJobs([]));
+    const fetchJobs = async () => {
+      try {
+        const response = await api.get("/api/watering-jobs");
+        const result = response.data;
+        setWateringJobs(result);
+      } catch {
+        setWateringJobs([]);
+      }
+    };
+    fetchJobs();
   }, []);
 
-  // TODO get the x y Position from seeding job
-  // Fetch all seeded plants with x, y, and type
-  useEffect(() => {
-    api.get("/api/plants/seeded") // Dummy endpoint, replace with actual
-      // This should return seeded plants with their x, y, and plant_type
-      .then(res => setPlants(res.data))
-      .catch(() => setPlants([]));
-  }, []);
+  // Reset form to default "create" mode
+  const resetForm = () => {
+    setEditingJobId(null);
+    setSelectedPlantTypes([]);
+    // Reset water amounts to "50" for all plant types
+    const defaults = {};
+    plantTypes.forEach(pt => { defaults[pt.id] = "50"; });
+    setWaterAmounts(defaults);
+    setZ(DEFAULT_Z);
+    setDate(new Date().toISOString().slice(0, 16));
+    setInterval(DEFAULT_INTERVAL);
+    setDropdownOpen(false);
+  };
 
   const handlePlantTypeToggle = (id) => {
     setSelectedPlantTypes((prev) =>
@@ -63,7 +77,6 @@ const WateringJobPage = () => {
     );
   };
 
-  // Water amount per plant type
   const handleWaterAmountChange = (id, value) => {
     setWaterAmounts((prev) => ({
       ...prev,
@@ -71,36 +84,69 @@ const WateringJobPage = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleEdit = (job) => {
+    setEditingJobId(job._id);
+    setSelectedPlantTypes(job.plantTypes);
+    // Convert waterAmounts to string for input fields
+    const wa = {};
+    Object.entries(job.waterAmounts || {}).forEach(([k, v]) => {
+      wa[k] = String(v);
+    });
+    setWaterAmounts(wa);
+    setZ(job.z);
+    setDate(job.date);
+    setInterval(job.interval);
+    setShowCreatePanel(true);
+    setShowJobsPanel(false);
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await api.delete(`/api/watering-jobs/${id}`);
+      setWateringJobs(wateringJobs.filter(j => j._id !== id));
+    } catch {}
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(""); // Clear previous errors
     const payload = {
       plantTypes: selectedPlantTypes,
-      waterAmounts,
+      waterAmounts: Object.fromEntries(
+        Object.entries(waterAmounts).map(([k, v]) => [k, Number(v)])
+      ),
       z,
       date,
       interval,
     };
-    if (editingJobId) {
-      api.put(`/api/watering-jobs/${editingJobId}`, payload)
-        .then(() => api.get("/api/watering-jobs"))
-        .then(res => {
-          setWateringJobs(res.data);
-          setEditingJobId(null);
-          // Optionally reset form
-        });
-    } else {
-      api.post("/api/watering-jobs", payload)
-        .then(() => api.get("/api/watering-jobs"))
-        .then(res => setWateringJobs(res.data));
+    try {
+      if (editingJobId) {
+        await api.put(`/api/watering-jobs/${editingJobId}`, payload);
+      } else {
+        await api.post("/api/watering-jobs", payload);
+      }
+      // Refresh jobs list
+      const jobsResponse = await api.get("/api/watering-jobs");
+      setWateringJobs(jobsResponse.data);
+      resetForm(); // Reset to create mode and clear fields
+    } catch (err) {
+      setError("Could not save watering job. Backend not available.");
     }
   };
 
-  const togglePlant = (id) => {
-    setSelectedPlantIds((prev) =>
-      prev.includes(id)
-        ? prev.filter(pid => pid !== id)
-        : [...prev, id]
-    );
+  // When opening the create panel, always reset the form
+  const handleCreatePanelClick = () => {
+    setShowJobsPanel(false);
+    setShowCreatePanel((open) => {
+      if (!open) resetForm();
+      return !open;
+    });
+  };
+
+  // When opening the jobs panel, close the create panel
+  const handleJobsPanelClick = () => {
+    setShowCreatePanel(false);
+    setShowJobsPanel((open) => !open);
   };
 
   return (
@@ -124,19 +170,16 @@ const WateringJobPage = () => {
         <span style={{ color: "#fff", fontWeight: "bold", fontSize: "1.2rem" }}>
           Watering Jobs
         </span>
-        {/* Blue water icon */}
-        <div
-          style={{
-            marginLeft: "auto",
-            marginRight: 8,
-            display: "flex",
-            gap: 8,
-            alignItems: "center",
-            position: "relative",
-            zIndex: 200,
-          }}
-        >
-          {/* Watering Job Panel */}
+        <div style={{
+          marginLeft: "auto",
+          marginRight: 8,
+          display: "flex",
+          gap: 8,
+          alignItems: "center",
+          position: "relative",
+          zIndex: 200,
+        }}>
+          {/* Watering Job Panel Icon */}
           <div style={{ position: "relative", display: "inline-block" }}>
             <button
               style={{
@@ -155,8 +198,7 @@ const WateringJobPage = () => {
                 transition: "background 0.2s",
               }}
               title="Open watering panel"
-              onMouseEnter={() => setShowCreatePanel(true)}
-              onMouseLeave={() => setShowCreatePanel(false)}
+              onClick={handleCreatePanelClick}
             >
               <FaTint />
             </button>
@@ -164,7 +206,7 @@ const WateringJobPage = () => {
               <div
                 style={{
                   position: "fixed",
-                  top: 56, // exactly below the green bar
+                  top: 56,
                   right: 0,
                   background: "#f0fdf4",
                   border: "1px solid #22c55e",
@@ -174,14 +216,27 @@ const WateringJobPage = () => {
                   boxShadow: "0 2px 8px #0002",
                   zIndex: 301,
                 }}
-                onMouseEnter={() => setShowCreatePanel(true)}
-                onMouseLeave={() => setShowCreatePanel(false)}
               >
-                <h3 style={{ fontWeight: "bold", color: "#14532d" }}>Create Watering Job</h3>
+                <button
+                  style={{
+                    position: "absolute",
+                    top: 8,
+                    right: 8,
+                    background: "transparent",
+                    border: "none",
+                    fontSize: 20,
+                    cursor: "pointer",
+                  }}
+                  title="Close"
+                  onClick={() => setShowCreatePanel(false)}
+                >
+                  ×
+                </button>
+                <h3 style={{ color: "#14532d" }}>{editingJobId ? "Edit Watering Job" : "Create Watering Job"}</h3>
                 <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                   {/* Plant type selection dropdown */}
                   <div>
-                    <label style={{ color: "#14532d" }}>Plant Types:</label>
+                    <label style={{ fontWeight: "bold", color: "#14532d" }}>Plant Types:</label>
                     <div style={{ position: "relative", marginTop: 4 }}>
                       <div
                         style={{
@@ -258,7 +313,7 @@ const WateringJobPage = () => {
                           <input
                             type="number"
                             min={0}
-                            value={waterAmounts[type.id] || 50}
+                            value={waterAmounts[type.id] ?? "50"}
                             onChange={(e) => handleWaterAmountChange(type.id, e.target.value)}
                             style={{
                               width: 80,
@@ -322,6 +377,11 @@ const WateringJobPage = () => {
                     />
                     <span style={{ color: "#16a34a", marginLeft: 4 }}>[h]</span>
                   </div>
+                  {error && (
+                    <div style={{ color: "#dc2626", background: "#fee2e2", padding: 8, borderRadius: 4, marginBottom: 8 }}>
+                      {error}
+                    </div>
+                  )}
                   <button
                     type="submit"
                     style={{
@@ -336,9 +396,129 @@ const WateringJobPage = () => {
                       marginTop: 8,
                     }}
                   >
-                    Save
+                    {editingJobId ? "Update Watering Job" : "Create Watering Job"}
                   </button>
                 </form>
+                {/* Calendar icon inside the panel */}
+                <button
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: "50%",
+                    backgroundColor: showJobsPanel ? "#fef9c3" : "#fde047",
+                    color: "#b45309",
+                    border: "none",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 24,
+                    cursor: "pointer",
+                    boxShadow: "0 2px 8px #0002",
+                    transition: "background 0.2s",
+                    marginTop: 16,
+                  }}
+                  title="Show existing watering jobs"
+                  onClick={handleJobsPanelClick}
+                >
+                  <FaRegCalendarAlt />
+                </button>
+                {showJobsPanel && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: 56,
+                      right: 0,
+                      background: "#fefce8",
+                      border: "1px solid #fde047",
+                      borderRadius: 12,
+                      padding: 24,
+                      minWidth: 400,
+                      boxShadow: "0 2px 8px #0002",
+                      zIndex: 302,
+                    }}
+                  >
+                    <button
+                      style={{
+                        position: "absolute",
+                        top: 8,
+                        right: 8,
+                        background: "transparent",
+                        border: "none",
+                        fontSize: 20,
+                        cursor: "pointer",
+                      }}
+                      title="Close"
+                      onClick={() => setShowJobsPanel(false)}
+                    >
+                      ×
+                    </button>
+                    <h3 style={{ color: "#b45309" }}>Existing Watering Jobs</h3>
+                    {wateringJobs.length === 0 ? (
+                      <p>No watering jobs found.</p>
+                    ) : (
+                      <table style={{ width: "100%", borderCollapse: "collapse", background: "#fff" }}>
+                        <thead>
+                          <tr style={{ background: "#fef9c3" }}>
+                            <th style={{ padding: 8, border: "1px solid #fde047" }}>Plant Types</th>
+                            <th style={{ padding: 8, border: "1px solid #fde047" }}>Water Amounts [ml]</th>
+                            <th style={{ padding: 8, border: "1px solid #fde047" }}>Z [mm]</th>
+                            <th style={{ padding: 8, border: "1px solid #fde047" }}>First Execution</th>
+                            <th style={{ padding: 8, border: "1px solid #fde047" }}>Interval [h]</th>
+                            <th style={{ padding: 8, border: "1px solid #fde047" }}>Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {wateringJobs.map((job, idx) => (
+                            <tr key={job._id || idx}>
+                              <td style={{ padding: 8, border: "1px solid #fde047" }}>
+                                {(job.plantTypes || []).join(", ")}
+                              </td>
+                              <td style={{ padding: 8, border: "1px solid #fde047" }}>
+                                {job.waterAmounts
+                                  ? Object.entries(job.waterAmounts)
+                                      .map(([type, amt]) => `${type}: ${amt}`)
+                                      .join(", ")
+                                  : ""}
+                              </td>
+                              <td style={{ padding: 8, border: "1px solid #fde047" }}>{job.z}</td>
+                              <td style={{ padding: 8, border: "1px solid #fde047" }}>{job.date}</td>
+                              <td style={{ padding: 8, border: "1px solid #fde047" }}>{job.interval}</td>
+                              <td style={{ padding: 8, border: "1px solid #fde047" }}>
+                                <button
+                                  style={{
+                                    background: "#fbbf24",
+                                    color: "#fff",
+                                    border: "none",
+                                    borderRadius: 4,
+                                    padding: "4px 8px",
+                                    cursor: "pointer",
+                                    marginRight: 4,
+                                  }}
+                                  onClick={() => handleEdit(job)}
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  style={{
+                                    background: "#ef4444",
+                                    color: "#fff",
+                                    border: "none",
+                                    borderRadius: 4,
+                                    padding: "4px 8px",
+                                    cursor: "pointer",
+                                  }}
+                                  onClick={() => handleDelete(job._id)}
+                                >
+                                  Delete
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -362,8 +542,7 @@ const WateringJobPage = () => {
                 transition: "background 0.2s",
               }}
               title="Show existing watering jobs"
-              onMouseEnter={() => setShowJobsPanel(true)}
-              onMouseLeave={() => setShowJobsPanel(false)}
+              onClick={handleJobsPanelClick}
             >
               <FaRegCalendarAlt />
             </button>
@@ -401,7 +580,7 @@ const WateringJobPage = () => {
                     </thead>
                     <tbody>
                       {wateringJobs.map((job, idx) => (
-                        <tr key={idx}>
+                        <tr key={job._id || idx}>
                           <td style={{ padding: 8, border: "1px solid #fde047" }}>
                             {(job.plantTypes || []).join(", ")}
                           </td>
@@ -418,43 +597,30 @@ const WateringJobPage = () => {
                           <td style={{ padding: 8, border: "1px solid #fde047" }}>
                             <button
                               style={{
-                                background: "#ef4444",
-                                color: "#fff",
-                                border: "none",
-                                borderRadius: 4,
-                                padding: "4px 8px",
-                                cursor: "pointer",
-                                marginLeft: 8,
-                              }}
-                              onClick={() => {
-                                api.delete(`/api/watering-jobs/${job._id}`).then(() => {
-                                  setWateringJobs(wateringJobs.filter(j => j._id !== job._id));
-                                });
-                              }}
-                            >
-                              Delete
-                            </button>
-                            <button
-                              style={{
                                 background: "#fbbf24",
                                 color: "#fff",
                                 border: "none",
                                 borderRadius: 4,
                                 padding: "4px 8px",
                                 cursor: "pointer",
-                                marginLeft: 8,
+                                marginRight: 4,
                               }}
-                              onClick={() => {
-                                setEditingJobId(job._id);
-                                setSelectedPlantTypes(job.plantTypes);
-                                setWaterAmounts(job.waterAmounts);
-                                setZ(job.z);
-                                setDate(job.date);
-                                setInterval(job.interval);
-                                setShowCreatePanel(true);
-                              }}
+                              onClick={() => handleEdit(job)}
                             >
                               Edit
+                            </button>
+                            <button
+                              style={{
+                                background: "#ef4444",
+                                color: "#fff",
+                                border: "none",
+                                borderRadius: 4,
+                                padding: "4px 8px",
+                                cursor: "pointer",
+                              }}
+                              onClick={() => handleDelete(job._id)}
+                            >
+                              Delete
                             </button>
                           </td>
                         </tr>
@@ -467,12 +633,8 @@ const WateringJobPage = () => {
           </div>
         </div>
       </div>
-
-
-      {/* Main content (add marginTop to avoid overlap with green bar) */}
       <div style={{ marginTop: 70, padding: 24 }}>
         {/* ...rest of your page content... */}
-        
       </div>
     </div>
   );
