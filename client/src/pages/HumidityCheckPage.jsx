@@ -75,27 +75,6 @@ const HumidityCheckPage = () => {
 
   return (
     <div style={styles.container}>
-      <div style={styles.navbar}>
-        <button
-          style={{
-            ...styles.navbarbutton,
-            backgroundColor: showPanel === 'check' ? 'rgb(0, 163, 60)' : '#16a34a'
-          }}
-          onClick={() => handlePanelChange('check')}
-        >
-          Check Humidity
-        </button>
-        <button
-          style={{
-            ...styles.navbarbutton,
-            backgroundColor: showPanel === 'history' ? 'rgb(0, 163, 60)' : '#16a34a'
-          }}
-          onClick={() => handlePanelChange('history')}
-        >
-          Humidity History
-        </button>
-      </div>
-
       {showPanel === 'check' && (
         <div>
           <form onSubmit={handleSubmit} style={styles.form}>
@@ -242,10 +221,11 @@ const HumidityCheckPage = () => {
 
 const styles = {
   container: {
-    height: '100vh',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
+    // height: '100vh',
+    // display: 'flex',
+    // flexDirection: 'column',
+    // alignItems: 'center',
+    margin: "10px",
     backgroundColor: '#f8fafc',
   },
   navbar: {
@@ -282,7 +262,6 @@ const styles = {
     width: '300px',
     display: 'flex',
     flexDirection: 'column',
-    marginTop: '80px',
   },
   historyContainer: {
     background: 'white',
