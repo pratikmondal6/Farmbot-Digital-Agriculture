@@ -1,5 +1,4 @@
 import React, {useEffect, useState} from 'react';
-import PropTypes from 'prop-types';
 import '../styles/field-map.css';
 import instance from "../utils/api";
 
@@ -20,7 +19,7 @@ const ActionModal = ({position, onMove, previousZ}) => {
                     <label className="action-modal-label">Width:</label>
                     <input
                         type="number"
-                        value={position.x}
+                        value={position.meterX}
                         disabled
                         className="action-modal-input"
                     />
@@ -29,7 +28,7 @@ const ActionModal = ({position, onMove, previousZ}) => {
                     <label className="action-modal-label">Height:</label>
                     <input
                         type="number"
-                        value={position.y}
+                        value={position.meterY}
                         disabled
                         className="action-modal-input"
                     />
@@ -81,7 +80,7 @@ const containerHeight = 750;
 const radius = 10;
 const margin = 2;
 
-const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, selectArea = false}) => {
+const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, selectArea = false, onElementClick}) => {
         const gridSpacing = 60;
         const [hoverPoint, setHoverPoint] = useState(null);
         const [selectedPoint, setSelectedPoint] = useState(null);
@@ -90,6 +89,27 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
         const [isSelectingArea, setIsSelectingArea] = useState(selectArea);
         const [selectionStart, setSelectionStart] = useState(null);
         const [selectionEnd, setSelectionEnd] = useState(null);
+        const disabledAreas = [
+            {
+                x1: 2545,
+                y1: 100,
+                x2: 2700,
+                y2: 400,
+            },
+            {
+                x1: 2545,
+                y1: 810,
+                x2: 2700,
+                y2: 1110,
+            }
+        ];
+
+        const isPointInDisabledArea = (x, y) => {
+            return disabledAreas.some(area => {
+                return x >= area.x1 && x <= area.x2 &&
+                    y >= area.y1 && y <= area.y2;
+            });
+        };
         // const [step, setStep] = useState(0);
         // const intervalRef = React.useRef(null);
 
@@ -109,27 +129,59 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
                 text: "Carrot Seeds Box",
                 color: "#f59e42",
                 onClick: function () {
-                    if (window.confirm('Do you want to pick the seed?')) {
-                        const {x, y, z} = fieldMapElements.seedBoxLocations[0];
-                        instance.post('/move', {
-                            x,
-                            y,
-                            z: -z
-                        })
-                            .then(() => alert('Seed picked successfully!'))
-                            .catch((error) => {
-                                alert('Failed to pick seed.');
-                                console.error(error);
-                            });
-                    }
+                    const {x, y, z, text} = fieldMapElements.seedBoxLocations[0];
+                    console.log(` clicked`);
+                    onElementClick && onElementClick({x, y, z});
                 }
             }],
-            devices: [{x: 2630, y: 150, z: -410, isDeviceHovered: false, text: "Watering Nozzle", color: "#3b82f6"},
-                {x: 2630, y: 245, z: -395, isDeviceHovered: false, text: "Seeder", color: "#f8c727"},
-                {x: 2630, y: 350, z: -410, isDeviceHovered: false, text: "Soil Sensor", color: "#5c5e60"},
-                {x: 2630, y: 855, z: -380, isDeviceHovered: false, text: "Empty Slot", color: "#ffffff"},
-                {x: 2630, y: 960, z: -420, isDeviceHovered: false, text: "Rotatory Tool", color: "#05ef8d"},
-                {x: 2630, y: 1060, z: -420, isDeviceHovered: false, text: "Weeder", color: "#f63b3b"}],
+            devices: [{
+                x: 2630, y: 150, z: -410, isDeviceHovered: false, text: "Watering Nozzle", color: "#3b82f6",
+                onClick: function () {
+                    const {x, y, z, text} = fieldMapElements.devices[0];
+                    console.log(`${text} clicked`);
+                    onElementClick && onElementClick({x, y, z});
+                }
+            },
+                {
+                    x: 2630, y: 245, z: -395, isDeviceHovered: false, text: "Seeder", color: "#f8c727",
+                    onClick: function () {
+                        const {x, y, z, text} = fieldMapElements.devices[1];
+                        console.log(`${text} clicked`);
+                        onElementClick && onElementClick({x, y, z});
+                    }
+                },
+                {
+                    x: 2630, y: 350, z: -410, isDeviceHovered: false, text: "Soil Sensor", color: "#5c5e60",
+                    onClick: function () {
+                        const {x, y, z, text} = fieldMapElements.devices[2];
+                        console.log(`${text} clicked`);
+                        onElementClick && onElementClick({x, y, z});
+                    }
+                },
+                {
+                    x: 2630, y: 855, z: -380, isDeviceHovered: false, text: "Empty Slot", color: "#ffffff",
+                    onClick: function () {
+                        const {x, y, z, text} = fieldMapElements.devices[3];
+                        console.log(`${text} clicked`);
+                        onElementClick && onElementClick({x, y, z});
+                    }
+                },
+                {
+                    x: 2630, y: 960, z: -420, isDeviceHovered: false, text: "Rotatory Tool", color: "#05ef8d",
+                    onClick: function () {
+                        const {x, y, z, text} = fieldMapElements.devices[4];
+                        console.log(`${text} clicked`);
+                        onElementClick && onElementClick({x, y, z});
+                    }
+                },
+                {
+                    x: 2630, y: 1060, z: -420, isDeviceHovered: false, text: "Weeder", color: "#f63b3b",
+                    onClick: function () {
+                        const {x, y, z, text} = fieldMapElements.devices[5];
+                        console.log(`${text} clicked`);
+                        onElementClick && onElementClick({x, y, z});
+                    }
+                }]
             // robot: {x: 0, y: 0, isRobotHovered: false, text: "Robot", color: "#5be318"}
         });
 
@@ -308,6 +360,11 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
             const meterX = Math.floor(x / scaleX);
             const meterY = Math.floor((containerHeight - y) / scaleY);
 
+            if (isPointInDisabledArea(meterX, meterY)) {
+                setHoverPoint(null);
+                return;
+            }
+
             for (const [, elements] of Object.entries(fieldMapElements)) {
                 if (Array.isArray(elements)) {
                     for (const element of elements) {
@@ -428,6 +485,22 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
                 >
                     {drawGrid()}
 
+                    {/* Render disabled areas */}
+                    {disabledAreas.map((area, index) => (
+                        <g key={`disabled-area-${index}`}>
+                            <rect
+                                x={area.x1 * scaleX}
+                                y={containerHeight - (area.y2 * scaleY)}
+                                width={(area.x2 - area.x1) * scaleX}
+                                height={(area.y2 - area.y1) * scaleY}
+                                fill="rgba(128, 128, 128, 0.2)"
+                                stroke="#666"
+                                strokeWidth="1"
+                                strokeDasharray="5,5"
+                            />
+                        </g>
+                    ))}
+
                     {/* Animated robot circle */}
                     <circle
                         className="robot-circle"
@@ -544,7 +617,7 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
                     )}
                 </svg>
 
-                {selectedPoint && (
+                {selectedPoint && !isPointInDisabledArea(selectedPoint.meterX, selectedPoint.meterY) && (
                     <ActionModal
                         position={selectedPoint}
                         onMove={handleMove}
