@@ -86,13 +86,18 @@ const WateringJobPage = () => {
 
   const handleEdit = (job) => {
     setEditingJobId(job._id);
-    setSelectedPlantTypes(job.plantTypes);
-    // Convert waterAmounts to string for input fields
+
+    // Find the plant type object by name and get its id
+    const pt = plantTypes.find(pt => pt.name === job.plantType);
+    setSelectedPlantTypes(pt ? [pt.id] : []);
+
+    // Set waterAmounts for the selected plant type (convert to string for input)
     const wa = {};
-    Object.entries(job.waterAmounts || {}).forEach(([k, v]) => {
-      wa[k] = String(v);
-    });
+    if (pt && job.waterAmount !== undefined) {
+      wa[pt.id] = String(job.waterAmount);
+    }
     setWaterAmounts(wa);
+
     setZ(job.z);
     setDate(job.date);
     setInterval(job.interval);
@@ -109,28 +114,43 @@ const WateringJobPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(""); // Clear previous errors
+    setError("");
+    // Map selectedPlantTypes (IDs) to names
+    const selectedNames = plantTypes
+      .filter(pt => selectedPlantTypes.includes(pt.id))
+      .map(pt => pt.name);
+
+    // Map waterAmounts keys from IDs to names
+    const waterAmountsByName = {};
+    for (const pt of plantTypes) {
+      if (selectedPlantTypes.includes(pt.id)) {
+        waterAmountsByName[pt.name] = Number(waterAmounts[pt.id]);
+      }
+    }
+
     const payload = {
-      plantTypes: selectedPlantTypes,
-      waterAmounts: Object.fromEntries(
-        Object.entries(waterAmounts).map(([k, v]) => [k, Number(v)])
-      ),
+      plantTypes: selectedNames,
+      waterAmounts: waterAmountsByName,
       z,
       date,
       interval,
     };
+    console.log("Submitting payload:", payload);
     try {
       if (editingJobId) {
         await api.put(`/api/watering/${editingJobId}`, payload);
       } else {
         await api.post("/api/watering", payload);
       }
-      // Refresh jobs list
       const jobsResponse = await api.get("/api/watering");
+      console.log("Fetched jobs after submit:", jobsResponse.data); // <-- Add this
       setWateringJobs(jobsResponse.data);
-      resetForm(); // Reset to create mode and clear fields
+      setShowJobsPanel(true);
+      setShowCreatePanel(false);
+      resetForm();
     } catch (err) {
       setError("Could not save watering job.");
+      console.error(err);
     }
   };
 
@@ -488,14 +508,10 @@ const WateringJobPage = () => {
                 {wateringJobs.map((job, idx) => (
                   <tr key={job._id || idx}>
                     <td style={{ padding: 8, border: "1px solid #fde047" }}>
-                      {(job.plantTypes || []).join(", ")}
+                      {job.plantType || "-"}
                     </td>
                     <td style={{ padding: 8, border: "1px solid #fde047" }}>
-                      {job.waterAmounts
-                        ? Object.entries(job.waterAmounts)
-                            .map(([type, amt]) => `${type}: ${amt}`)
-                            .join(", ")
-                        : ""}
+                      {job.waterAmount !== undefined ? job.waterAmount : "-"}
                     </td>
                     <td style={{ padding: 8, border: "1px solid #fde047" }}>{job.z}</td>
                     <td style={{ padding: 8, border: "1px solid #fde047" }}>{job.date}</td>

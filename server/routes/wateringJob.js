@@ -18,6 +18,7 @@ router.get("/", async (req, res) => {
 
 // CREATE a new watering job
 router.post("/", async (req, res) => {
+  console.log("Received POST /api/watering:", req.body);
   try {
     const { plantTypes, waterAmounts, z, date, interval } = req.body;
     // Get x/y for each plantType from SeedingJob
@@ -41,7 +42,19 @@ router.post("/", async (req, res) => {
 // UPDATE a watering job
 router.put("/:id", async (req, res) => {
   try {
-    const updated = await WateringJob.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const updated = await WateringJob.findByIdAndUpdate(
+      req.params.id,
+      {
+        $set: {
+          plantType: req.body.plantTypes[0], // or handle multiple if needed
+          waterAmount: req.body.waterAmounts[req.body.plantTypes[0]],
+          z: req.body.z,
+          date: req.body.date,
+          interval: req.body.interval,
+        }
+      },
+      { new: true }
+    );
     res.json(updated);
   } catch (err) {
     res.status(500).json({ error: err.message });
