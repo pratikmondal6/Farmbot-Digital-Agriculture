@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { Humidity } = require("../models/humidity");
 const { Farmbot } = require("farmbot");
+const { setJobStatus } = require("../services/farmbotStatusService");
 
 const move = async (bot, x, y, z) => {
   await bot.moveAbsolute({ x: x, y: y, z: z, speed: 100 });
@@ -32,6 +33,7 @@ router.post("/check", async (req, res) => {
 
   try {
     await bot.connect();
+    setJobStatus("moving to target position");
 
     const seedX = parseInt(req.body.seedX);
     const seedY = parseInt(req.body.seedY);
@@ -68,6 +70,7 @@ router.post("/check", async (req, res) => {
     await move(bot, destX, destY, destZ - 50);
 
     // 6. Move down to the soil level
+    setJobStatus("checking humidity");
     await move(bot, destX, destY, destZ);
 
     // 7. Read the humidity sensor (assuming it's connected to pin 59)
@@ -107,6 +110,9 @@ router.post("/check", async (req, res) => {
     });
 
     await humidityReading.save();
+
+    setJobStatus("Finished");
+    setTimeout(() => setJobStatus("online"), 3000);
 
     return res.status(200).send({
       "status": 200,
