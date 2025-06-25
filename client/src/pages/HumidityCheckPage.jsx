@@ -7,7 +7,7 @@ const HumidityCheckPage = () => {
 
   const [X, setX] = useState('');
   const [Y, setY] = useState('');
-  const [Z, setZ] = useState('-550'); // Default Z value for soil level
+  const [Z, setZ] = useState('-50'); // Default Z value for soil level
   const [SeedX, setSeedX] = useState('');
   const [SeedY, setSeedY] = useState('');
   const [isHovered, setIsHovered] = useState(false);
@@ -79,10 +79,10 @@ const HumidityCheckPage = () => {
         <div>
           <form onSubmit={handleSubmit} style={styles.form}>
             <h2 style={styles.title}>Soil Humidity Check</h2>
-            
+
             {error && <p style={styles.error}>{error}</p>}
             {success && <p style={styles.success}>{success}</p>}
-            
+
             {humidityReading !== null && (
               <div style={styles.readingContainer}>
                 <h3 style={styles.readingTitle}>Humidity Reading</h3>
@@ -159,16 +159,6 @@ const HumidityCheckPage = () => {
               {loading ? 'Checking...' : 'Check Humidity'}
             </button>
 
-            <button
-              type="button"
-              onClick={() => navigate('/dashboard')}
-              style={{
-                ...styles.backButton,
-                marginTop: '1rem'
-              }}
-            >
-              Back to Dashboard
-            </button>
           </form>
         </div>
       )}
@@ -176,7 +166,7 @@ const HumidityCheckPage = () => {
       {showPanel === 'history' && (
         <div style={styles.historyContainer}>
           <h2 style={styles.title}>Humidity Reading History</h2>
-          
+
           {humidityReadings.length === 0 ? (
             <p style={styles.noReadings}>No humidity readings found.</p>
           ) : (
@@ -187,7 +177,7 @@ const HumidityCheckPage = () => {
                 <div style={styles.tableCell}>Seed Position (X, Y)</div>
                 <div style={styles.tableCell}>Humidity</div>
               </div>
-              
+
               {humidityReadings.map((reading, index) => (
                 <div key={index} style={styles.tableRow}>
                   <div style={styles.tableCell}>{formatDate(reading.reading_date)}</div>
@@ -202,17 +192,7 @@ const HumidityCheckPage = () => {
               ))}
             </div>
           )}
-          
-          <button
-            type="button"
-            onClick={() => navigate('/dashboard')}
-            style={{
-              ...styles.backButton,
-              marginTop: '1rem'
-            }}
-          >
-            Back to Dashboard
-          </button>
+
         </div>
       )}
     </div>
