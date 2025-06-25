@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Settings from '../../pages/Setting';
 import '../../styles/header.css';
 import { useNavigate } from 'react-router-dom';
+import StatusCard from './StatusCard';
 
 export default function Header() {
     const navigate = useNavigate();
@@ -33,7 +34,8 @@ export default function Header() {
             <div className="header-status-bar">
                 <div className="header-item">
                     <span className="status-dot">●</span>
-                    <span>Online</span>
+                    {/* <span>Online</span> */}
+                    <StatusCard />
                 </div>
                 <div className="header-item" onClick={handleRefreshClick} style={{ cursor: 'pointer' }}>
                     🔄

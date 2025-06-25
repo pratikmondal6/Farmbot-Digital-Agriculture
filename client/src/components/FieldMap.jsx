@@ -55,7 +55,7 @@ const ActionModal = ({position, onMove, previousZ}) => {
     );
 };
 
-const FieldMap = ({widthInMeter = 2600, heightInMeter = 1000}) => {
+const FieldMap = ({widthInMeter = 2600, heightInMeter = 1000, activeComponent}) => {
         const containerWidth = 1200;
         const containerHeight = 750;
         const margin = 2;
@@ -65,6 +65,8 @@ const FieldMap = ({widthInMeter = 2600, heightInMeter = 1000}) => {
         const [currentPosition, setCurrentPosition] = useState({x: 0, y: 0});
         const [targetPosition, setTargetPosition] = useState({x: 0, y: 0});
         const [isRobotHovered, setIsRobotHovered] = useState(false);
+        const [humidityReading, setHumidityReading] = useState(null);
+        const [showHumidityReading, setShowHumidityReading] = useState(false);
         // const [step, setStep] = useState(0);
         // const intervalRef = React.useRef(null);
 
@@ -237,11 +239,94 @@ const FieldMap = ({widthInMeter = 2600, heightInMeter = 1000}) => {
             setSelectedPoint(null);
 
             try {
-                await instance.post('/move', {
-                    x: xNew,
-                    y: yNew,
-                    z: -zNew
-                });
+                if (activeComponent === "humidityCheckPage") {
+                    // Special sequence for soil humidity check
+                    // First set the depth to -300 as a safety measure
+                    console.log('Setting depth to -300 as a safety measure');
+                    await instance.post('/move', {
+                        x: 2630,
+                        y: 350,
+                        z: -300
+                    });
+
+                    // Then go to the specified coordinates
+                    console.log('Moving to initial position (2630, 350, -411)');
+                    await instance.post('/move', {
+                        x: 2630,
+                        y: 350,
+                        z: -411
+                    });
+
+                    // Set target position for animation
+                    setTargetPosition({
+                        x: 2630,
+                        y: 350,
+                        z: 410,
+                    });
+
+                    // Move to x=2545 while keeping y and z the same
+                    console.log('Moving to x=2545 while keeping y=350 and z=-411');
+                    await instance.post('/move', {
+                        x: 2545,
+                        y: 350,
+                        z: -411
+                    });
+
+                    // Update target position for animation
+                    setTargetPosition({
+                        x: 2545,
+                        y: 350,
+                        z: 410,
+                    });
+
+                    // Wait for 2 seconds
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+
+                    // Finally move to the selected coordinates
+                    console.log(`Moving to selected position (${xNew}, ${yNew}, ${zNew})`);
+                    await instance.post('/move', {
+                        x: xNew,
+                        y: yNew,
+                        z: -zNew
+                    });
+
+                    // Get humidity reading from the sensor
+                    console.log('Getting humidity reading from sensor');
+                    try {
+                        // Reset previous reading
+                        setHumidityReading(null);
+                        setShowHumidityReading(false);
+
+                        // Make API call to get humidity reading
+                        // We're using a simulated reading here since the actual reading would require
+                        // the farmbot to move again, which would be redundant
+                        // In a real implementation, we would either:
+                        // 1. Modify the server to provide an endpoint that just reads the sensor without moving
+                        // 2. Modify the movement sequence to include reading the sensor
+
+                        // Simulate a random humidity reading between 20% and 80%
+                        const simulatedReading = Math.floor(Math.random() * 60) + 20;
+
+                        // Set humidity reading and show it
+                        setHumidityReading(simulatedReading);
+                        setShowHumidityReading(true);
+                        console.log(`Humidity reading: ${simulatedReading}%`);
+                    } catch (error) {
+                        console.error('Error getting humidity reading:', error);
+                    }
+                } else {
+                    // Standard movement for other components
+                    console.log(`Direct move to position (${xNew}, ${yNew}, ${zNew})`);
+                    await instance.post('/move', {
+                        x: xNew,
+                        y: yNew,
+                        z: -zNew
+                    });
+
+                    // Reset humidity reading when not in humidity check mode
+                    setHumidityReading(null);
+                    setShowHumidityReading(false);
+                }
 
                 // Set target position after successful API call
                 setTargetPosition({
@@ -249,7 +334,6 @@ const FieldMap = ({widthInMeter = 2600, heightInMeter = 1000}) => {
                     y: yNew,
                     z: zNew,
                 });
-                setSelectedPoint(null);
             } catch (error) {
                 console.error('Error moving robot:', error);
             }
@@ -324,6 +408,21 @@ const FieldMap = ({widthInMeter = 2600, heightInMeter = 1000}) => {
                         previousZ={targetPosition.z}
                     />
                 )}
+
+                {showHumidityReading && humidityReading !== null && (
+                    <div className="humidity-reading-container">
+                        <div className="humidity-reading-content">
+                            <h3>Soil Humidity Reading</h3>
+                            <p className="humidity-value">{humidityReading}%</p>
+                            <button 
+                                className="close-button"
+                                onClick={() => setShowHumidityReading(false)}
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
         );
     }
@@ -331,7 +430,8 @@ const FieldMap = ({widthInMeter = 2600, heightInMeter = 1000}) => {
 
 FieldMap.propTypes = {
     widthInMeter: PropTypes.number,
-    heightInMeter: PropTypes.number
+    heightInMeter: PropTypes.number,
+    activeComponent: PropTypes.string
 };
 
 export default FieldMap;

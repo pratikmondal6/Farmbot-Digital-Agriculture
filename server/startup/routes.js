@@ -9,6 +9,7 @@ const farmbotPosition = require("../routes/farmbotPosition");
 const notFound = require("../routes/notFound");
 const moveFarmbot = require("../routes/moveFarmbot");
 const moveRelative = require("../routes/moveRelative");
+const humidityCheck = require("../routes/humidityCheck");
 const error = require("../middleware/error");
 
 module.exports = function (app) {
@@ -19,6 +20,7 @@ module.exports = function (app) {
   app.use("/move", moveFarmbot);
   app.use("/moveRelative", moveRelative);
   app.use("/seedingJob", seedingJob);
+  app.use("/humidityCheck", humidityCheck);
   app.use('/farmbotPosition', farmbotPosition);
   app.use("/api/botConfig", farmbotConfig);
   app.use('/api/status', statusRoutes);
