@@ -55,32 +55,147 @@ const ActionModal = ({position, onMove, previousZ}) => {
     );
 };
 
-const FieldMap = ({widthInMeter = 2600, heightInMeter = 1000}) => {
-        const containerWidth = 1200;
-        const containerHeight = 750;
-        const margin = 2;
+const Circle = ({x, y, color, onClick, onPointerEnter, onPointerLeave}) => {
+    return (
+        <circle
+            cx={x * scaleX}
+            cy={containerHeight - (y * scaleY)}
+            r={radius}
+            fill={color}
+            fillOpacity={0.8}
+            stroke="#333"
+            strokeWidth="1"
+            style={{cursor: 'pointer'}}
+            onClick={onClick}
+            onPointerEnter={onPointerEnter}
+            onPointerLeave={onPointerLeave}
+        />
+    );
+};
+
+let scaleX = 0;
+let scaleY = 0;
+
+const containerWidth = 1200;
+const containerHeight = 750;
+const radius = 10;
+const margin = 2;
+
+const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, selectArea = false}) => {
         const gridSpacing = 60;
         const [hoverPoint, setHoverPoint] = useState(null);
         const [selectedPoint, setSelectedPoint] = useState(null);
         const [currentPosition, setCurrentPosition] = useState({x: 0, y: 0});
         const [targetPosition, setTargetPosition] = useState({x: 0, y: 0});
-        const [isRobotHovered, setIsRobotHovered] = useState(false);
+        const [isSelectingArea, setIsSelectingArea] = useState(selectArea);
+        const [selectionStart, setSelectionStart] = useState(null);
+        const [selectionEnd, setSelectionEnd] = useState(null);
         // const [step, setStep] = useState(0);
         // const intervalRef = React.useRef(null);
 
-        const scaleX = containerWidth / widthInMeter;
-        const scaleY = containerHeight / heightInMeter;
+        scaleX = containerWidth / widthInMeter;
+        scaleY = containerHeight / heightInMeter;
         const marginPx = margin * scaleX;
 
         const animationFrameRef = React.useRef(null);
 
-        // Add these event handlers
-        const handleRobotMouseEnter = () => {
-            setIsRobotHovered(true);
+
+        const [fieldMapElements, setFieldMapElements] = useState({
+            seedBoxLocations: [{
+                x: 2130,
+                y: 20,
+                z: 540,
+                isSeedHovered: false,
+                text: "Carrot Seeds Box",
+                color: "#f59e42",
+                onClick: function () {
+                    if (window.confirm('Do you want to pick the seed?')) {
+                        const {x, y, z} = fieldMapElements.seedBoxLocations[0];
+                        instance.post('/move', {
+                            x,
+                            y,
+                            z: -z
+                        })
+                            .then(() => alert('Seed picked successfully!'))
+                            .catch((error) => {
+                                alert('Failed to pick seed.');
+                                console.error(error);
+                            });
+                    }
+                }
+            }],
+            devices: [{x: 2630, y: 150, z: -410, isDeviceHovered: false, text: "Watering Nozzle", color: "#3b82f6"},
+                {x: 2630, y: 245, z: -395, isDeviceHovered: false, text: "Seeder", color: "#f8c727"},
+                {x: 2630, y: 350, z: -410, isDeviceHovered: false, text: "Soil Sensor", color: "#5c5e60"},
+                {x: 2630, y: 855, z: -380, isDeviceHovered: false, text: "Empty Slot", color: "#ffffff"},
+                {x: 2630, y: 960, z: -420, isDeviceHovered: false, text: "Rotatory Tool", color: "#05ef8d"},
+                {x: 2630, y: 1060, z: -420, isDeviceHovered: false, text: "Weeder", color: "#f63b3b"}],
+            // robot: {x: 0, y: 0, isRobotHovered: false, text: "Robot", color: "#5be318"}
+        });
+
+        const handleStartSelection = (event) => {
+            if (!isSelectingArea) return;
+
+            const svgRect = event.currentTarget.getBoundingClientRect();
+            const x = Math.floor((event.clientX - svgRect.left - marginPx) / scaleX);
+            const y = Math.floor((containerHeight - (event.clientY - svgRect.top - marginPx)) / scaleY);
+
+            setSelectionStart({x, y});
+            setSelectionEnd({x, y});
         };
 
-        const handleRobotMouseLeave = () => {
-            setIsRobotHovered(false);
+        const handleSelectionMove = (event) => {
+            if (!isSelectingArea || !selectionStart) return;
+
+            const svgRect = event.currentTarget.getBoundingClientRect();
+            const x = Math.floor((event.clientX - svgRect.left - marginPx) / scaleX);
+            const y = Math.floor((containerHeight - (event.clientY - svgRect.top - marginPx)) / scaleY);
+
+            setSelectionEnd({x, y});
+        };
+
+        const handleEndSelection = () => {
+            if (!isSelectingArea || !selectionStart || !selectionEnd) return;
+
+            const isSamePoint = Math.abs(selectionStart.x - selectionEnd.x) < 15 &&
+                Math.abs(selectionStart.y - selectionEnd.y) < 15;
+
+            if (isSamePoint) {
+                setIsSelectingArea(false);
+                setSelectionStart(null);
+                setSelectionEnd(null);
+                alert("Please select a valid area.");
+                return;
+            }
+
+            const points = {
+                topLeft: {
+                    x: Math.min(selectionStart.x, selectionEnd.x),
+                    y: Math.max(selectionStart.y, selectionEnd.y)
+                },
+                topRight: {
+                    x: Math.max(selectionStart.x, selectionEnd.x),
+                    y: Math.max(selectionStart.y, selectionEnd.y)
+                },
+                bottomLeft: {
+                    x: Math.min(selectionStart.x, selectionEnd.x),
+                    y: Math.min(selectionStart.y, selectionEnd.y)
+                },
+                bottomRight: {
+                    x: Math.max(selectionStart.x, selectionEnd.x),
+                    y: Math.min(selectionStart.y, selectionEnd.y)
+                }
+            };
+
+            setIsSelectingArea(false);
+            setSelectionStart(null);
+            setSelectionEnd(null);
+
+            console.log(`Selected Area Points:`, points);
+
+            if (onAreaSelect) {
+                onAreaSelect(points);
+            }
         };
 
         // Animation function
@@ -193,6 +308,37 @@ const FieldMap = ({widthInMeter = 2600, heightInMeter = 1000}) => {
             const meterX = Math.floor(x / scaleX);
             const meterY = Math.floor((containerHeight - y) / scaleY);
 
+            for (const [, elements] of Object.entries(fieldMapElements)) {
+                if (Array.isArray(elements)) {
+                    for (const element of elements) {
+                        const elementCenterX = element.x * scaleX;
+                        const elementCenterY = containerHeight - (element.y * scaleY);
+                        const distance = Math.sqrt(
+                            Math.pow(x - elementCenterX, 2) +
+                            Math.pow(y - elementCenterY, 2)
+                        );
+
+                        if (distance <= radius) {
+                            setHoverPoint(null);
+                            return;
+                        }
+                    }
+                } else if (elements && typeof elements === 'object') {
+                    // Handle single objects (like robot)
+                    const elementCenterX = elements.x * scaleX;
+                    const elementCenterY = containerHeight - (elements.y * scaleY);
+                    const distance = Math.sqrt(
+                        Math.pow(x - elementCenterX, 2) +
+                        Math.pow(y - elementCenterY, 2)
+                    );
+
+                    if (distance <= radius) {
+                        setHoverPoint(null);
+                        return;
+                    }
+                }
+            }
+
             if (meterX >= 0 && meterX <= widthInMeter && meterY >= 0 && meterY <= heightInMeter) {
                 const pixelX = x;
                 const pixelY = y;
@@ -255,15 +401,30 @@ const FieldMap = ({widthInMeter = 2600, heightInMeter = 1000}) => {
             }
         };
 
+        const handleElementHover = (key, index, isHovered) => {
+            setFieldMapElements(prev => {
+                const newElements = {...prev};
+                if (Array.isArray(newElements[key])) {
+                    newElements[key] = [...newElements[key]];
+                    newElements[key][index] = {...newElements[key][index], isHovered};
+                } else {
+                    newElements[key] = {...newElements[key], isHovered};
+                }
+                return newElements;
+            });
+        };
+
         return (
             <div className="field-map-container">
                 <svg
                     width={containerWidth + (2 * marginPx)}
                     height={containerHeight + (2 * marginPx)}
                     viewBox={`${-marginPx} ${-marginPx} ${containerWidth + (2 * marginPx)} ${containerHeight + (2 * marginPx)}`}
-                    onMouseMove={handleMouseMove}
+                    onMouseDown={handleStartSelection}
+                    onMouseMove={isSelectingArea ? handleSelectionMove : handleMouseMove}
+                    onMouseUp={handleEndSelection}
                     onMouseLeave={handleMouseLeave}
-                    onClick={handleClick}
+                    onClick={!isSelectingArea ? handleClick : undefined}
                 >
                     {drawGrid()}
 
@@ -272,7 +433,7 @@ const FieldMap = ({widthInMeter = 2600, heightInMeter = 1000}) => {
                         className="robot-circle"
                         cx={currentPosition.x * scaleX}
                         cy={containerHeight - (currentPosition.y * scaleY)}
-                        r={10}
+                        r={radius}
                         fill="#16a34a"
                         stroke="#fff"
                         strokeWidth="2"
@@ -284,6 +445,60 @@ const FieldMap = ({widthInMeter = 2600, heightInMeter = 1000}) => {
                             repeatCount="indefinite"
                         />
                     </circle>
+
+                    {Object.entries(fieldMapElements).map(([key, elements]) => {
+                        if (Array.isArray(elements)) {
+                            return elements.map((element, index) => (
+                                <g key={`${key}-${index}`}>
+                                    <Circle
+                                        x={element.x}
+                                        y={element.y}
+                                        color={element.color}
+                                        isHovered={element.isHovered}
+                                        onClick={element.onClick}
+                                        onPointerEnter={() => handleElementHover(key, index, true)}
+                                        onPointerLeave={() => handleElementHover(key, index, false)}
+                                    />
+                                    {element.isHovered && (
+                                        <text
+                                            {...getTextPosition(element, containerWidth, containerHeight, widthInMeter, heightInMeter)}
+                                            fill="#333"
+                                            fontSize="12"
+                                        >
+                                            {element.text}
+                                        </text>
+                                    )}
+                                </g>
+                            ));
+                        } else if (elements && typeof elements === 'object') {
+                            return (
+                                <g key={key}>
+                                    <Circle
+                                        x={elements.x}
+                                        y={elements.y}
+                                        color={elements.color}
+                                        isHovered={elements.isHovered}
+                                        onClick={elements.onClick}
+                                        onPointerEnter={() => handleElementHover(key, null, true)}
+                                        onPointerLeave={() => handleElementHover(key, null, false)}
+                                    />
+                                    {elements.isHovered && (
+                                        <text
+                                            x={elements.x * scaleX}
+                                            y={containerHeight - (elements.y * scaleY - 25)}
+                                            textAnchor={elements.x > widthInMeter * 0.9 ? "end" : "start"}
+                                            dy={elements.y > heightInMeter * 0.9 ? "-25" : "25"}
+                                            fill="#333"
+                                            fontSize="12"
+                                        >
+                                            {elements.text}
+                                        </text>
+                                    )}
+                                </g>
+                            );
+                        }
+                        return null;
+                    })}
 
                     {/* Hover indicators */}
                     {hoverPoint && (
@@ -315,6 +530,18 @@ const FieldMap = ({widthInMeter = 2600, heightInMeter = 1000}) => {
                             </text>
                         </>
                     )}
+
+                    {isSelectingArea && selectionStart && selectionEnd && (
+                        <rect
+                            x={Math.min(selectionStart.x, selectionEnd.x) * scaleX}
+                            y={containerHeight - Math.max(selectionStart.y, selectionEnd.y) * scaleY}
+                            width={Math.abs(selectionEnd.x - selectionStart.x) * scaleX}
+                            height={Math.abs(selectionEnd.y - selectionStart.y) * scaleY}
+                            fill="rgba(0, 123, 255, 0.2)"
+                            stroke="rgb(0, 123, 255)"
+                            strokeWidth="2"
+                        />
+                    )}
                 </svg>
 
                 {selectedPoint && (
@@ -329,9 +556,18 @@ const FieldMap = ({widthInMeter = 2600, heightInMeter = 1000}) => {
     }
 ;
 
-FieldMap.propTypes = {
-    widthInMeter: PropTypes.number,
-    heightInMeter: PropTypes.number
+const getTextPosition = (element, containerWidth, containerHeight, widthInMeter, heightInMeter) => {
+    const pixelX = element.x;
+    const pixelY = element.y;
+    const isNearLeft = pixelX < containerWidth * 0.2;
+    const isNearTop = pixelY < containerHeight * 0.2;
+
+    return {
+        x: element.x * scaleX + (isNearLeft ? 10 : -10),
+        y: containerHeight - (element.y * scaleY) + (isNearTop ? -10 : 20),
+        textAnchor: isNearLeft ? "start" : "end"
+    };
 };
+
 
 export default FieldMap;
