@@ -9,6 +9,7 @@ const notFound = require("../routes/notFound");
 const moveFarmbot = require("../routes/moveFarmbot");
 const moveRelative = require("../routes/moveRelative");
 const error = require("../middleware/error");
+const wateringJob = require('../routes/wateringJob');
 
 module.exports = function (app) {
   app.use(express.json());
@@ -20,6 +21,7 @@ module.exports = function (app) {
   app.use("/seedingJob", seedingJob);
   app.use("/api/botConfig", farmbotConfig);
   app.use('/api/status', statusRoutes);
+  app.use('/api/watering', wateringJob);
   app.use("*", notFound);
   app.use(error); // we just give reference to this error function
 };
