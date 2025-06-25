@@ -1,8 +1,8 @@
 .field-map-container {
-    padding: 20px;
+    padding: 0 10px 0 0;
     border-radius: 8px;
     display: flex;
-    margin: 20px 0;
+    margin: 10px 0;
 }
 
 .field-map-container svg {
@@ -52,7 +52,7 @@
 }
 
 .action-modal-move-btn {
-    padding: 8px 12px;
+    /* padding: 8px 12px; */
     background-color: #16a34a;
     color: white;
     border: none;

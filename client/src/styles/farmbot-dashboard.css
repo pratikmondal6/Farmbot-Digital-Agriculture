@@ -5,6 +5,20 @@
     min-height: 100vh;
     background-color: #f9fafb;
     font-family: sans-serif;
+    padding: 0;
+    margin: 0;
+}
+
+.dashboard-items {
+    display: flex;
+    justify-content: space-between;
+    padding: 0;
+    /* display: grid; 
+    grid-template-columns: 0.7fr 0.8fr 1.5fr; 
+    grid-template-rows: 1fr; 
+    gap: 0px 0px; 
+    grid-template-areas: 
+        ". . .";  */
 }
 
 /* Main layout */
@@ -14,11 +28,12 @@
 
 /* Sidebar */
 .dashboard-sidebar {
-    width: 13rem;
+    /* width: 14rem; */
     background-color: white;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    height: 100vh;
+    height: 90vh;
     padding: 1rem;
+    margin-top: 10px;
 }
 
 .sidebar-nav {
@@ -34,15 +49,21 @@
     padding: 0.5rem;
     border-radius: 0.25rem;
     cursor: pointer;
+    text-align: left;
 }
 
 .nav-link {
-    color: #374151;
+    color: #16a34a;
     cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    border: solid #16a34a 2px;
+    text-align: left;
 }
 
 .nav-link:hover {
-    color: #16a34a;
+    color: white;
+    background-color: #16a34a;
 }
 
 /* Main content */

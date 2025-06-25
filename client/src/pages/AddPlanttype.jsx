@@ -6,7 +6,7 @@ import FieldMap from '../components/FieldMap';
 
 const AddPlanttype = () => {
   const navigate = useNavigate();
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
   const [plantTypes, setPlantTypes] = useState([]);
   const [plantType, setPlantType] = useState('');
   const [newPlantType, setNewPlantType] = useState('');
@@ -121,9 +121,9 @@ const AddPlanttype = () => {
 
     <div style={styles.contentRow}>
       <div style={styles.wrapper}>
-        <button onClick={() => setIsOpen(!isOpen)} style={styles.toggleButton}>
+        {/* <button onClick={() => setIsOpen(!isOpen)} style={styles.toggleButton}>
           {isOpen ? 'Close' : 'Create Planttype'}
-        </button>
+        </button> */}
 
         {isOpen && (
           <div style={styles.container}>
@@ -183,11 +183,11 @@ const AddPlanttype = () => {
             <button onClick={saveAll} style={styles.button}>Speichern</button>
           </div>
         )}
-              <button onClick={() => navigate('/')} style={styles.backButton}>← Zurück</button>
+              {/* <button onClick={() => navigate('/')} style={styles.backButton}>← Back to Dashboard</button> */}
 
       </div>
 
-      <div style={styles.tableWrapper}>
+      {/* <div style={styles.tableWrapper}>
         <h3 style={{ color: '#065f46' }}>Saved Planttype</h3>
         {allPlants.length === 0 ? (
           <p>No planttypes saved</p>
@@ -211,7 +211,7 @@ const AddPlanttype = () => {
             </tbody>
           </table>
         )}
-      </div>
+      </div> */}
     </div>
   </div>
 );
@@ -224,8 +224,7 @@ const styles = {
     flexDirection: 'row',
     gap: '40px',
     alignItems: 'flex-start',
-    marginTop: '40px',
-    paddingLeft: '20px'
+    margin: '10px',
   },
   tableWrapper: {
     backgroundColor: '#f0fdf4',
@@ -249,13 +248,13 @@ const styles = {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: '40px',
-    padding: '20px',
+    // padding: '20px',
   },
   wrapper: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'flex-start',
-    minWidth: '320px',
+    // minWidth: '320px',
   },
   toggleButton: {
     padding: '10px 16px',
