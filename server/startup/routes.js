@@ -5,7 +5,7 @@ const plant = require("../routes/plantRoutes");
 const farmbotConfig = require("../routes/farmbotConfig");
 const statusRoutes = require("../routes/statusRoutes");
 const seedingJob = require("../routes/seedingJob");
-const farmbotPosition = require("../routes/farmbotPosition");
+const farmbotPosition = require("../services/farmbotPosition");
 const notFound = require("../routes/notFound");
 const moveFarmbot = require("../routes/moveFarmbot");
 const moveRelative = require("../routes/moveRelative");
@@ -21,7 +21,8 @@ module.exports = function (app) {
   app.use("/moveRelative", moveRelative);
   app.use("/seedingJob", seedingJob);
   app.use("/humidityCheck", humidityCheck);
-  app.use('/farmbotPosition', farmbotPosition);
+  farmbotPosition.updatePosition()
+  app.use('/farmbotPosition', farmbotPosition.router);
   app.use("/api/botConfig", farmbotConfig);
   app.use('/api/status', statusRoutes);
   app.use("*", notFound);
