@@ -1,5 +1,7 @@
-const { getCurrentStatus } = require('../services/farmbotStatusService');
+const { getCurrentStatus, getJobStatus } = require('../services/farmbotStatusService');
 
 exports.getStatus = (req, res) => {
-    res.send({ status: getCurrentStatus() });
+    const job = getJobStatus();
+    const finalStatus = job && job !== 'online' ? job : getCurrentStatus();
+    res.json({ status: finalStatus });
 };

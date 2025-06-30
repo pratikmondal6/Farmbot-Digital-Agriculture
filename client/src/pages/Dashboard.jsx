@@ -26,7 +26,7 @@ export default function FarmBotDashboard() {
                 {visibleComponent=="botControlPanel" && <FarmbotMoving />}
                 {visibleComponent=="addPlantType" && <AddPlanttype />}
                 {visibleComponent=="c" && <SeedingPage />}
-                <FieldMap />
+                <FieldMap activeComponent={visibleComponent} />
             </div>
         </div>
     );

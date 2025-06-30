@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const plantRoutes = require('./routes/plantRoutes');
 const app = express();
+const statusRoutes = require('./routes/statusRoutes');
 
 
 const corsOptions = {
@@ -16,6 +17,7 @@ app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 app.use(express.json());
 app.use('/api/plant', plantRoutes);
+app.use('/api/status', statusRoutes);
 app.get('/', (req, res) => {
   res.send('API server is running!');
 });

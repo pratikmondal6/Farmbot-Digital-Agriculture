@@ -1,6 +1,7 @@
 const { Farmbot } =  require("farmbot");
 const express = require("express");
 const router = express.Router();
+const { setJobStatus } = require("../services/farmbotStatusService");
 
 
 router.post("/", async (req, res) => {
@@ -42,7 +43,10 @@ router.post("/", async (req, res) => {
   bot
     .connect()
     .then(async () => {
+      setJobStatus("moving to target position");
       await bot.moveAbsolute({ x: x, y: y, z: z, speed: 100 });
+      setJobStatus("Finished");
+      setTimeout(() => setJobStatus("online"), 3000);
       return res.status(200).send({
         "status": 200,
         "message": "Farmbot moved successfully"
