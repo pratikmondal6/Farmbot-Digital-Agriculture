@@ -89,6 +89,7 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
         const [isSelectingArea, setIsSelectingArea] = useState(selectArea);
         const [selectionStart, setSelectionStart] = useState(null);
         const [selectionEnd, setSelectionEnd] = useState(null);
+        const [plantedSeeds, setPlantedSeeds] = useState([]);
         const disabledAreas = [
             {
                 x1: 2545,
@@ -110,8 +111,8 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
                     y >= area.y1 && y <= area.y2;
             });
         };
-        // const [step, setStep] = useState(0);
-        // const intervalRef = React.useRef(null);
+
+        const intervalRef = React.useRef(null);
 
         scaleX = containerWidth / widthInMeter;
         scaleY = containerHeight / heightInMeter;
@@ -288,34 +289,58 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
         }, [targetPosition]);
 
         // Fetch robot position
-        // const fetchRobotPosition = async () => {
-        //     try {
-        //         // Uncomment for real API
-        //         // const response = await fetch('/api/robot/position');
-        //         // const data = await response.json();
-        //         // setTargetPosition(data.position);
-        //
-        //         // Mock data for demonstration
-        //         console.log('Fetching robot position...');
-        //         setStep(prev => prev + 1);
-        //     } catch
-        //         (error) {
-        //         console.error('Failed to fetch robot position:', error);
-        //     }
-        // };
+        const fetchRobotPosition = async () => {
+            try {
+                console.log('Fetching robot position...');
+                const response = await instance.get('/farmbotPosition');
+                const data = response.data;
+                setTargetPosition(data);
+            } catch
+                (error) {
+                console.error('Failed to fetch robot position:', error);
+            }
+        };
 
         // Set up polling interval
-        // useEffect(() => {
-        //     fetchRobotPosition();
-        //     // Set up interval to fetch position every 2 seconds
-        //     // intervalRef.current = setInterval(fetchRobotPosition, 2000);
-        //
-        //     return () => {
-        //         if (intervalRef.current) {
-        //             clearInterval(intervalRef.current);
-        //         }
-        //     };
-        // }, []);
+        useEffect(() => {
+            fetchRobotPosition();
+            // Set up interval to fetch position every 2 seconds
+            intervalRef.current = setInterval(fetchRobotPosition, 2000);
+
+            return () => {
+                if (intervalRef.current) {
+                    clearInterval(intervalRef.current);
+                }
+            };
+        }, []);
+
+        // Fetch Seed Locations
+        const fetchSeedLocations = async () => {
+            try {
+                const response = await instance.get('/seedingJob/seeds');
+                const seedLocations = response.data;
+
+                return seedLocations.map(seed => ({
+                    ...seed,
+                    color: "#6d2ccf",
+                }));
+            } catch (error) {
+                console.error('Error fetching seed locations:', error);
+            }
+        }
+
+        useEffect(() => {
+            const loadSeedLocations = async () => {
+                try {
+                    const seedLocations = await fetchSeedLocations();
+                    setPlantedSeeds(seedLocations);
+                } catch (error) {
+                    console.error('Error loading seed locations:', error);
+                }
+            };
+
+            loadSeedLocations();
+        }, []);
 
         // Grid drawing
         const drawGrid = () => {
@@ -352,19 +377,7 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
             return elements;
         };
 
-        const handleMouseMove = (event) => {
-            const svgRect = event.currentTarget.getBoundingClientRect();
-            const x = event.clientX - svgRect.left - marginPx;
-            const y = event.clientY - svgRect.top - marginPx;
-
-            const meterX = Math.floor(x / scaleX);
-            const meterY = Math.floor((containerHeight - y) / scaleY);
-
-            if (isPointInDisabledArea(meterX, meterY)) {
-                setHoverPoint(null);
-                return;
-            }
-
+        function handleMapElementHover(fieldMapElements, x, y) {
             for (const [, elements] of Object.entries(fieldMapElements)) {
                 if (Array.isArray(elements)) {
                     for (const element of elements) {
@@ -377,7 +390,7 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
 
                         if (distance <= radius) {
                             setHoverPoint(null);
-                            return;
+                            return true;
                         }
                     }
                 } else if (elements && typeof elements === 'object') {
@@ -391,10 +404,46 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
 
                     if (distance <= radius) {
                         setHoverPoint(null);
-                        return;
+                        return true;
                     }
                 }
             }
+        }
+
+        function handlePlantedSeedHover(plantedSeeds, x, y) {
+            for (const plantedSeed of plantedSeeds) {
+                const plantedSeedCenterX = plantedSeed.x * scaleX;
+                const plantedSeedCenterY = containerHeight - (plantedSeed.y * scaleY);
+                const distance = Math.sqrt(
+                    Math.pow(x - plantedSeedCenterX, 2) +
+                    Math.pow(y - plantedSeedCenterY, 2)
+                );
+
+                if (distance <= radius) {
+                    setHoverPoint(null);
+                    return true;
+                }
+            }
+
+        }
+
+        const handleMouseMove = (event) => {
+            const svgRect = event.currentTarget.getBoundingClientRect();
+            const x = event.clientX - svgRect.left - marginPx;
+            const y = event.clientY - svgRect.top - marginPx;
+
+            const meterX = Math.floor(x / scaleX);
+            const meterY = Math.floor((containerHeight - y) / scaleY);
+
+            if (isPointInDisabledArea(meterX, meterY)) {
+                setHoverPoint(null);
+                return;
+            }
+
+            if (handleMapElementHover)
+                return;
+            if (handlePlantedSeedHover)
+                return;
 
             if (meterX >= 0 && meterX <= widthInMeter && meterY >= 0 && meterY <= heightInMeter) {
                 const pixelX = x;
@@ -501,7 +550,7 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
                         </g>
                     ))}
 
-                    {/* Animated robot circle */}
+                    {/* robot circle */}
                     <circle
                         className="robot-circle"
                         cx={currentPosition.x * scaleX}
@@ -572,6 +621,44 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
                         }
                         return null;
                     })}
+
+                    {/* Render planted seeds */}
+                    {plantedSeeds.map((seed, index) => (
+                        <g key={`seed-${index}`}>
+                            <circle
+                                cx={parseInt(seed.x) * scaleX}
+                                cy={containerHeight - (parseInt(seed.y) * scaleY)}
+                                r={radius * 0.8}
+                                fill="#6d2ccf"
+                                fillOpacity={0.8}
+                                stroke="#333"
+                                strokeWidth="1"
+                                style={{cursor: 'pointer'}}
+                                onPointerEnter={() => {
+                                    // Show seed info on hover
+                                    const element = plantedSeeds[index];
+                                    element.isHovered = true;
+                                    setPlantedSeeds([...plantedSeeds]);
+                                }}
+                                onPointerLeave={() => {
+                                    const element = plantedSeeds[index];
+                                    element.isHovered = false;
+                                    setPlantedSeeds([...plantedSeeds]);
+                                }}
+                            />
+                            {seed.isHovered && (
+                                <text
+                                    x={parseInt(seed.x) * scaleX}
+                                    y={containerHeight - (parseInt(seed.y) * scaleY) - 15}
+                                    textAnchor="middle"
+                                    fill="#333"
+                                    fontSize="12"
+                                >
+                                    {seed.seed_name} ({seed.x}, {seed.y})
+                                </text>
+                            )}
+                        </g>
+                    ))}
 
                     {/* Hover indicators */}
                     {hoverPoint && (
