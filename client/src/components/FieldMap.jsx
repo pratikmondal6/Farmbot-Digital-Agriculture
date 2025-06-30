@@ -2,76 +2,6 @@ import React, {useEffect, useState} from 'react';
 import '../styles/field-map.css';
 import instance from "../utils/api";
 
-const ActionModal = ({position, onMove, previousZ}) => {
-    const [z, setZ] = useState(previousZ || 0);
-
-    const handleZChange = (e) => {
-        const value = Number(e.target.value);
-        if (value >= 0) {
-            setZ(value);
-        }
-    };
-
-    return (
-        <div className="action-modal" style={{left: position.x, top: position.y}}>
-            <div className="action-modal-content">
-                <div className="action-modal-input-container">
-                    <label className="action-modal-label">Width:</label>
-                    <input
-                        type="number"
-                        value={position.meterX}
-                        disabled
-                        className="action-modal-input"
-                    />
-                </div>
-                <div className="action-modal-input-container">
-                    <label className="action-modal-label">Height:</label>
-                    <input
-                        type="number"
-                        value={position.meterY}
-                        disabled
-                        className="action-modal-input"
-                    />
-                </div>
-                <div className="action-modal-input-container">
-                    <label className="action-modal-label">Depth:</label>
-                    <input
-                        type="number"
-                        value={z}
-                        onChange={handleZChange}
-                        min={0}
-                        className="action-modal-input"
-                    />
-                </div>
-                <button
-                    onClick={() => onMove(position.meterX, position.meterY, z)}
-                    className="action-modal-move-btn"
-                >
-                    Move
-                </button>
-            </div>
-        </div>
-    );
-};
-
-const Circle = ({x, y, color, onClick, onPointerEnter, onPointerLeave}) => {
-    return (
-        <circle
-            cx={x * scaleX}
-            cy={containerHeight - (y * scaleY)}
-            r={radius}
-            fill={color}
-            fillOpacity={0.8}
-            stroke="#333"
-            strokeWidth="1"
-            style={{cursor: 'pointer'}}
-            onClick={onClick}
-            onPointerEnter={onPointerEnter}
-            onPointerLeave={onPointerLeave}
-        />
-    );
-};
-
 let scaleX = 0;
 let scaleY = 0;
 
@@ -448,8 +378,6 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
         if (meterX >= 0 && meterX <= widthInMeter && meterY >= 0 && meterY <= heightInMeter) {
             const pixelX = x;
             const pixelY = y;
-            const isNearLeft = pixelX < containerWidth * 0.2;
-            const isNearTop = pixelY < containerHeight * 0.2;
 
             setHoverPoint({
                 ...hoverPoint,
@@ -457,8 +385,6 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
                 y: meterY,
                 pixelX,
                 pixelY,
-                isNearLeft,
-                isNearTop
             });
         } else {
             setHoverPoint(null);
@@ -656,15 +582,7 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
                             stroke="#000000"
                             strokeWidth="1"
                         />
-                        <text
-                            x={hoverPoint.x * scaleX + (hoverPoint.isNearLeft ? 10 : -10)}
-                            y={containerHeight - (hoverPoint.y * scaleY) + (hoverPoint.isNearTop ? 20 : -10)}
-                            fill="#000000"
-                            fontSize="12"
-                            textAnchor={hoverPoint.isNearLeft ? "start" : "end"}
-                        >
-                            ({hoverPoint.x}, {hoverPoint.y})
-                        </text>
+                        <Text x={hoverPoint.x} y={hoverPoint.y} text={`(${hoverPoint.x}, ${hoverPoint.y})`} />
                     </>
                 )}
 
@@ -693,11 +611,14 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
 };
 
 const Text = ({x, y, text}) => {
+    const isNearLeft = x < containerWidth * 0.2;
+    const isNearTop = y < containerHeight * 0.2;
+
     return (
         <text
-            x = {x * scaleX + (x < containerWidth * 0.2 ? 10 : -10)}
-            y = {containerHeight - (y * scaleY) + (y < containerHeight * 0.2 ? -10 : 20)}
-            textAnchor = {x < containerWidth * 0.2 ? "start" : "end"}
+            x = {x * scaleX + (isNearLeft ? 10 : -10)}
+            y = {containerHeight - (y * scaleY) + (isNearTop ? -10 : 20)}
+            textAnchor = {isNearLeft ? "start" : "end"}
             fill="#333"
             fontSize="12"
         >
@@ -706,17 +627,74 @@ const Text = ({x, y, text}) => {
     );
 }
 
-const getTextPosition = (element, containerWidth, containerHeight, widthInMeter, heightInMeter) => {
-    const pixelX = element.x;
-    const pixelY = element.y;
-    const isNearLeft = pixelX < containerWidth * 0.2;
-    const isNearTop = pixelY < containerHeight * 0.2;
+const ActionModal = ({position, onMove, previousZ}) => {
+    const [z, setZ] = useState(previousZ || 0);
 
-    return {
-        x: element.x * scaleX + (isNearLeft ? 10 : -10),
-        y: containerHeight - (element.y * scaleY) + (isNearTop ? -10 : 20),
-        textAnchor: isNearLeft ? "start" : "end"
+    const handleZChange = (e) => {
+        const value = Number(e.target.value);
+        if (value >= 0) {
+            setZ(value);
+        }
     };
+
+    return (
+        <div className="action-modal" style={{left: position.x, top: position.y}}>
+            <div className="action-modal-content">
+                <div className="action-modal-input-container">
+                    <label className="action-modal-label">Width:</label>
+                    <input
+                        type="number"
+                        value={position.meterX}
+                        disabled
+                        className="action-modal-input"
+                    />
+                </div>
+                <div className="action-modal-input-container">
+                    <label className="action-modal-label">Height:</label>
+                    <input
+                        type="number"
+                        value={position.meterY}
+                        disabled
+                        className="action-modal-input"
+                    />
+                </div>
+                <div className="action-modal-input-container">
+                    <label className="action-modal-label">Depth:</label>
+                    <input
+                        type="number"
+                        value={z}
+                        onChange={handleZChange}
+                        min={0}
+                        className="action-modal-input"
+                    />
+                </div>
+                <button
+                    onClick={() => onMove(position.meterX, position.meterY, z)}
+                    className="action-modal-move-btn"
+                >
+                    Move
+                </button>
+            </div>
+        </div>
+    );
+};
+
+const Circle = ({x, y, color, onClick, onPointerEnter, onPointerLeave}) => {
+    return (
+        <circle
+            cx={x * scaleX}
+            cy={containerHeight - (y * scaleY)}
+            r={radius}
+            fill={color}
+            fillOpacity={0.8}
+            stroke="#333"
+            strokeWidth="1"
+            style={{cursor: 'pointer'}}
+            onClick={onClick}
+            onPointerEnter={onPointerEnter}
+            onPointerLeave={onPointerLeave}
+        />
+    );
 };
 
 export default FieldMap;
