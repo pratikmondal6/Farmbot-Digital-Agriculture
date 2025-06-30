@@ -24,6 +24,23 @@ const FarmbotMoving = () => {
     }
   }, [navigate]);
 
+  useEffect(() => {
+    const fetchPosition = async () => {
+      try {
+        const response = await api.get('/farmbotPosition');
+        const { x, y, z } = response.data;
+        setCoord({
+          x: String(x ?? 0),
+          y: String(y ?? 0),
+          z: String(z ?? 0),
+        });
+      } catch (err) {
+        setError('Could not fetch Farmbot position.');
+      }
+    };
+    fetchPosition();
+  }, []);
+
   // const handleTabDoubleClick = () => setShowPanel((prev) => !prev);
 
   const handleCoordChange = (axis, value) => {
@@ -87,23 +104,35 @@ const FarmbotMoving = () => {
     }
   };
 
-  const handleMoveRelative = (axis, delta) => {
-    const x = Number(coord.x) || 0;
-    const y = Number(coord.y) || 0;
-    const z = Number(coord.z) || 0;
-    let newCoord = { x, y, z };
-    newCoord[axis] += delta;
-    // Convert back to strings for input compatibility
-    setCoord({
-      x: String(newCoord.x),
-      y: String(newCoord.y),
-      z: String(newCoord.z),
-    });
-    handleMoveToCoord({
-      x: String(newCoord.x),
-      y: String(newCoord.y),
-      z: String(newCoord.z),
-    });
+  const handleMoveRelative = async (axis, delta) => {
+    setError('');
+    setLoading(true);
+    setIsMoving(true);
+    try {
+      // Build the body for the API call
+      const body = { x: 0, y: 0, z: 0 };
+      body[axis] = delta;
+
+      // Send POST request to /moveRelative
+      await api.post('/moveRelative', body, {
+        headers: {
+          'auth-token': sessionStorage.getItem('token'),
+        },
+      });
+      // Fetch updated position
+      const posRes = await api.get('/farmbotPosition');
+      const { x, y, z } = posRes.data;
+      setCoord({
+        x: String(x ?? 0),
+        y: String(y ?? 0),
+        z: String(z ?? 0),
+      });
+    } catch (err) {
+      setError(err.response?.data?.message || 'Relative move failed. Please try again.');
+    } finally {
+      setLoading(false);
+      setIsMoving(false);
+    }
   };
 
   const handleBack = () => {
