@@ -440,9 +440,9 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
             return;
         }
 
-        if (handleMapElementHover)
+        if (handleMapElementHover(fieldMapElements, x, y))
             return;
-        if (handlePlantedSeedHover)
+        if (handlePlantedSeedHover(plantedSeeds, x, y))
             return;
 
         if (meterX >= 0 && meterX <= widthInMeter && meterY >= 0 && meterY <= heightInMeter) {
@@ -582,13 +582,7 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
                                     onPointerLeave={() => handleElementHover(key, index, false)}
                                 />
                                 {element.isHovered && (
-                                    <text
-                                        {...getTextPosition(element, containerWidth, containerHeight, widthInMeter, heightInMeter)}
-                                        fill="#333"
-                                        fontSize="12"
-                                    >
-                                        {element.text}
-                                    </text>
+                                    <Text x={element.x} y={element.y} text={element.text} />
                                 )}
                             </g>
                         ));
@@ -604,18 +598,9 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
                                     onPointerEnter={() => handleElementHover(key, null, true)}
                                     onPointerLeave={() => handleElementHover(key, null, false)}
                                 />
-                                {elements.isHovered && (
-                                    <text
-                                        x={elements.x * scaleX}
-                                        y={containerHeight - (elements.y * scaleY - 25)}
-                                        textAnchor={elements.x > widthInMeter * 0.9 ? "end" : "start"}
-                                        dy={elements.y > heightInMeter * 0.9 ? "-25" : "25"}
-                                        fill="#333"
-                                        fontSize="12"
-                                    >
-                                        {elements.text}
-                                    </text>
-                                )}
+                                {elements.isHovered &&
+                                    <Text x={elements.x} y={elements.y} text={elements.text} />
+                                }
                             </g>
                         );
                     }
@@ -646,17 +631,9 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
                                 setPlantedSeeds([...plantedSeeds]);
                             }}
                         />
-                        {seed.isHovered && (
-                            <text
-                                x={parseInt(seed.x) * scaleX}
-                                y={containerHeight - (parseInt(seed.y) * scaleY) - 15}
-                                textAnchor="middle"
-                                fill="#333"
-                                fontSize="12"
-                            >
-                                {seed.seed_name} ({seed.x}, {seed.y})
-                            </text>
-                        )}
+                        {seed.isHovered &&
+                            <Text x={seed.x} y={seed.y} text={seed.seed_name} />
+                        }
                     </g>
                 ))}
 
@@ -715,6 +692,20 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
     );
 };
 
+const Text = ({x, y, text}) => {
+    return (
+        <text
+            x = {x * scaleX + (x < containerWidth * 0.2 ? 10 : -10)}
+            y = {containerHeight - (y * scaleY) + (y < containerHeight * 0.2 ? -10 : 20)}
+            textAnchor = {x < containerWidth * 0.2 ? "start" : "end"}
+            fill="#333"
+            fontSize="12"
+        >
+            {text}
+        </text>
+    );
+}
+
 const getTextPosition = (element, containerWidth, containerHeight, widthInMeter, heightInMeter) => {
     const pixelX = element.x;
     const pixelY = element.y;
@@ -727,6 +718,5 @@ const getTextPosition = (element, containerWidth, containerHeight, widthInMeter,
         textAnchor: isNearLeft ? "start" : "end"
     };
 };
-
 
 export default FieldMap;
