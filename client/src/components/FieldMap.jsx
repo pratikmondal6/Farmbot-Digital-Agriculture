@@ -1,5 +1,4 @@
 import React, {useEffect, useState} from 'react';
-import PropTypes from 'prop-types';
 import '../styles/field-map.css';
 import instance from "../utils/api";
 
@@ -20,7 +19,7 @@ const ActionModal = ({position, onMove, previousZ}) => {
                     <label className="action-modal-label">Width:</label>
                     <input
                         type="number"
-                        value={position.x}
+                        value={position.meterX}
                         disabled
                         className="action-modal-input"
                     />
@@ -29,7 +28,7 @@ const ActionModal = ({position, onMove, previousZ}) => {
                     <label className="action-modal-label">Height:</label>
                     <input
                         type="number"
-                        value={position.y}
+                        value={position.meterY}
                         disabled
                         className="action-modal-input"
                     />
@@ -55,34 +54,200 @@ const ActionModal = ({position, onMove, previousZ}) => {
     );
 };
 
-const FieldMap = ({widthInMeter = 2600, heightInMeter = 1000, activeComponent}) => {
-        const containerWidth = 1200;
-        const containerHeight = 750;
-        const margin = 2;
+const Circle = ({x, y, color, onClick, onPointerEnter, onPointerLeave}) => {
+    return (
+        <circle
+            cx={x * scaleX}
+            cy={containerHeight - (y * scaleY)}
+            r={radius}
+            fill={color}
+            fillOpacity={0.8}
+            stroke="#333"
+            strokeWidth="1"
+            style={{cursor: 'pointer'}}
+            onClick={onClick}
+            onPointerEnter={onPointerEnter}
+            onPointerLeave={onPointerLeave}
+        />
+    );
+};
+
+let scaleX = 0;
+let scaleY = 0;
+
+const containerWidth = 1200;
+const containerHeight = 750;
+const radius = 10;
+const margin = 2;
+
+const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, selectArea = false, onElementClick}) => {
         const gridSpacing = 60;
         const [hoverPoint, setHoverPoint] = useState(null);
         const [selectedPoint, setSelectedPoint] = useState(null);
         const [currentPosition, setCurrentPosition] = useState({x: 0, y: 0});
         const [targetPosition, setTargetPosition] = useState({x: 0, y: 0});
-        const [isRobotHovered, setIsRobotHovered] = useState(false);
-        const [humidityReading, setHumidityReading] = useState(null);
-        const [showHumidityReading, setShowHumidityReading] = useState(false);
+        const [isSelectingArea, setIsSelectingArea] = useState(selectArea);
+        const [selectionStart, setSelectionStart] = useState(null);
+        const [selectionEnd, setSelectionEnd] = useState(null);
+        const disabledAreas = [
+            {
+                x1: 2545,
+                y1: 100,
+                x2: 2700,
+                y2: 400,
+            },
+            {
+                x1: 2545,
+                y1: 810,
+                x2: 2700,
+                y2: 1110,
+            }
+        ];
+
+        const isPointInDisabledArea = (x, y) => {
+            return disabledAreas.some(area => {
+                return x >= area.x1 && x <= area.x2 &&
+                    y >= area.y1 && y <= area.y2;
+            });
+        };
         // const [step, setStep] = useState(0);
         // const intervalRef = React.useRef(null);
 
-        const scaleX = containerWidth / widthInMeter;
-        const scaleY = containerHeight / heightInMeter;
+        scaleX = containerWidth / widthInMeter;
+        scaleY = containerHeight / heightInMeter;
         const marginPx = margin * scaleX;
 
         const animationFrameRef = React.useRef(null);
 
-        // Add these event handlers
-        const handleRobotMouseEnter = () => {
-            setIsRobotHovered(true);
+
+        const [fieldMapElements, setFieldMapElements] = useState({
+            seedBoxLocations: [{
+                x: 2130,
+                y: 20,
+                z: 540,
+                isSeedHovered: false,
+                text: "Carrot Seeds Box",
+                color: "#f59e42",
+                onClick: function () {
+                    const {x, y, z, text} = fieldMapElements.seedBoxLocations[0];
+                    console.log(` clicked`);
+                    onElementClick && onElementClick({x, y, z});
+                }
+            }],
+            devices: [{
+                x: 2630, y: 150, z: -410, isDeviceHovered: false, text: "Watering Nozzle", color: "#3b82f6",
+                onClick: function () {
+                    const {x, y, z, text} = fieldMapElements.devices[0];
+                    console.log(`${text} clicked`);
+                    onElementClick && onElementClick({x, y, z});
+                }
+            },
+                {
+                    x: 2630, y: 245, z: -395, isDeviceHovered: false, text: "Seeder", color: "#f8c727",
+                    onClick: function () {
+                        const {x, y, z, text} = fieldMapElements.devices[1];
+                        console.log(`${text} clicked`);
+                        onElementClick && onElementClick({x, y, z});
+                    }
+                },
+                {
+                    x: 2630, y: 350, z: -410, isDeviceHovered: false, text: "Soil Sensor", color: "#5c5e60",
+                    onClick: function () {
+                        const {x, y, z, text} = fieldMapElements.devices[2];
+                        console.log(`${text} clicked`);
+                        onElementClick && onElementClick({x, y, z});
+                    }
+                },
+                {
+                    x: 2630, y: 855, z: -380, isDeviceHovered: false, text: "Empty Slot", color: "#ffffff",
+                    onClick: function () {
+                        const {x, y, z, text} = fieldMapElements.devices[3];
+                        console.log(`${text} clicked`);
+                        onElementClick && onElementClick({x, y, z});
+                    }
+                },
+                {
+                    x: 2630, y: 960, z: -420, isDeviceHovered: false, text: "Rotatory Tool", color: "#05ef8d",
+                    onClick: function () {
+                        const {x, y, z, text} = fieldMapElements.devices[4];
+                        console.log(`${text} clicked`);
+                        onElementClick && onElementClick({x, y, z});
+                    }
+                },
+                {
+                    x: 2630, y: 1060, z: -420, isDeviceHovered: false, text: "Weeder", color: "#f63b3b",
+                    onClick: function () {
+                        const {x, y, z, text} = fieldMapElements.devices[5];
+                        console.log(`${text} clicked`);
+                        onElementClick && onElementClick({x, y, z});
+                    }
+                }]
+            // robot: {x: 0, y: 0, isRobotHovered: false, text: "Robot", color: "#5be318"}
+        });
+
+        const handleStartSelection = (event) => {
+            if (!isSelectingArea) return;
+
+            const svgRect = event.currentTarget.getBoundingClientRect();
+            const x = Math.floor((event.clientX - svgRect.left - marginPx) / scaleX);
+            const y = Math.floor((containerHeight - (event.clientY - svgRect.top - marginPx)) / scaleY);
+
+            setSelectionStart({x, y});
+            setSelectionEnd({x, y});
         };
 
-        const handleRobotMouseLeave = () => {
-            setIsRobotHovered(false);
+        const handleSelectionMove = (event) => {
+            if (!isSelectingArea || !selectionStart) return;
+
+            const svgRect = event.currentTarget.getBoundingClientRect();
+            const x = Math.floor((event.clientX - svgRect.left - marginPx) / scaleX);
+            const y = Math.floor((containerHeight - (event.clientY - svgRect.top - marginPx)) / scaleY);
+
+            setSelectionEnd({x, y});
+        };
+
+        const handleEndSelection = () => {
+            if (!isSelectingArea || !selectionStart || !selectionEnd) return;
+
+            const isSamePoint = Math.abs(selectionStart.x - selectionEnd.x) < 15 &&
+                Math.abs(selectionStart.y - selectionEnd.y) < 15;
+
+            if (isSamePoint) {
+                setIsSelectingArea(false);
+                setSelectionStart(null);
+                setSelectionEnd(null);
+                alert("Please select a valid area.");
+                return;
+            }
+
+            const points = {
+                topLeft: {
+                    x: Math.min(selectionStart.x, selectionEnd.x),
+                    y: Math.max(selectionStart.y, selectionEnd.y)
+                },
+                topRight: {
+                    x: Math.max(selectionStart.x, selectionEnd.x),
+                    y: Math.max(selectionStart.y, selectionEnd.y)
+                },
+                bottomLeft: {
+                    x: Math.min(selectionStart.x, selectionEnd.x),
+                    y: Math.min(selectionStart.y, selectionEnd.y)
+                },
+                bottomRight: {
+                    x: Math.max(selectionStart.x, selectionEnd.x),
+                    y: Math.min(selectionStart.y, selectionEnd.y)
+                }
+            };
+
+            setIsSelectingArea(false);
+            setSelectionStart(null);
+            setSelectionEnd(null);
+
+            console.log(`Selected Area Points:`, points);
+
+            if (onAreaSelect) {
+                onAreaSelect(points);
+            }
         };
 
         // Animation function
@@ -195,6 +360,42 @@ const FieldMap = ({widthInMeter = 2600, heightInMeter = 1000, activeComponent}) 
             const meterX = Math.floor(x / scaleX);
             const meterY = Math.floor((containerHeight - y) / scaleY);
 
+            if (isPointInDisabledArea(meterX, meterY)) {
+                setHoverPoint(null);
+                return;
+            }
+
+            for (const [, elements] of Object.entries(fieldMapElements)) {
+                if (Array.isArray(elements)) {
+                    for (const element of elements) {
+                        const elementCenterX = element.x * scaleX;
+                        const elementCenterY = containerHeight - (element.y * scaleY);
+                        const distance = Math.sqrt(
+                            Math.pow(x - elementCenterX, 2) +
+                            Math.pow(y - elementCenterY, 2)
+                        );
+
+                        if (distance <= radius) {
+                            setHoverPoint(null);
+                            return;
+                        }
+                    }
+                } else if (elements && typeof elements === 'object') {
+                    // Handle single objects (like robot)
+                    const elementCenterX = elements.x * scaleX;
+                    const elementCenterY = containerHeight - (elements.y * scaleY);
+                    const distance = Math.sqrt(
+                        Math.pow(x - elementCenterX, 2) +
+                        Math.pow(y - elementCenterY, 2)
+                    );
+
+                    if (distance <= radius) {
+                        setHoverPoint(null);
+                        return;
+                    }
+                }
+            }
+
             if (meterX >= 0 && meterX <= widthInMeter && meterY >= 0 && meterY <= heightInMeter) {
                 const pixelX = x;
                 const pixelY = y;
@@ -239,94 +440,11 @@ const FieldMap = ({widthInMeter = 2600, heightInMeter = 1000, activeComponent}) 
             setSelectedPoint(null);
 
             try {
-                if (activeComponent === "humidityCheckPage") {
-                    // Special sequence for soil humidity check
-                    // First set the depth to -300 as a safety measure
-                    console.log('Setting depth to -300 as a safety measure');
-                    await instance.post('/move', {
-                        x: 2630,
-                        y: 350,
-                        z: -300
-                    });
-
-                    // Then go to the specified coordinates
-                    console.log('Moving to initial position (2630, 350, -411)');
-                    await instance.post('/move', {
-                        x: 2630,
-                        y: 350,
-                        z: -411
-                    });
-
-                    // Set target position for animation
-                    setTargetPosition({
-                        x: 2630,
-                        y: 350,
-                        z: 410,
-                    });
-
-                    // Move to x=2545 while keeping y and z the same
-                    console.log('Moving to x=2545 while keeping y=350 and z=-411');
-                    await instance.post('/move', {
-                        x: 2545,
-                        y: 350,
-                        z: -411
-                    });
-
-                    // Update target position for animation
-                    setTargetPosition({
-                        x: 2545,
-                        y: 350,
-                        z: 410,
-                    });
-
-                    // Wait for 2 seconds
-                    await new Promise(resolve => setTimeout(resolve, 2000));
-
-                    // Finally move to the selected coordinates
-                    console.log(`Moving to selected position (${xNew}, ${yNew}, ${zNew})`);
-                    await instance.post('/move', {
-                        x: xNew,
-                        y: yNew,
-                        z: -zNew
-                    });
-
-                    // Get humidity reading from the sensor
-                    console.log('Getting humidity reading from sensor');
-                    try {
-                        // Reset previous reading
-                        setHumidityReading(null);
-                        setShowHumidityReading(false);
-
-                        // Make API call to get humidity reading
-                        // We're using a simulated reading here since the actual reading would require
-                        // the farmbot to move again, which would be redundant
-                        // In a real implementation, we would either:
-                        // 1. Modify the server to provide an endpoint that just reads the sensor without moving
-                        // 2. Modify the movement sequence to include reading the sensor
-
-                        // Simulate a random humidity reading between 20% and 80%
-                        const simulatedReading = Math.floor(Math.random() * 60) + 20;
-
-                        // Set humidity reading and show it
-                        setHumidityReading(simulatedReading);
-                        setShowHumidityReading(true);
-                        console.log(`Humidity reading: ${simulatedReading}%`);
-                    } catch (error) {
-                        console.error('Error getting humidity reading:', error);
-                    }
-                } else {
-                    // Standard movement for other components
-                    console.log(`Direct move to position (${xNew}, ${yNew}, ${zNew})`);
-                    await instance.post('/move', {
-                        x: xNew,
-                        y: yNew,
-                        z: -zNew
-                    });
-
-                    // Reset humidity reading when not in humidity check mode
-                    setHumidityReading(null);
-                    setShowHumidityReading(false);
-                }
+                await instance.post('/move', {
+                    x: xNew,
+                    y: yNew,
+                    z: -zNew
+                });
 
                 // Set target position after successful API call
                 setTargetPosition({
@@ -334,9 +452,23 @@ const FieldMap = ({widthInMeter = 2600, heightInMeter = 1000, activeComponent}) 
                     y: yNew,
                     z: zNew,
                 });
+                setSelectedPoint(null);
             } catch (error) {
                 console.error('Error moving robot:', error);
             }
+        };
+
+        const handleElementHover = (key, index, isHovered) => {
+            setFieldMapElements(prev => {
+                const newElements = {...prev};
+                if (Array.isArray(newElements[key])) {
+                    newElements[key] = [...newElements[key]];
+                    newElements[key][index] = {...newElements[key][index], isHovered};
+                } else {
+                    newElements[key] = {...newElements[key], isHovered};
+                }
+                return newElements;
+            });
         };
 
         return (
@@ -345,18 +477,36 @@ const FieldMap = ({widthInMeter = 2600, heightInMeter = 1000, activeComponent}) 
                     width={containerWidth + (2 * marginPx)}
                     height={containerHeight + (2 * marginPx)}
                     viewBox={`${-marginPx} ${-marginPx} ${containerWidth + (2 * marginPx)} ${containerHeight + (2 * marginPx)}`}
-                    onMouseMove={handleMouseMove}
+                    onMouseDown={handleStartSelection}
+                    onMouseMove={isSelectingArea ? handleSelectionMove : handleMouseMove}
+                    onMouseUp={handleEndSelection}
                     onMouseLeave={handleMouseLeave}
-                    onClick={handleClick}
+                    onClick={!isSelectingArea ? handleClick : undefined}
                 >
                     {drawGrid()}
+
+                    {/* Render disabled areas */}
+                    {disabledAreas.map((area, index) => (
+                        <g key={`disabled-area-${index}`}>
+                            <rect
+                                x={area.x1 * scaleX}
+                                y={containerHeight - (area.y2 * scaleY)}
+                                width={(area.x2 - area.x1) * scaleX}
+                                height={(area.y2 - area.y1) * scaleY}
+                                fill="rgba(128, 128, 128, 0.2)"
+                                stroke="#666"
+                                strokeWidth="1"
+                                strokeDasharray="5,5"
+                            />
+                        </g>
+                    ))}
 
                     {/* Animated robot circle */}
                     <circle
                         className="robot-circle"
                         cx={currentPosition.x * scaleX}
                         cy={containerHeight - (currentPosition.y * scaleY)}
-                        r={10}
+                        r={radius}
                         fill="#16a34a"
                         stroke="#fff"
                         strokeWidth="2"
@@ -368,6 +518,60 @@ const FieldMap = ({widthInMeter = 2600, heightInMeter = 1000, activeComponent}) 
                             repeatCount="indefinite"
                         />
                     </circle>
+
+                    {Object.entries(fieldMapElements).map(([key, elements]) => {
+                        if (Array.isArray(elements)) {
+                            return elements.map((element, index) => (
+                                <g key={`${key}-${index}`}>
+                                    <Circle
+                                        x={element.x}
+                                        y={element.y}
+                                        color={element.color}
+                                        isHovered={element.isHovered}
+                                        onClick={element.onClick}
+                                        onPointerEnter={() => handleElementHover(key, index, true)}
+                                        onPointerLeave={() => handleElementHover(key, index, false)}
+                                    />
+                                    {element.isHovered && (
+                                        <text
+                                            {...getTextPosition(element, containerWidth, containerHeight, widthInMeter, heightInMeter)}
+                                            fill="#333"
+                                            fontSize="12"
+                                        >
+                                            {element.text}
+                                        </text>
+                                    )}
+                                </g>
+                            ));
+                        } else if (elements && typeof elements === 'object') {
+                            return (
+                                <g key={key}>
+                                    <Circle
+                                        x={elements.x}
+                                        y={elements.y}
+                                        color={elements.color}
+                                        isHovered={elements.isHovered}
+                                        onClick={elements.onClick}
+                                        onPointerEnter={() => handleElementHover(key, null, true)}
+                                        onPointerLeave={() => handleElementHover(key, null, false)}
+                                    />
+                                    {elements.isHovered && (
+                                        <text
+                                            x={elements.x * scaleX}
+                                            y={containerHeight - (elements.y * scaleY - 25)}
+                                            textAnchor={elements.x > widthInMeter * 0.9 ? "end" : "start"}
+                                            dy={elements.y > heightInMeter * 0.9 ? "-25" : "25"}
+                                            fill="#333"
+                                            fontSize="12"
+                                        >
+                                            {elements.text}
+                                        </text>
+                                    )}
+                                </g>
+                            );
+                        }
+                        return null;
+                    })}
 
                     {/* Hover indicators */}
                     {hoverPoint && (
@@ -399,39 +603,44 @@ const FieldMap = ({widthInMeter = 2600, heightInMeter = 1000, activeComponent}) 
                             </text>
                         </>
                     )}
+
+                    {isSelectingArea && selectionStart && selectionEnd && (
+                        <rect
+                            x={Math.min(selectionStart.x, selectionEnd.x) * scaleX}
+                            y={containerHeight - Math.max(selectionStart.y, selectionEnd.y) * scaleY}
+                            width={Math.abs(selectionEnd.x - selectionStart.x) * scaleX}
+                            height={Math.abs(selectionEnd.y - selectionStart.y) * scaleY}
+                            fill="rgba(0, 123, 255, 0.2)"
+                            stroke="rgb(0, 123, 255)"
+                            strokeWidth="2"
+                        />
+                    )}
                 </svg>
 
-                {selectedPoint && (
+                {selectedPoint && !isPointInDisabledArea(selectedPoint.meterX, selectedPoint.meterY) && (
                     <ActionModal
                         position={selectedPoint}
                         onMove={handleMove}
                         previousZ={targetPosition.z}
                     />
                 )}
-
-                {showHumidityReading && humidityReading !== null && (
-                    <div className="humidity-reading-container">
-                        <div className="humidity-reading-content">
-                            <h3>Soil Humidity Reading</h3>
-                            <p className="humidity-value">{humidityReading}%</p>
-                            <button 
-                                className="close-button"
-                                onClick={() => setShowHumidityReading(false)}
-                            >
-                                Close
-                            </button>
-                        </div>
-                    </div>
-                )}
             </div>
         );
     }
 ;
 
-FieldMap.propTypes = {
-    widthInMeter: PropTypes.number,
-    heightInMeter: PropTypes.number,
-    activeComponent: PropTypes.string
+const getTextPosition = (element, containerWidth, containerHeight, widthInMeter, heightInMeter) => {
+    const pixelX = element.x;
+    const pixelY = element.y;
+    const isNearLeft = pixelX < containerWidth * 0.2;
+    const isNearTop = pixelY < containerHeight * 0.2;
+
+    return {
+        x: element.x * scaleX + (isNearLeft ? 10 : -10),
+        y: containerHeight - (element.y * scaleY) + (isNearTop ? -10 : 20),
+        textAnchor: isNearLeft ? "start" : "end"
+    };
 };
+
 
 export default FieldMap;
