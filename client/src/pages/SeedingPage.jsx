@@ -58,7 +58,7 @@ const SeedingPage = ({setIsLoggedIn}) => {
 
   return (
     <div style={styles.container}>
-      <div style={styles.navbar}>
+      {/* <div style={styles.navbar}>
         <button
           style={{
             ...styles.navbarbutton
@@ -83,7 +83,7 @@ const SeedingPage = ({setIsLoggedIn}) => {
           >
           Seeding history
         </button>
-      </div>
+      </div> */}
     {showPanel === 'seeding' && (
       <div>
         <form  onSubmit={handleSubmit} style={styles.form}>
@@ -217,10 +217,11 @@ const SeedingPage = ({setIsLoggedIn}) => {
 
 const styles = {
   container: {
-    height: '100vh',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
+    // height: '100vh',
+    margin: "10px",
+    // display: 'flex',
+    // justifyContent: 'center',
+    // alignItems: 'center',
     backgroundColor: '#f8fafc',
   },
   navbar: {

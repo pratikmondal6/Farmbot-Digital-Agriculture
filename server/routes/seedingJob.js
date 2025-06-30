@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { Seed } = require("../models/seed");
 const { Farmbot } =  require("farmbot");
+const { setJobStatus } = require("../services/farmbotStatusService");
 
 const move = async (bot, x, y, z) => {
   await bot.moveAbsolute({ x: x, y: y, z: z, speed: 100 });
@@ -36,6 +37,8 @@ router.post("/start", async (req, res) => {
   const destY = parseInt(req.body.y)
   const depth = parseInt(req.body.z)
 
+  setJobStatus("fetching seeds");
+
   // Go to higher than seeder object
   await move(bot, x=2630, y=245, z=-395)
 
@@ -47,6 +50,8 @@ router.post("/start", async (req, res) => {
 
   // Go to a little higher from seed (x=2130, y=25)
   await move(bot, x=seedX, y=seedY, z=-480)
+
+  setJobStatus("moving to seeding position");
 
   // Start suction
   await bot.writePin({
@@ -63,6 +68,8 @@ router.post("/start", async (req, res) => {
 
   // Go to location of seeding
   await move(bot, x=destX, y=destY, z=-480)
+
+  setJobStatus("seeding");
 
   // Go down and seed
   await move(bot, x=destX, y=destY, z=-550 - depth)
@@ -84,6 +91,8 @@ router.post("/start", async (req, res) => {
     y: destY,
     z: depth,
   });
+
+  setJobStatus("watering");
 
   // Turn on water (usually pin 8 for standard kits)
   await bot.writePin({
@@ -120,6 +129,12 @@ router.post("/start", async (req, res) => {
 
   // Go up to release it
   await move(bot, x=2630, y=245, z=-395)
+
+  setJobStatus("Finished");
+
+  setTimeout(() => {
+    setJobStatus("online");
+  }, 3000);
 
   res.status(200).send({
     "message": "Seed is planted successfully"

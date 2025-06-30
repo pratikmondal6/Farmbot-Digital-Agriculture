@@ -30,12 +30,18 @@ export default function StatusCard() {
     };
 
     return (
-        <div className="dashboard-card">
-            <div className="status-card-icon">🤖</div>
-            <h3 className="status-card-title">Bot Status</h3>
-            <p className={getStatusClass()}>
+        <span>
                 {status.charAt(0).toUpperCase() + status.slice(1)}
-            </p>
-        </div>
-    );
+        </span>
+    )
+
+    // return (
+    //     <div className="dashboard-card">
+    //         <div className="status-card-icon">🤖</div>
+    //         <h3 className="status-card-title">Bot Status</h3>
+    //         <p className={getStatusClass()}>
+    //             {status.charAt(0).toUpperCase() + status.slice(1)}
+    //         </p>
+    //     </div>
+    // );
 }
