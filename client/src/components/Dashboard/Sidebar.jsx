@@ -29,6 +29,10 @@ export default function Sidebar({onSelectComponent}) {
                 <button className={getClass("botControlPanel")} onClick={() => {onSelectComponent("botControlPanel"); setActiveClass("botControlPanel")}}>
                     🕹️ {(activeClass == "dashboard" || isHovered) && <span>Bot control panel</span>}
                 </button>
+                <button
+                  className={getClass("wateringJobPage")} onClick={() => { onSelectComponent("wateringJobPage"); setActiveClass("wateringJobPage");}}> 
+                    🚿 {(activeClass === "dashboard" || isHovered) && <span>Watering jobs</span>}
+                </button>
             </nav>
         </aside>
     );

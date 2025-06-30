@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { FaTint, FaRegCalendarAlt } from "react-icons/fa";
+import { FaTint, FaRegCalendarAlt, FaShower } from "react-icons/fa";
 import api from "../utils/api";
+
 
 const DEFAULT_Z = -100;
 const DEFAULT_INTERVAL = 24;
 
 const WateringJobPage = () => {
   const [showCreatePanel, setShowCreatePanel] = useState(false);
-  const [showJobsPanel, setShowJobsPanel] = useState(false);
+  const [showJobsPanel, setShowJobsPanel] = useState(true); // Show jobs by default
   const [plantTypes, setPlantTypes] = useState([]);
   const [selectedPlantTypes, setSelectedPlantTypes] = useState([]);
   const [waterAmounts, setWaterAmounts] = useState({});
@@ -17,28 +18,45 @@ const WateringJobPage = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [wateringJobs, setWateringJobs] = useState([]);
   const [editingJobId, setEditingJobId] = useState(null);
-  const [error, setError] = useState(""); // Error state
+  const [error, setError] = useState("");
+  const [timezone, setTimezone] = useState("UTC");
+
+  // Helper for local datetime-local string
+  const getLocalDateTimeString = () => {
+    const now = new Date();
+    now.setSeconds(0, 0);
+    const offset = now.getTimezoneOffset();
+    const local = new Date(now.getTime() - offset * 60000);
+    return local.toISOString().slice(0, 16);
+  };
 
   // Fetch plant types from the API
   useEffect(() => {
-    const fetchPlantTypes = async () => {
+    const fetchSeededPlantTypes = async () => {
       try {
-        const response = await api.get("/api/plant/all");
-        const result = response.data;
-        const types = result.map(pt => ({
-          id: pt._id,
-          name: pt.plant_type
-        }));
-        setPlantTypes(types);
+        const response = await api.get("/seedingJob/seeds");
+        // Get unique seed names
+        const uniqueTypes = [];
+        const seen = new Set();
+        response.data.forEach(seed => {
+          if (!seen.has(seed.seed_name)) {
+            uniqueTypes.push({
+              id: seed.seed_name, // Use seed_name as id
+              name: seed.seed_name
+            });
+            seen.add(seed.seed_name);
+          }
+        });
+        setPlantTypes(uniqueTypes);
         // Set default water amounts as string "50"
         const defaults = {};
-        types.forEach(pt => { defaults[pt.id] = "50"; });
+        uniqueTypes.forEach(pt => { defaults[pt.id] = "50"; });
         setWaterAmounts(defaults);
       } catch {
         setPlantTypes([]);
       }
     };
-    fetchPlantTypes();
+    fetchSeededPlantTypes();
   }, []);
 
   // Fetch existing watering jobs
@@ -55,6 +73,19 @@ const WateringJobPage = () => {
     fetchJobs();
   }, []);
 
+  // Fetch timezone from the API
+  useEffect(() => {
+    const fetchTimezone = async () => {
+      try {
+        const response = await api.get("/farmbotConfig");
+        setTimezone(response.data.data.timezone || "UTC");
+      } catch {
+        setTimezone("UTC");
+      }
+    };
+    fetchTimezone();
+  }, []);
+
   // Reset form to default "create" mode
   const resetForm = () => {
     setEditingJobId(null);
@@ -64,7 +95,7 @@ const WateringJobPage = () => {
     plantTypes.forEach(pt => { defaults[pt.id] = "50"; });
     setWaterAmounts(defaults);
     setZ(DEFAULT_Z);
-    setDate(new Date().toISOString().slice(0, 16));
+    setDate(getLocalDateTimeString());
     setInterval(DEFAULT_INTERVAL);
     setDropdownOpen(false);
   };
@@ -99,7 +130,16 @@ const WateringJobPage = () => {
     setWaterAmounts(wa);
 
     setZ(job.z);
-    setDate(job.date);
+
+    // Convert UTC date to local datetime-local string
+    if (job.date) {
+      const d = new Date(job.date);
+      const offset = d.getTimezoneOffset();
+      const local = new Date(d.getTime() - offset * 60000);
+      setDate(local.toISOString().slice(0, 16));
+    } else {
+      setDate(getLocalDateTimeString());
+    }
     setInterval(job.interval);
     setShowCreatePanel(true);
     setShowJobsPanel(false);
@@ -115,6 +155,39 @@ const WateringJobPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+
+    // Check: First execution is not in the past
+    const now = new Date();
+    const selectedDate = new Date(date);
+    if (selectedDate < now) {
+      setError("First execution cannot be in the past.");
+      return;
+    }
+
+    // Check: No other job exists at the same date/time (for any seed)
+    const selectedDateTime = new Date(date).getTime();
+    const conflict = wateringJobs.some(job =>
+      new Date(job.date).getTime() === selectedDateTime &&
+      (!editingJobId || job._id !== editingJobId)
+    );
+    if (conflict) {
+      setError("Another seed is already scheduled to be watered at this date and time. Only one seed can be watered at a time.");
+      return;
+    }
+
+    // Check: No other job exists for the selected plant(s) (at any time)
+    for (const ptId of selectedPlantTypes) {
+      const ptName = plantTypes.find(pt => pt.id === ptId)?.name;
+      const alreadyScheduled = wateringJobs.some(job =>
+        job.plantType === ptName &&
+        (!editingJobId || job._id !== editingJobId)
+      );
+      if (alreadyScheduled) {
+        setError(`Seed "${ptName}" already has a watering job scheduled. Edit job in calender to change.`);
+        return;
+      }
+    }
+
     // Map selectedPlantTypes (IDs) to names
     const selectedNames = plantTypes
       .filter(pt => selectedPlantTypes.includes(pt.id))
@@ -128,11 +201,17 @@ const WateringJobPage = () => {
       }
     }
 
+    // Convert local datetime-local value to UTC ISO string
+    let utcDate = date;
+    if (date) {
+      utcDate = new Date(date).toISOString();
+    }
+
     const payload = {
       plantTypes: selectedNames,
       waterAmounts: waterAmountsByName,
       z,
-      date,
+      date: utcDate, // use UTC string
       interval,
     };
     console.log("Submitting payload:", payload);
@@ -154,120 +233,63 @@ const WateringJobPage = () => {
     }
   };
 
-  // When opening the create panel, always reset the form
-  const handleCreatePanelClick = () => {
-    setShowJobsPanel(false);
-    setShowCreatePanel((open) => {
-      if (!open) resetForm();
-      return !open;
-    });
-  };
-
-  // When opening the jobs panel, close the create panel
-  const handleJobsPanelClick = () => {
-    setShowCreatePanel(false);
-    setShowJobsPanel((open) => !open);
-  };
-
   return (
-    <div>
-      {/* Vertical green sidebar on the left */}
-      <div
-        style={{
-          width: 90, // <-- changed from 90 to 260
-          height: "100vh",
-          padding: "32px 0 0 0",
-          backgroundColor: "#16a34a",
-          borderRight: "1px solid #22c55e",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "flex-start",
-          position: "fixed",
-          top: 0,
-          left: 0,
-          zIndex: 100,
-        }}
-      >
-        {/* Sidebar panel buttons */}
-        <div style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: 32,
-          alignItems: "flex-start",
-          width: "100%",
-          paddingLeft: 24,
-          paddingRight: 24,
-        }}>
-          {/* Watering Job Panel Icon & Label */}
-          <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 12, width: "100%" }}>
-            <button
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: "50%",
-                backgroundColor: showCreatePanel ? "#bae6fd" : "#38bdf8",
-                color: "#2563eb",
-                border: "none",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 28,
-                cursor: "pointer",
-                boxShadow: "0 2px 8px #0002",
-                transition: "background 0.2s",
-              }}
-              title="Open watering panel"
-              onClick={handleCreatePanelClick}
-            >
-              <FaTint />
-            </button>
-            
-          </div>
-
-          {/* Calendar Panel Icon & Label */}
-          <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 12, width: "100%" }}>
-            <button
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: "50%",
-                backgroundColor: showJobsPanel ? "#fef9c3" : "#fde047",
-                color: "#b45309",
-                border: "none",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 24,
-                cursor: "pointer",
-                boxShadow: "0 2px 8px #0002",
-                transition: "background 0.2s",
-              }}
-              title="Show existing watering jobs"
-              onClick={handleJobsPanelClick}
-            >
-              <FaRegCalendarAlt />
-            </button>
-           
-          </div>
-        </div>
-        
-        
+    <section style={{ width: "100%", maxWidth: 900, margin: "0 auto", padding: 24 }}>
+      <div style={{ display: "flex", gap: 16, marginBottom: 24 }}>
+        <button
+          style={{
+            background: "#38bdf8",
+            color: "#fff",
+            border: "none",
+            borderRadius: 8,
+            padding: "10px 20px",
+            fontWeight: "bold",
+            fontSize: "1rem",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            boxShadow: "0 2px 8px #0002",
+          }}
+          onClick={() => { setShowCreatePanel(true); setShowJobsPanel(false); resetForm(); }}
+        >
+          <FaShower style={{ color: "#2563eb", fontSize: 22 }} />
+          Create Watering Job
+        </button>
+        <button
+          style={{
+            background: "#fde047",
+            color: "#b45309",
+            border: "none",
+            borderRadius: 8,
+            padding: "10px 20px",
+            fontWeight: "bold",
+            fontSize: "1rem",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            boxShadow: "0 2px 8px #0002",
+          }}
+          onClick={() => { setShowJobsPanel(true); setShowCreatePanel(false); }}
+        >
+          <FaRegCalendarAlt style={{ color: "#b45309", fontSize: 20 }} />
+          Watering Schedule
+        </button>
       </div>
-      {/* Panels aligned with the sidebar */}
+
       {showCreatePanel && (
         <div
           style={{
-            position: "fixed",
-            top: 32, // aligns with sidebar padding-top
-            left: 90, // make sure this matches the sidebar width
             background: "#f0fdf4",
             border: "1px solid #22c55e",
             borderRadius: 12,
-            padding: 32,
-            minWidth: 340,
-            maxWidth: 500,
+            padding: 24, // smaller padding
+            minWidth: 240, // smaller min width
+            maxWidth: 340, // smaller max width
             boxShadow: "0 2px 8px #0002",
-            zIndex: 301,
+            margin: "0 auto",
+            marginBottom: 24,
             maxHeight: "90vh",
             overflowY: "auto",
           }}
@@ -291,24 +313,24 @@ const WateringJobPage = () => {
           <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             {/* Plant type selection dropdown */}
             <div>
-              <label style={{ fontWeight: "bold", color: "#14532d" }}>Plant Types:</label>
+              <label style={{ fontWeight: "bold", color: "#14532d" }}>Select seed:</label>
               <div style={{ position: "relative", marginTop: 4 }}>
                 <div
                   style={{
                     border: "1px solid #22c55e",
                     borderRadius: 6,
-                    padding: "8px 12px",
+                    padding: "6px 8px", // smaller padding
                     background: "#fff",
                     cursor: "pointer",
-                    minWidth: 160,
+                    minWidth: 120, // smaller dropdown
                     color: "#14532d",
                   }}
                   onClick={() => setDropdownOpen((open) => !open)}
                 >
                   {selectedPlantTypes.length === plantTypes.length
-                    ? "All plant types selected"
+                    ? "All seeds selected"
                     : selectedPlantTypes.length === 0
-                    ? "Select plant types"
+                    ? "Select seed"
                     : plantTypes
                         .filter(pt => selectedPlantTypes.includes(pt.id))
                         .map(pt => pt.name)
@@ -359,7 +381,7 @@ const WateringJobPage = () => {
             </div>
             {/* Water amount input per plant type */}
             <div>
-              <label style={{ fontWeight: "bold", color: "#14532d" }}>Water Amount per Plant Type:</label>
+              <label style={{ fontWeight: "bold", color: "#14532d" }}>Water Amount per Seed:</label>
               {plantTypes
                 .filter(pt => selectedPlantTypes.includes(pt.id))
                 .map((type) => (
@@ -456,21 +478,20 @@ const WateringJobPage = () => {
           </form>
         </div>
       )}
+
       {showJobsPanel && (
         <div
           style={{
-            position: "fixed",
-            top: 120, // adjust as needed to align with the calendar button
-            left: 90, // make sure this matches the sidebar width
             background: "#fefce8",
             border: "1px solid #fde047",
             borderRadius: 12,
-            padding: 32,
-            minWidth: 400,
-            maxWidth: 600,
+            padding: 16, // smaller padding
+            minWidth: 180, // smaller min width
+            maxWidth: 350, // smaller max width
             boxShadow: "0 2px 8px #0002",
-            zIndex: 302,
-            maxHeight: "90vh",
+            margin: "0 auto",
+            marginBottom: 16, // smaller margin
+            maxHeight: "70vh", // smaller height
             overflowY: "auto",
           }}
         >
@@ -481,7 +502,7 @@ const WateringJobPage = () => {
               right: 8,
               background: "transparent",
               border: "none",
-              fontSize: 20,
+              fontSize: 16,
               cursor: "pointer",
             }}
             title="Close"
@@ -489,74 +510,112 @@ const WateringJobPage = () => {
           >
             ×
           </button>
-          <h3 style={{ color: "#b45309" }}>Existing Watering Jobs</h3>
+          <h3 style={{ color: "#b45309", fontSize: "1rem" }}>Existing Watering Jobs</h3>
           {wateringJobs.length === 0 ? (
-            <p>No watering jobs found.</p>
+            <p style={{ fontSize: "0.85rem" }}>No watering jobs found.</p>
           ) : (
-            <table style={{ width: "100%", borderCollapse: "collapse", background: "#fff" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", background: "#fff", fontSize: "0.80rem" }}>
               <thead>
                 <tr style={{ background: "#fef9c3" }}>
-                  <th style={{ padding: 8, border: "1px solid #fde047" }}>Plant Types</th>
-                  <th style={{ padding: 8, border: "1px solid #fde047" }}>Water Amounts [ml]</th>
-                  <th style={{ padding: 8, border: "1px solid #fde047" }}>Z [mm]</th>
-                  <th style={{ padding: 8, border: "1px solid #fde047" }}>First Execution</th>
-                  <th style={{ padding: 8, border: "1px solid #fde047" }}>Interval [h]</th>
-                  <th style={{ padding: 8, border: "1px solid #fde047" }}>Actions</th>
+                  <th style={{ padding: "2px 1px", border: "1px solid #fde047", fontSize: "0.75rem", width: 55 }}>Seed</th>
+                  <th style={{ padding: "2px 1px", border: "1px solid #fde047", fontSize: "0.75rem", width: 38 }}>Water [ml]</th>
+                  <th style={{ padding: "2px 1px", border: "1px solid #fde047", fontSize: "0.75rem", width: 38 }}>Z</th>
+                  <th style={{ padding: "2px 1px", border: "1px solid #fde047", fontSize: "0.75rem", width: 80 }}>First Execution</th>
+                  <th style={{ padding: "2px 1px", border: "1px solid #fde047", fontSize: "0.75rem", width: 38 }}>Interval</th>
+                  <th style={{ padding: "2px 1px", border: "1px solid #fde047", fontSize: "0.75rem", width: 60 }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {wateringJobs.map((job, idx) => (
-                  <tr key={job._id || idx}>
-                    <td style={{ padding: 8, border: "1px solid #fde047" }}>
-                      {job.plantType || "-"}
-                    </td>
-                    <td style={{ padding: 8, border: "1px solid #fde047" }}>
-                      {job.waterAmount !== undefined ? job.waterAmount : "-"}
-                    </td>
-                    <td style={{ padding: 8, border: "1px solid #fde047" }}>{job.z}</td>
-                    <td style={{ padding: 8, border: "1px solid #fde047" }}>{job.date}</td>
-                    <td style={{ padding: 8, border: "1px solid #fde047" }}>{job.interval}</td>
-                    <td style={{ padding: 8, border: "1px solid #fde047" }}>
-                      <button
+                {[...wateringJobs]
+                  .sort((a, b) => new Date(a.date) - new Date(b.date))
+                  .map((job, idx) => (
+                    <tr key={job._id || idx}>
+                      <td
                         style={{
-                          background: "#fbbf24",
-                          color: "#fff",
-                          border: "none",
-                          borderRadius: 4,
-                          padding: "4px 8px",
-                          cursor: "pointer",
-                          marginRight: 4,
+                          padding: "2px 1px",
+                          border: "1px solid #fde047",
+                          fontSize: "0.80rem",
+                          width: 55,
+                          wordBreak: "break-all",
+                          hyphens: "auto"
                         }}
-                        onClick={() => handleEdit(job)}
                       >
-                        Edit
-                      </button>
-                      <button
+                        {(job.plantType || "-").replace(/(.{8})/g, "$1-")}
+                      </td>
+                      <td style={{ padding: "2px 1px", border: "1px solid #fde047", fontSize: "0.80rem", width: 38 }}>
+                        {job.waterAmount !== undefined ? job.waterAmount : "-"}
+                      </td>
+                      <td style={{ padding: "2px 1px", border: "1px solid #fde047", fontSize: "0.80rem", width: 38 }}>
+                        {job.z}
+                      </td>
+                      <td
                         style={{
-                          background: "#ef4444",
-                          color: "#fff",
-                          border: "none",
-                          borderRadius: 4,
-                          padding: "4px 8px",
-                          cursor: "pointer",
+                          padding: "2px 1px",
+                          border: "1px solid #fde047",
+                          fontSize: "0.80rem",
+                          width: 80,
+                          wordBreak: "break-all",
+                          hyphens: "auto",
+                          textAlign: "center"
                         }}
-                        onClick={() => handleDelete(job._id)}
                       >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                        {job.date
+                          ? (() => {
+                              const d = new Date(job.date);
+                              const dateStr = d.toLocaleDateString();
+                              const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                              return (
+                                <>
+                                  <span>{dateStr}</span>
+                                  <br />
+                                  <span>{timeStr}</span>
+                                </>
+                              );
+                            })()
+                          : "-"}
+                      </td>
+                      <td style={{ padding: "2px 1px", border: "1px solid #fde047", fontSize: "0.80rem", width: 38 }}>
+                        {job.interval}
+                      </td>
+                      <td style={{ padding: "2px 1px", border: "1px solid #fde047", fontSize: "0.80rem", width: 60 }}>
+                        <button
+                          style={{
+                            background: "#fbbf24",
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: 4,
+                            padding: "1px 4px",
+                            cursor: "pointer",
+                            marginRight: 2,
+                            fontSize: "0.80rem"
+                          }}
+                          onClick={() => handleEdit(job)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          style={{
+                            background: "#ef4444",
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: 4,
+                            padding: "1px 4px",
+                            cursor: "pointer",
+                            fontSize: "0.80rem"
+                          }}
+                          onClick={() => handleDelete(job._id)}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           )}
         </div>
       )}
-      {/* Main content shifted right */}
-      <div style={{ marginLeft: 280, padding: 24 }}>
-        {/* ...rest of your page content... */}
-      </div>
-    </div>
+    </section>
   );
 };
 
