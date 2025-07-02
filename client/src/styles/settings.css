@@ -187,18 +187,6 @@
     opacity: 0.7;
 }
 
-/* Dashboard styles */
-.dashboard-container {
-    position: relative;
-    padding: 20px;
-    min-height: 100vh;
-}
-
-.dashboard-content {
-    margin-top: 60px;
-    padding: 20px;
-}
-
 .farmbot-config select {
     padding: 6px;
     border: 1px solid #ccc;

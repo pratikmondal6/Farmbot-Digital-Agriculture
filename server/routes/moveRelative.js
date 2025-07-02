@@ -12,12 +12,10 @@ router.post("/", async (req, res) => {
     })
   }
 
-  
-
   const token = req.headers["auth-token"];
   let bot = new Farmbot({ token: token });
 
-  if (req.body.x === undefined || req.body.y === undefined || req.body.z === undefined) {
+  if (req.body.x === undefined && req.body.y === undefined && req.body.z === undefined) {
     return res.status(500).send({
       "status": 500,
       "message": "x, y and z is not sent in body"
@@ -44,15 +42,18 @@ router.post("/", async (req, res) => {
     .connect()
     .then(async () => {
       setJobStatus("moving to target position");
-      await bot.moveAbsolute({ x: x, y: y, z: z, speed: 100 });
+      await bot.moveRelative({ x: x, y: y, z: z, speed: 100 });
       setJobStatus("Finished");
-      setTimeout(() => setJobStatus("online"), 3000);
+      setTimeout(() => {
+        setJobStatus("online");
+      }, 3000);
       return res.status(200).send({
         "status": 200,
         "message": "Farmbot moved successfully"
       })
     })
     .catch((error) => {
+      setJobStatus("error")
       return res.status(500).send({
         "status": 500,
         "message": "An error occured while moving the bot: " + error

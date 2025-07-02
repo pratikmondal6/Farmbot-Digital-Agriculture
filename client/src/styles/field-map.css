@@ -1,8 +1,8 @@
 .field-map-container {
-    padding: 20px;
+    padding: 0 10px 0 0;
     border-radius: 8px;
     display: flex;
-    margin: 20px 0;
+    margin: 10px 0;
 }
 
 .field-map-container svg {
@@ -52,7 +52,7 @@
 }
 
 .action-modal-move-btn {
-    padding: 8px 12px;
+    /* padding: 8px 12px; */
     background-color: #16a34a;
     color: white;
     border: none;
@@ -69,4 +69,53 @@
 .robot-circle {
     transition: cx 0.1s linear, cy 0.1s linear;
     filter: drop-shadow(0 0 3px rgba(22, 163, 74, 0.5));
+}
+
+.humidity-reading-container {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background-color: white;
+    border: 2px solid #0d9488;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    z-index: 1000;
+    width: 250px;
+}
+
+.humidity-reading-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.humidity-reading-content h3 {
+    color: #0f766e;
+    font-size: 1.1rem;
+    margin: 0;
+    text-align: center;
+}
+
+.humidity-value {
+    color: #0f766e;
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 8px 0;
+}
+
+.close-button {
+    padding: 8px 16px;
+    background-color: #16a34a;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    width: 100%;
+}
+
+.close-button:hover {
+    background-color: #15803d;
 }
