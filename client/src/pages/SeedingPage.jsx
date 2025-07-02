@@ -3,12 +3,10 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import api from "../utils/api";
 
-const SeedingPage = ({setIsLoggedIn}) => {
+const SeedingPage = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea, seedingAreaLocation}) => {
   const navigate = useNavigate();
 
   const [plant, setPlant] = useState('');
-  const [X, setX] = useState('');
-  const [Y, setY] = useState('');
   const [SeedX, setSeedX] = useState('');
   const [SeedY, setSeedY] = useState('');
   const [ScheduledDate, setDate] = useState('');
@@ -20,6 +18,11 @@ const SeedingPage = ({setIsLoggedIn}) => {
   const [plantTypes, setPlantTypes] = useState([]);
 
   useEffect(() => {
+    // if (seedLocation && seedLocation != {}) {
+    //   setSeedX(seedLocation.x)
+    //   setSeedY(seedLocation.y)
+    // }
+
     const fetchData = async () => {
       const response = await api.get('/plant/all'); // 🔁 Replace with your real backend URL
       setPlantTypes(response.data);
@@ -37,9 +40,8 @@ const SeedingPage = ({setIsLoggedIn}) => {
         seed_name: plant,
         seedX: SeedX,
         seedY: SeedY,
-        x: X,
-        y: Y,
-        z: 50
+        z: 50,
+        ...seedingAreaLocation,
       }
 
       await api.post('/seedingJob/start', data);
@@ -63,15 +65,16 @@ const SeedingPage = ({setIsLoggedIn}) => {
     const datetimeString = `${ScheduledDate}T${Time}:00`; // "2025-07-02T14:30:00"
     const timestamp = new Date(datetimeString).getTime();
 
+    console.log(seedingAreaLocation)
+
     try {
       let data = {
         seed_name: plant,
-        seedX: SeedX,
-        seedY: SeedY,
-        x: X,
-        y: Y,
+        seeding_date: timestamp,
+        seedX: seedLocation.x,
+        seedY: seedLocation.y,
         z: 50,
-        seeding_date: timestamp
+        ...seedingAreaLocation,
       }
 
       await api.post('/seedingJob/schedule', data);
@@ -152,28 +155,9 @@ const SeedingPage = ({setIsLoggedIn}) => {
             <input
                 type="number"
                 name="coordinate"
-                value={SeedX}
+                value={seedLocation.x}
                 onChange={(e) => setSeedX(e.target.value)}
-                placeholder="Seed X"
-                style={{...styles.input, width: '40%', marginRight: '1rem'}}
-                required
-            />
-            <input
-                type="number"
-                name="coordinate"
-                value={SeedY}
-                onChange={(e) => setSeedY(e.target.value)}
-                placeholder="Seed Y"
-                style={{...styles.input, width: '40%'}}
-            />
-        </div>
-        <label style={styles.label}>Seed Destination</label>
-        <div style={{display: 'flex', justifyContent: 'left', }}>
-            <input
-                type="number"
-                name="coordinate"
-                value={X}
-                onChange={(e) => setX(e.target.value)}
+                disabled
                 placeholder="X"
                 style={{...styles.input, width: '40%', marginRight: '1rem'}}
                 required
@@ -181,11 +165,47 @@ const SeedingPage = ({setIsLoggedIn}) => {
             <input
                 type="number"
                 name="coordinate"
+                value={seedLocation.y}
+                onChange={(e) => setSeedY(e.target.value)}
+                disabled
+                placeholder="Y"
+                style={{...styles.input, width: '40%'}}
+            />
+        </div>
+        <label style={styles.label}>Seed Destination</label>
+        <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'left', alignItems: 'left', gap:'10px'}}>
+            {/* <input
+                type="number"
+                name="coordinate"
+                value={X}
+                onChange={(e) => setX(e.target.value)}
+                placeholder="X"
+                style={{...styles.input, width: '40%', marginRight: '1rem'}}
+                required
+            /> */}
+            {/* <input
+                type="number"
+                name="coordinate"
                 value={Y}
                 onChange={(e) => setY(e.target.value)}
                 placeholder="Y"
                 style={{...styles.input, width: '40%'}}
                 required
+            /> */}
+            <button 
+              type='button'
+              style={styles.buttonSelect}
+              onClick={() => {
+                setSelectArea(!selectArea)
+              }}
+            >
+              Select
+            </button>
+            <input 
+              value={seedingAreaLocation? "(" + seedingAreaLocation.topLeft.x + ", " + seedingAreaLocation.topLeft.y + ") to " + "(" + seedingAreaLocation.bottomRight.x + ", " + seedingAreaLocation.bottomRight.y + ")": ''} 
+              disabled 
+              type="text" 
+              style={{width:'100%'}}
             />
         </div>
         <label style={styles.label}>Date</label>
@@ -207,11 +227,11 @@ const SeedingPage = ({setIsLoggedIn}) => {
         <div style={{display: 'flex', justifyContent: 'space-evenly'}}>
             <button
                 type="submit"
-                disabled={!plant || !X || !Y || ScheduledDate || Time || loading}
+                disabled={!plant || ScheduledDate || Time || loading}
                 style={{
                 ...styles.button,
                 ...(isHovered ? styles.buttonHover : {}),
-                ...( (!plant || !X || !Y|| ScheduledDate || Time || loading) ? styles.buttonDisabled : {} )
+                ...( (!plant ||  ScheduledDate || Time || loading) ? styles.buttonDisabled : {} )
                 }}
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
@@ -220,11 +240,11 @@ const SeedingPage = ({setIsLoggedIn}) => {
             </button>
             <button
                 type='button'
-                disabled={!plant || !X || !Y || !ScheduledDate || !Time || loading}
+                disabled={!plant || !ScheduledDate || !Time || loading}
                 style={{
                 ...styles.button,
                 ...(isHovered ? styles.buttonHover : {}),
-                ...( (!plant || !X || !Y || !ScheduledDate || !Time || loading) ? styles.buttonDisabled : {} )
+                ...( (!plant || !ScheduledDate || !Time || loading) ? styles.buttonDisabled : {} )
                 }}
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
@@ -338,6 +358,17 @@ const styles = {
     backgroundColor: '#cccccc',
     cursor: 'not-allowed',
     transform: 'none',
+  },
+  buttonSelect: {
+    padding: '10px 10px',
+    fontSize: '0.8rem',
+    fontWeight: 'bold',
+    backgroundColor:'#22c55e' ,
+    color: 'white',
+    border: 'none',
+    borderRadius: '5px',
+    cursor: 'pointer',
+    transitionDuration: '0.3s'
   },
   error: {
     color: '#14532d',

@@ -17,18 +17,51 @@ const seedSchema = new mongoose.Schema({
     type: String,
     require: true,
   },
-  x: {
-    type: String,
-    require: true,
+  topLeft: {
+    x: {
+      type: String,
+      require: true,
+    },
+    y: {
+      type: String,
+      require: true,
+    }
   },
-  y: {
-    type: String,
-    require: true,
+  topRight: {
+    x: {
+      type: String,
+      require: true,
+    },
+    y: {
+      type: String,
+      require: true,
+    }
+  },
+  bottomLeft: {
+    x: {
+      type: String,
+      require: true,
+    },
+    y: {
+      type: String,
+      require: true,
+    }
+  },
+  bottomRight: {
+    x: {
+      type: String,
+      require: true,
+    },
+    y: {
+      type: String,
+      require: true,
+    }
   },
   z: {
     type: String,
-    require: true,
-  },
+    required: true,
+    default: 50
+  }
 });
 
 const Seed = mongoose.model("Seed", seedSchema);

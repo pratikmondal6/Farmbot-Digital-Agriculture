@@ -12,23 +12,34 @@ import SeedingJobQueue from './SeedingJobQueue';
 
 export default function FarmBotDashboard() {
     const [visibleComponent, setVisibleComponent] = useState("")
+    const [seedPoints, setSeedPoints] = useState({})
+    const [selectArea, setSelectArea] = useState(false)
+    const [seedingAreaLocation, setSeedingAreaLocation] = useState()
 
     const handleComponentSelection = (visibleComp) => {
         setVisibleComponent(visibleComp);
     };
+
+    const handleClickElement = ({x, y ,z}) => {
+        setSeedPoints({x:x, y:y, z:z})
+    }
+
+    const handleAreaSelect = (points) => {
+        setSeedingAreaLocation(points)
+    }
 
     return (
         <div className="dashboard-container">
             <Header />
             <div className="dashboard-items">
                 <Sidebar onSelectComponent={handleComponentSelection}/>
-                {visibleComponent=="seedingJob" && <SeedingPage />}
+                {visibleComponent=="seedingJob" && <SeedingPage seedLocation={seedPoints} selectArea={selectArea} setSelectArea={setSelectArea} seedingAreaLocation={seedingAreaLocation}/>}
                 {visibleComponent=="seedingJobQueue" && <SeedingJobQueue />}
                 {visibleComponent=="humidityCheckPage" && <HumidityCheckPage />}
                 {visibleComponent=="botControlPanel" && <FarmbotMoving />}
                 {visibleComponent=="addPlantType" && <AddPlanttype />}
-                {visibleComponent=="c" && <SeedingPage />}
-                <FieldMap activeComponent={visibleComponent} />
+                {visibleComponent=="c" && <SeedingPage/>}
+                <FieldMap activeComponent={visibleComponent} onAreaSelect={handleAreaSelect} selectArea={selectArea} onElementClick={handleClickElement}/>
             </div>
         </div>
     );

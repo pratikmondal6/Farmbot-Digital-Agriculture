@@ -150,7 +150,7 @@ router.get("/seeds", async (req, res) => {
   res.status(200).send(seeds)
 })
 
-// Update a seeing job
+// Schedule a seeding job
 router.post("/schedule", async (req, res) => {
   if (!req.headers["auth-token"]) {
     return res.status(401).send({
@@ -159,7 +159,7 @@ router.post("/schedule", async (req, res) => {
     })
   }
 
-  if (req.body.x === undefined || req.body.y === undefined) {
+  if (req.body.topRight === undefined || req.body.bottomLeft === undefined) {
     return res.status(500).send({
       "status": 500,
       "message": "x and y is not sent in body"
@@ -168,8 +168,8 @@ router.post("/schedule", async (req, res) => {
 
   const seedX = parseInt(req.body.seedX)
   const seedY = parseInt(req.body.seedY)
-  const destX = parseInt(req.body.x)
-  const destY = parseInt(req.body.y)
+  // const destX = parseInt(req.body.x)
+  // const destY = parseInt(req.body.y)
   const depth = parseInt(req.body.z)
 
   const seed = new Seed({
@@ -177,9 +177,11 @@ router.post("/schedule", async (req, res) => {
     seeding_date: req.body.seeding_date ? req.body.seeding_date : Date.now(),
     seedX: seedX,
     seedY: seedY,
-    x: destX,
-    y: destY,
     z: depth,
+    topRight: req.body.topRight,
+    topLeft: req.body.topLeft,
+    bottomRight: req.body.bottomRight,
+    bottomLeft: req.body.bottomLeft,
   });
 
   await seed.save()

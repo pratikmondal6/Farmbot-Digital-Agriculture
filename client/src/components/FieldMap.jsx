@@ -104,6 +104,10 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
             }
         ];
 
+        useEffect(() => {
+            setIsSelectingArea(selectArea);
+        }, [selectArea]);
+
         const isPointInDisabledArea = (x, y) => {
             return disabledAreas.some(area => {
                 return x >= area.x1 && x <= area.x2 &&
