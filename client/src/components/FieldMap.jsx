@@ -246,8 +246,7 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
         try {
             console.log('Fetching robot position...');
             const response = await instance.get('/farmbotPosition');
-            const data = response.data;
-            setTargetPosition(data);
+            setTargetPosition(response.data);
         } catch
             (error) {
             console.error('Failed to fetch robot position:', error);
@@ -471,28 +470,17 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
 
     // fetch selected areas from the server
     const fetchSelectedAreas = async () => {
+        console.log("Fetching selected areas");
         try {
-            // const response = await instance.get('/selectedAreas');
+            const response = await instance.get('/api/seeds/occupied-areas');
 
-            const response = [
-                {
-                    topLeft: { x: 100, y: 500 },
-                    bottomRight: { x: 200, y: 600 }
-                },
-                {
-                    topLeft: { x: 300, y: 800 },
-                    bottomRight: { x: 400, y: 1000 }
-                }
-            ]
-
-            const selectedAreas = response.map(area => ({
-                x1: area.topLeft.x,
-                y1: area.topLeft.y,
-                x2: area.bottomRight.x,
-                y2: area.bottomRight.y,
-                name: "selected area",
+            const selectedAreas = response.data.map(area => ({
+                ...area,
+                name: `Planted ${area.plant}`,
                 color: "rgba(255,0,0,0.24)",
             }));
+
+            console.log("Selected areas fetched:", selectedAreas);
 
             setDisabledAreas(prevAreas => {
                 console.log(prevAreas)
