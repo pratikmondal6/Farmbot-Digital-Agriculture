@@ -156,6 +156,24 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
             return;
         }
 
+        const x1 = Math.min(selectionStart.x, selectionEnd.x);
+        const x2 = Math.max(selectionStart.x, selectionEnd.x);
+        const y1 = Math.min(selectionStart.y, selectionEnd.y);
+        const y2 = Math.max(selectionStart.y, selectionEnd.y);
+
+        // Check for overlap with existing disabled areas
+        const hasOverlap = disabledAreas.some(area => {
+            return !(x2 < area.x1 || x1 > area.x2 || y2 < area.y1 || y1 > area.y2);
+        });
+
+        if (hasOverlap) {
+            setIsSelectingArea(true);
+            setSelectionStart(null);
+            setSelectionEnd(null);
+            alert("Selected area overlaps with an existing area. Please select a different area.");
+            return;
+        }
+
         const points = {
             topLeft: {
                 x: Math.min(selectionStart.x, selectionEnd.x),
@@ -699,7 +717,7 @@ const ActionModal = ({position, onMove, previousZ}) => {
                     <label className="action-modal-label">Depth:</label>
                     <input
                         type="number"
-                        value={z}
+                        value={Math.abs(z)}
                         onChange={handleZChange}
                         min={0}
                         className="action-modal-input"
