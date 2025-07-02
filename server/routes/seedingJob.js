@@ -88,6 +88,8 @@ router.post("/start", async (req, res) => {
   const seed = new Seed({
     seed_name: req.body.seed_name ? req.body.seed_name : "random_seed",
     seeding_date: req.body.seeding_date ? req.body.seeding_date : Date.now(),
+    seedX: seedX,
+    seedY: seedY,
     x: destX,
     y: destY,
     z: depth,
@@ -147,6 +149,45 @@ router.get("/seeds", async (req, res) => {
   const seeds = await Seed.find({});
   res.status(200).send(seeds)
 })
+
+// Update a seeing job
+router.post("/schedule", async (req, res) => {
+  if (!req.headers["auth-token"]) {
+    return res.status(401).send({
+      "status": 401,
+      "message": "Not authorized.",
+    })
+  }
+
+  if (req.body.x === undefined || req.body.y === undefined) {
+    return res.status(500).send({
+      "status": 500,
+      "message": "x and y is not sent in body"
+    })
+  }
+
+  const seedX = parseInt(req.body.seedX)
+  const seedY = parseInt(req.body.seedY)
+  const destX = parseInt(req.body.x)
+  const destY = parseInt(req.body.y)
+  const depth = parseInt(req.body.z)
+
+  const seed = new Seed({
+    seed_name: req.body.seed_name ? req.body.seed_name : "random_seed",
+    seeding_date: req.body.seeding_date ? req.body.seeding_date : Date.now(),
+    seedX: seedX,
+    seedY: seedY,
+    x: destX,
+    y: destY,
+    z: depth,
+  });
+
+  await seed.save()
+
+  res.status(200).send({
+    "message": "Seed is scheduled successfully"
+  })
+});
 
 // Update a seeing job
 router.put("/:id", async (req, res) => {
