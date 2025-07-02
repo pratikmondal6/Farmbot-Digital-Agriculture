@@ -20,20 +20,26 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
     const [selectionStart, setSelectionStart] = useState(null);
     const [selectionEnd, setSelectionEnd] = useState(null);
     const [plantedSeeds, setPlantedSeeds] = useState([]);
-    const disabledAreas = [
+    const [disabledAreas, setDisabledAreas] =  useState([
         {
             x1: 2545,
             y1: 100,
             x2: 2700,
             y2: 400,
+            name: "Component Storage Area",
+            type: "component_storage",
+            color: "rgba(128,128,128,0.2)"
         },
         {
             x1: 2545,
             y1: 810,
             x2: 2700,
             y2: 1110,
-        }
-    ];
+            name: "Component Storage Area",
+            type: "component_storage",
+            color: "rgba(128,128,128,0.2)"
+        },
+    ]);
 
     const isPointInDisabledArea = (x, y) => {
         return disabledAreas.some(area => {
@@ -56,7 +62,6 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
             x: 2130,
             y: 20,
             z: 540,
-            isSeedHovered: false,
             text: "Carrot Seeds Box",
             color: "#f59e42",
             onClick: function () {
@@ -66,7 +71,7 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
             }
         }],
         devices: [{
-            x: 2630, y: 150, z: -410, isDeviceHovered: false, text: "Watering Nozzle", color: "#3b82f6",
+            x: 2630, y: 150, z: -410, text: "Watering Nozzle", color: "#3b82f6",
             onClick: function () {
                 const {x, y, z, text} = fieldMapElements.devices[0];
                 console.log(`${text} clicked`);
@@ -74,7 +79,7 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
             }
         },
             {
-                x: 2630, y: 245, z: -395, isDeviceHovered: false, text: "Seeder", color: "#f8c727",
+                x: 2630, y: 245, z: -395, text: "Seeder", color: "#f8c727",
                 onClick: function () {
                     const {x, y, z, text} = fieldMapElements.devices[1];
                     console.log(`${text} clicked`);
@@ -82,7 +87,7 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
                 }
             },
             {
-                x: 2630, y: 350, z: -410, isDeviceHovered: false, text: "Soil Sensor", color: "#5c5e60",
+                x: 2630, y: 350, z: -410, text: "Soil Sensor", color: "#5c5e60",
                 onClick: function () {
                     const {x, y, z, text} = fieldMapElements.devices[2];
                     console.log(`${text} clicked`);
@@ -90,7 +95,7 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
                 }
             },
             {
-                x: 2630, y: 855, z: -380, isDeviceHovered: false, text: "Empty Slot", color: "#ffffff",
+                x: 2630, y: 855, z: -380, text: "Empty Slot", color: "#ffffff",
                 onClick: function () {
                     const {x, y, z, text} = fieldMapElements.devices[3];
                     console.log(`${text} clicked`);
@@ -98,7 +103,7 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
                 }
             },
             {
-                x: 2630, y: 960, z: -420, isDeviceHovered: false, text: "Rotatory Tool", color: "#05ef8d",
+                x: 2630, y: 960, z: -420, text: "Rotatory Tool", color: "#05ef8d",
                 onClick: function () {
                     const {x, y, z, text} = fieldMapElements.devices[4];
                     console.log(`${text} clicked`);
@@ -106,7 +111,7 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
                 }
             },
             {
-                x: 2630, y: 1060, z: -420, isDeviceHovered: false, text: "Weeder", color: "#f63b3b",
+                x: 2630, y: 1060, z: -420, text: "Weeder", color: "#f63b3b",
                 onClick: function () {
                     const {x, y, z, text} = fieldMapElements.devices[5];
                     console.log(`${text} clicked`);
@@ -446,6 +451,46 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
         });
     };
 
+    // fetch selected areas from the server
+    const fetchSelectedAreas = async () => {
+        try {
+            // const response = await instance.get('/selectedAreas');
+
+            const response = [
+                {
+                    topLeft: { x: 100, y: 500 },
+                    bottomRight: { x: 200, y: 600 }
+                },
+                {
+                    topLeft: { x: 300, y: 800 },
+                    bottomRight: { x: 400, y: 1000 }
+                }
+            ]
+
+            const selectedAreas = response.map(area => ({
+                x1: area.topLeft.x,
+                y1: area.topLeft.y,
+                x2: area.bottomRight.x,
+                y2: area.bottomRight.y,
+                name: "selected area",
+                color: "rgba(255,0,0,0.24)",
+            }));
+
+            setDisabledAreas(prevAreas => {
+                console.log(prevAreas)
+                return [...prevAreas, ...selectedAreas];
+            });
+
+            console.log("disable areas", disabledAreas);
+        } catch (error) {
+            console.error('Error fetching selected areas:', error);
+        }
+    };
+
+    useEffect(() => {
+        fetchSelectedAreas();
+    }, []);
+
     return (
         <div className="field-map-container">
             <svg
@@ -463,16 +508,7 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
                 {/* Render disabled areas */}
                 {disabledAreas.map((area, index) => (
                     <g key={`disabled-area-${index}`}>
-                        <rect
-                            x={area.x1 * scaleX}
-                            y={containerHeight - (area.y2 * scaleY)}
-                            width={(area.x2 - area.x1) * scaleX}
-                            height={(area.y2 - area.y1) * scaleY}
-                            fill="rgba(128, 128, 128, 0.2)"
-                            stroke="#666"
-                            strokeWidth="1"
-                            strokeDasharray="5,5"
-                        />
+                        <Rectangle area={area} />
                     </g>
                 ))}
 
@@ -494,6 +530,7 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
                     />
                 </circle>
 
+                {/* Render field map elements */}
                 {Object.entries(fieldMapElements).map(([key, elements]) => {
                     if (Array.isArray(elements)) {
                         return elements.map((element, index) => (
@@ -696,5 +733,20 @@ const Circle = ({x, y, color, onClick, onPointerEnter, onPointerLeave}) => {
         />
     );
 };
+
+const Rectangle = ({area}) => {
+    return (
+        <rect
+            x={area.x1 * scaleX}
+            y={containerHeight - (area.y2 * scaleY)}
+            width={(area.x2 - area.x1) * scaleX}
+            height={(area.y2 - area.y1) * scaleY}
+            fill={area.color}
+            stroke="#666"
+            strokeWidth="1"
+            strokeDasharray="5,5"
+        />
+    )
+}
 
 export default FieldMap;
