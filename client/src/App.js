@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import SeedingJobManager from './pages/SeedingJobManager';
+import WateringJobPage from './pages/WateringJobPage.jsx';
+import FarmbotMoving from './pages/FarmbotMoving.jsx'; 
 import './App.css';
 import LoginPage from "./pages/LoginPage";
 import NotFoundPage from './pages/NotFoundPage.jsx';
@@ -32,6 +34,7 @@ function App() {
                 {isLoggedIn && <Route path="/settings" element={<Settings/>}/>}
                 {isLoggedIn && <Route path="/farmbot-moving" element={<FarmbotMoving />} />}
                 {isLoggedIn && <Route path="/humidity-check" element={<HumidityCheckPage />} />} */}
+                {isLoggedIn && <Route path="/watering-job" element={<WateringJobPage />} />}
                 <Route path="*" element={<NotFoundPage/>}/>
                 <Route path="/seeding/jobs" element={<SeedingJobManager />} />
                 <Route path="/fieldmap" element={<FieldMap />} />

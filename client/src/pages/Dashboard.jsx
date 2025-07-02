@@ -8,6 +8,7 @@ import HumidityCheckPage from './HumidityCheckPage';
 import FarmbotMoving from './FarmbotMoving';
 import AddPlanttype from './AddPlanttype';
 import SeedingJobQueue from './SeedingJobQueue';
+import WateringJobPage from './WateringJobPage';
 
 
 export default function FarmBotDashboard() {
@@ -38,7 +39,8 @@ export default function FarmBotDashboard() {
                 {visibleComponent=="humidityCheckPage" && <HumidityCheckPage />}
                 {visibleComponent=="botControlPanel" && <FarmbotMoving />}
                 {visibleComponent=="addPlantType" && <AddPlanttype />}
-                {visibleComponent=="c" && <SeedingPage/>}
+                {visibleComponent=="c" && <SeedingPage />}
+                {visibleComponent=="wateringJobPage" && <WateringJobPage />}
                 <FieldMap activeComponent={visibleComponent} onAreaSelect={handleAreaSelect} selectArea={selectArea} onElementClick={handleClickElement}/>
             </div>
         </div>
