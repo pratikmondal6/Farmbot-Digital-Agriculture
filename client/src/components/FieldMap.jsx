@@ -472,7 +472,7 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
     const fetchSelectedAreas = async () => {
         console.log("Fetching selected areas");
         try {
-            const response = await instance.get('/api/seeds/occupied-areas');
+            const response = await instance.get('/api/seeds');
 
             const selectedAreas = response.data.map(area => ({
                 ...area,
