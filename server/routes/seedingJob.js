@@ -12,6 +12,7 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+// Start a seeding job
 router.post("/start", async (req, res) => {
   if (!req.headers["auth-token"]) {
     return res.status(401).send({
@@ -141,10 +142,45 @@ router.post("/start", async (req, res) => {
   })
 });
 
+// Get all seeds
 router.get("/seeds", async (req, res) => {
   const seeds = await Seed.find({});
   res.status(200).send(seeds)
 })
+
+// Update a seeing job
+router.put("/:id", async (req, res) => {
+  try {
+    const updated = await Seed.findByIdAndUpdate(
+      req.params.id,
+      {
+        $set: {
+          seed_name: req.body.seed_name,
+          seeding_date: req.body.seeding_date,
+          seedX: req.body.seedX,
+          seedY: req.body.seedY,
+          x: req.body.x,
+          y: req.body.y,
+          z: req.body.z,
+        }
+      },
+      { new: true }
+    );
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete a seeding job
+router.delete("/:id", async (req, res) => {
+  try {
+    await Seed.findByIdAndDelete(req.params.id);
+    res.status(200).send({ massege: "Item deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 
 module.exports = router;
