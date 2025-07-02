@@ -228,7 +228,7 @@ const WateringJobPage = () => {
       setShowCreatePanel(false);
       resetForm();
     } catch (err) {
-      setError("Could not save watering job.");
+      setError(err.response?.data?.message || "Could not save watering job.");
       console.error(err);
     }
   };
@@ -540,7 +540,13 @@ const WateringJobPage = () => {
                           hyphens: "auto"
                         }}
                       >
-                        {(job.plantType || "-").replace(/(.{8})/g, "$1-")}
+                        {job.plantType
+                          ? job.plantType.split('-').map((part, idx, arr) =>
+                              idx < arr.length - 1
+                                ? <React.Fragment key={idx}>{part}-<br /></React.Fragment>
+                                : <React.Fragment key={idx}>{part}</React.Fragment>
+                            )
+                          : "-"}
                       </td>
                       <td style={{ padding: "2px 1px", border: "1px solid #fde047", fontSize: "0.80rem", width: 38 }}>
                         {job.waterAmount !== undefined ? job.waterAmount : "-"}
