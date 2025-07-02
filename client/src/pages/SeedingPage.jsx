@@ -56,6 +56,38 @@ const SeedingPage = ({setIsLoggedIn}) => {
     }
   };
 
+  const scheduleSeedingJob = async () => {
+    setError('');
+    setLoading(true);
+
+    const datetimeString = `${ScheduledDate}T${Time}:00`; // "2025-07-02T14:30:00"
+    const timestamp = new Date(datetimeString).getTime();
+
+    try {
+      let data = {
+        seed_name: plant,
+        seedX: SeedX,
+        seedY: SeedY,
+        x: X,
+        y: Y,
+        z: 50,
+        seeding_date: timestamp
+      }
+
+      await api.post('/seedingJob/schedule', data);
+      
+      alert("Seeding job scheduled successfully")
+
+    } catch (err) {
+      console.error('An error occured while scheduling:', err);
+      setError(
+        err.response?.data?.message || 'An error occured while scheduling:' + err
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div style={styles.container}>
       {/* <div style={styles.navbar}>
@@ -196,6 +228,7 @@ const SeedingPage = ({setIsLoggedIn}) => {
                 }}
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
+                onClick={() => scheduleSeedingJob()}
                 >
                 Schedule
             </button>
@@ -211,6 +244,12 @@ const SeedingPage = ({setIsLoggedIn}) => {
       <div>
         <h style={{ margin: 0, color: '#14532d' }}>history</h>
       </div>)}
+    {showPanel === 'scheduled' && (
+        <div>
+            <h2>Seeding job scheduled successfully</h2>
+        </div>
+    )}
+
     </div>
     );
 };
