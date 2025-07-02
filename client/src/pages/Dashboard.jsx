@@ -7,6 +7,7 @@ import SeedingPage from './SeedingPage';
 import HumidityCheckPage from './HumidityCheckPage';
 import FarmbotMoving from './FarmbotMoving';
 import AddPlanttype from './AddPlanttype';
+import SeedingJobQueue from './SeedingJobQueue';
 
 
 export default function FarmBotDashboard() {
@@ -22,6 +23,7 @@ export default function FarmBotDashboard() {
             <div className="dashboard-items">
                 <Sidebar onSelectComponent={handleComponentSelection}/>
                 {visibleComponent=="seedingJob" && <SeedingPage />}
+                {visibleComponent=="seedingJobQueue" && <SeedingJobQueue />}
                 {visibleComponent=="humidityCheckPage" && <HumidityCheckPage />}
                 {visibleComponent=="botControlPanel" && <FarmbotMoving />}
                 {visibleComponent=="addPlantType" && <AddPlanttype />}

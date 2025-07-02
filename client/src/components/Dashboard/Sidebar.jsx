@@ -23,6 +23,9 @@ export default function Sidebar({onSelectComponent}) {
                 <button className={getClass("seedingJob")} onClick={() => {onSelectComponent("seedingJob"); setActiveClass("seedingJob")}}>
                     🪏 {(activeClass == "dashboard" || isHovered) && <span>Seeding job</span>}
                 </button>
+                <button className={getClass("seedingJobQueue")} onClick={() => {onSelectComponent("seedingJobQueue"); setActiveClass("seedingJobQueue")}}>
+                    🪏 {(activeClass == "dashboard" || isHovered) && <span>Seeding job queue</span>}
+                </button>
                 <button className={getClass("humidityCheckPage")} onClick={() => {onSelectComponent("humidityCheckPage"); setActiveClass("humidityCheckPage")}}>
                     💧 {(activeClass == "dashboard" || isHovered) && <span>Soil humidity check</span>}
                 </button>
