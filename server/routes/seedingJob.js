@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { Seed } = require("../models/seed");
+const { SeedJob } = require("../models/seedingJob");
 const { Farmbot } =  require("farmbot");
 const { setJobStatus } = require("../services/farmbotStatusService");
 
@@ -150,6 +151,12 @@ router.get("/seeds", async (req, res) => {
   res.status(200).send(seeds)
 })
 
+// Get all seeding jobs
+router.get("/seedingJobs", async (req, res) => {
+  const seedJobs = await SeedJob.find({});
+  res.status(200).send(seedJobs)
+})
+
 // Schedule a seeding job
 router.post("/schedule", async (req, res) => {
   if (!req.headers["auth-token"]) {
@@ -172,7 +179,7 @@ router.post("/schedule", async (req, res) => {
   // const destY = parseInt(req.body.y)
   const depth = parseInt(req.body.z)
 
-  const seed = new Seed({
+  const seedJob = new SeedJob({
     seed_name: req.body.seed_name ? req.body.seed_name : "random_seed",
     seeding_date: req.body.seeding_date ? req.body.seeding_date : Date.now(),
     seedX: seedX,
@@ -184,7 +191,7 @@ router.post("/schedule", async (req, res) => {
     bottomLeft: req.body.bottomLeft,
   });
 
-  await seed.save()
+  await seedJob.save()
 
   res.status(200).send({
     "message": "Seed is scheduled successfully"
@@ -194,7 +201,7 @@ router.post("/schedule", async (req, res) => {
 // Update a seeing job
 router.put("/:id", async (req, res) => {
   try {
-    const updated = await Seed.findByIdAndUpdate(
+    const updated = await SeedJob.findByIdAndUpdate(
       req.params.id,
       {
         $set: {
@@ -202,9 +209,11 @@ router.put("/:id", async (req, res) => {
           seeding_date: req.body.seeding_date,
           seedX: req.body.seedX,
           seedY: req.body.seedY,
-          x: req.body.x,
-          y: req.body.y,
           z: req.body.z,
+          topRight: req.body.topRight,
+          topLeft: req.body.topLeft,
+          bottomRight: req.body.bottomRight,
+          bottomLeft: req.body.bottomLeft,
         }
       },
       { new: true }
@@ -216,9 +225,19 @@ router.put("/:id", async (req, res) => {
 });
 
 // Delete a seeding job
-router.delete("/:id", async (req, res) => {
+router.delete("/seed/:id", async (req, res) => {
   try {
     await Seed.findByIdAndDelete(req.params.id);
+    res.status(200).send({ massege: "Item deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete a seeding job
+router.delete("/:id", async (req, res) => {
+  try {
+    await SeedJob.findByIdAndDelete(req.params.id);
     res.status(200).send({ massege: "Item deleted successfully" });
   } catch (err) {
     res.status(500).json({ error: err.message });

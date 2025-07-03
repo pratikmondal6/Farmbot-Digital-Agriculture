@@ -35,7 +35,7 @@ export default function FarmBotDashboard() {
             <div className="dashboard-items">
                 <Sidebar onSelectComponent={handleComponentSelection}/>
                 {visibleComponent=="seedingJob" && <SeedingPage seedLocation={seedPoints} selectArea={selectArea} setSelectArea={setSelectArea} seedingAreaLocation={seedingAreaLocation}/>}
-                {visibleComponent=="seedingJobQueue" && <SeedingJobQueue />}
+                {visibleComponent=="seedingJobQueue" && <SeedingJobQueue seedLocation={seedPoints} selectArea={selectArea} setSelectArea={setSelectArea} seedingAreaLocation={seedingAreaLocation}/>}
                 {visibleComponent=="humidityCheckPage" && <HumidityCheckPage />}
                 {visibleComponent=="botControlPanel" && <FarmbotMoving />}
                 {visibleComponent=="addPlantType" && <AddPlanttype />}

@@ -3,37 +3,48 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import api from "../utils/api";
 
-const SeedingJobQueue = ({setIsLoggedIn}) => {
+const SeedingJobQueue = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea, seedingAreaLocation}) => {
   const [isHoveredEdit, setIsHoveredEdit] = useState(false);
   const [isHoveredDelete, setIsHoveredDelete] = useState(false);
   const [seedingJobs, setSeedingJobs] = useState([]);
   const [editPage, setEditPage] = useState(false);
   const [EditSeedingJob, setEditSeedingJob] = useState({});
-  const [deleting, setDeleting] = useState(false);
 
   const [plant, setPlant] = useState('');
   const [X, setX] = useState('');
   const [Y, setY] = useState('');
   const [SeedX, setSeedX] = useState('');
   const [SeedY, setSeedY] = useState('');
+  const [topLeft, setTopLeft] = useState({})
+  const [topRight, setTopRight] = useState({})
+  const [bottomLeft, setBottomLeft] = useState({})
+  const [bottomRight, setBottomRight] = useState({})
   const [ScheduledDate, setDate] = useState('');
   const [Time, setTime] = useState('');
   const [isHovered, setIsHovered] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showPanel, setShowPanel] = useState('seeding'); // 'seeding', 'queue', 'history', 'schedule
   const [plantTypes, setPlantTypes] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
-      const response1 = await api.get('/seedingJob/seeds'); // 🔁 Replace with your real backend URL
+      const response1 = await api.get('/seedingJob/seedingJobs');
       setSeedingJobs(response1.data);
 
-      const response2 = await api.get('/plant/all'); // 🔁 Replace with your real backend URL
+      const response2 = await api.get('/plant/all');
       setPlantTypes(response2.data);
     }
     fetchData();
-  }, [editPage, deleting]);
+  }, [editPage]);
+
+  useEffect(() => {
+    if (seedingAreaLocation) {
+      setTopLeft(seedingAreaLocation.topLeft)
+      setTopRight(seedingAreaLocation.topRight)
+      setBottomLeft(seedingAreaLocation.bottomLeft)
+      setBottomRight(seedingAreaLocation.bottomRight)
+    }
+  }, [seedingAreaLocation])
 
   const handleSubmit = async (e) => {
     console.log("Staaaarting submitting")
@@ -47,12 +58,11 @@ const SeedingJobQueue = ({setIsLoggedIn}) => {
     try {
       let data = {
         seed_name: plant,
+        seeding_date: timestamp,
         seedX: SeedX,
         seedY: SeedY,
-        x: X,
-        y: Y,
         z: 50,
-        seeding_date: timestamp
+        ...seedingAreaLocation,
       }
 
       console.log('/seedingJob/' + EditSeedingJob._id)
@@ -76,9 +86,12 @@ const SeedingJobQueue = ({setIsLoggedIn}) => {
         setPlant(seedingJob.seed_name)
         setSeedX(seedingJob.seedX)
         setSeedY(seedingJob.seedY)
-        setX(seedingJob.x)
-        setY(seedingJob.y)
-
+        // setX(seedingJob.x)
+        // setY(seedingJob.y)
+        setTopLeft(seedingJob.topLeft)
+        setTopRight(seedingJob.topRight)
+        setBottomLeft(seedingJob.bottomLeft)
+        setBottomRight(seedingJob.bottomRight)
         const dateObj = new Date(seedingJob.seeding_date);
 
         // Format for input type="date"
@@ -94,9 +107,8 @@ const SeedingJobQueue = ({setIsLoggedIn}) => {
 
   const deleteSeedingJob = async (id) => {
     try {
-      setDeleting(true)
       await api.delete('/seedingJob/' + id);
-      setDeleting(true)
+      setSeedingJobs(seedingJobs.filter(j => j._id !== id))
     } catch (err) {
       console.error('An error occured while seeding:', err);
       setError(
@@ -117,7 +129,7 @@ const SeedingJobQueue = ({setIsLoggedIn}) => {
               <h2 style={styles.detailsHeader}>{seedingJob.seed_name}</h2>
               <p  style={styles.detailsTime}>{seedingJob.seeding_date}</p>
             </div>
-            <div>
+            <div style={{display: 'flex', flexDirection: 'column' , justifyContent: 'left'}}>
               <button 
                 style={{
                   ...styles.button,
@@ -181,7 +193,8 @@ const SeedingJobQueue = ({setIsLoggedIn}) => {
               <input
                   type="number"
                   name="coordinate"
-                  value={SeedX}
+                  value={seedLocation.x? seedLocation.x: SeedX}
+                  disabled
                   onChange={(e) => setSeedX(e.target.value)}
                   placeholder="Seed X"
                   style={{...styles.input, width: '40%', marginRight: '1rem'}}
@@ -190,15 +203,16 @@ const SeedingJobQueue = ({setIsLoggedIn}) => {
               <input
                   type="number"
                   name="coordinate"
-                  value={SeedY}
+                  value={seedLocation.y? seedLocation.y: SeedY}
+                  disabled
                   onChange={(e) => setSeedY(e.target.value)}
                   placeholder="Seed Y"
                   style={{...styles.input, width: '40%'}}
               />
           </div>
           <label style={styles.label}>Seed Destination</label>
-          <div style={{display: 'flex', justifyContent: 'left', }}>
-              <input
+          <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'left', alignItems: 'left', gap:'10px'}}>
+              {/* <input
                   type="number"
                   name="coordinate"
                   value={X}
@@ -215,7 +229,22 @@ const SeedingJobQueue = ({setIsLoggedIn}) => {
                   placeholder="Y"
                   style={{...styles.input, width: '40%'}}
                   required
-              />
+              /> */}
+              <button 
+              type='button'
+              style={styles.buttonSelect}
+              onClick={() => {
+                setSelectArea(!selectArea)
+              }}
+            >
+              Select
+            </button>
+            <input 
+              value={"(" + topLeft.x + ", " + topLeft.y + ") to " + "(" + bottomRight.x + ", " + bottomRight.y + ")"} 
+              disabled 
+              type="text" 
+              style={{width:'100%'}}
+            />
           </div>
           <label style={styles.label}>Date</label>
           <input
@@ -299,6 +328,17 @@ const styles = {
   button2: {
     padding: '0.7rem',
     fontSize: '1rem',
+    fontWeight: 'bold',
+    backgroundColor:'#22c55e' ,
+    color: 'white',
+    border: 'none',
+    borderRadius: '5px',
+    cursor: 'pointer',
+    transitionDuration: '0.3s'
+  },
+  buttonSelect: {
+    padding: '10px 10px',
+    fontSize: '0.8rem',
     fontWeight: 'bold',
     backgroundColor:'#22c55e' ,
     color: 'white',
