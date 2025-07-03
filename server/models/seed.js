@@ -9,6 +9,14 @@ const seedSchema = new mongoose.Schema({
     type: Date,
     required: true,
   },
+  seedX: {
+    type: String,
+    require: true,
+  },
+  seedY: {
+    type: String,
+    require: true,
+  },
   x: {
     type: String,
     require: true,
