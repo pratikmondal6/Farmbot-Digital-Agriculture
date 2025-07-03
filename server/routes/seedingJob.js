@@ -4,6 +4,7 @@ const { Seed } = require("../models/seed");
 const { SeedJob } = require("../models/seedingJob");
 const { Farmbot } =  require("farmbot");
 const { setJobStatus } = require("../services/farmbotStatusService");
+const axios = require("axios")
 
 const move = async (bot, x, y, z) => {
   await bot.moveAbsolute({ x: x, y: y, z: z, speed: 100 });
@@ -11,6 +12,23 @@ const move = async (bot, x, y, z) => {
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function findSeedPoints(plantDetails, topLeft, bottomRight) {
+  points = []
+  dist = plantDetails.minimal_distance
+  xLeft = topLeft.x
+  xRight = bottomRight.x
+  yUp = topLeft.y
+  yDown = bottomRight.y
+
+  for (let y = yDown+(dist/2); y <= yUp-(dist/2); y += dist) {
+    for (let x = xLeft+(dist/2); x <= xRight-(dist/2); x += dist) {
+      points.push({ x, y });
+    }
+  }
+
+  return points
 }
 
 // Start a seeding job
@@ -35,11 +53,15 @@ router.post("/start", async (req, res) => {
 
   const seedX = parseInt(req.body.seedX)
   const seedY = parseInt(req.body.seedY)
-  const destX = parseInt(req.body.x)
-  const destY = parseInt(req.body.y)
+  // const destX = parseInt(req.body.x)
+  // const destY = parseInt(req.body.y)
   const depth = parseInt(req.body.z)
 
-  setJobStatus("fetching seeds");
+  const plantDetails = await axios.get("http://localhost:5000/plant/details/" + req.body.seed_name)
+  if (!plantDetails) {
+    plantDetails = {minimal_distance: 100}
+  }
+  const seedPoints = findSeedPoints(plantDetails, req.body.topLeft, req.body.bottomRight)
 
   // Go to higher than seeder object
   await move(bot, x=2630, y=245, z=-395)
@@ -50,80 +72,81 @@ router.post("/start", async (req, res) => {
   // Go a little outside to take it out
   await move(bot, x=2500, y=245, z=-410)
 
-  // Go to a little higher from seed (x=2130, y=25)
-  await move(bot, x=seedX, y=seedY, z=-480)
+  for (let point of seedPoints) {
 
-  setJobStatus("moving to seeding position");
+    // Go to a little higher from seed (x=2130, y=25)
+    await move(bot, x=seedX, y=seedY, z=-480)
 
-  // Start suction
-  await bot.writePin({
-    pin_number: 9,
-    pin_value: 1,          // 1 = ON (HIGH), 0 = OFF (LOW)
-    pin_mode: 0            // 0 = digital, 1 = analog
-  });
+    setJobStatus("moving to seeding position");
 
-  // Go down to get seed
-  await move(bot, x=seedX, y=seedY, z=-530)
+    // Start suction
+    await bot.writePin({
+      pin_number: 9,
+      pin_value: 1,          // 1 = ON (HIGH), 0 = OFF (LOW)
+      pin_mode: 0            // 0 = digital, 1 = analog
+    });
 
-  // Go higher
-  await move(bot, x=seedX, y=seedY, z=-480)
+    // Go down to get seed
+    await move(bot, x=seedX, y=seedY, z=-530)
 
-  // Go to location of seeding
-  await move(bot, x=destX, y=destY, z=-480)
+    // Go higher
+    await move(bot, x=seedX, y=seedY, z=-480)
 
-  setJobStatus("seeding");
+    // Go to location of seeding
+    await move(bot, x=point.x, y=point.y, z=-480)
 
-  // Go down and seed
-  await move(bot, x=destX, y=destY, z=-550 - depth)
+    setJobStatus("seeding");
 
-  // Stop suction
-  await bot.writePin({
-    pin_number: 9,
-    pin_value: 0,          // 1 = ON (HIGH), 0 = OFF (LOW)
-    pin_mode: 0            // 0 = digital, 1 = analog
-  });
+    // Go down and seed
+    await move(bot, x=point.x, y=point.y, z=-550 - depth)
 
-  // Go up
-  await move(bot, x=destX, y=destY, z=-480)
+    // Stop suction
+    await bot.writePin({
+      pin_number: 9,
+      pin_value: 0,          // 1 = ON (HIGH), 0 = OFF (LOW)
+      pin_mode: 0            // 0 = digital, 1 = analog
+    });
 
-  const seed = new Seed({
-    seed_name: req.body.seed_name ? req.body.seed_name : "random_seed",
-    seeding_date: req.body.seeding_date ? req.body.seeding_date : Date.now(),
-    seedX: seedX,
-    seedY: seedY,
-    x: destX,
-    y: destY,
-    z: depth,
-  });
+    // Go up
+    await move(bot, x=point.x, y=point.y, z=-480)
 
-  setJobStatus("watering");
+    const seed = new Seed({
+      seed_name: req.body.seed_name ? req.body.seed_name : "random_seed",
+      seeding_date: req.body.seeding_date ? req.body.seeding_date : Date.now(),
+      seedX: seedX,
+      seedY: seedY,
+      x: point.x,
+      y: point.y,
+      z: depth,
+    });
 
-  // Turn on water (usually pin 8 for standard kits)
-  await bot.writePin({
-    pin_number: 8,
-    pin_value: 1,    // 1 = watering on, 0 = watering off
-    pin_mode: 0      // 0 = digital, 1 = analog
-  });
+    await seed.save();
 
-  await sleep(2000)
+  }
 
-  // Turn off water
-  await bot.writePin({
-    pin_number: 8,
-    pin_value: 0,    // 1 = watering on, 0 = watering off
-    pin_mode: 0      // 0 = digital, 1 = analog
-  });
+  for (let point of seedPoints) {
 
-  // // Wait 1 second and turn it off
-  // (async () => {
-  //   await bot.writePin({
-  //     pin_number: 8,
-  //     pin_value: 0,
-  //     pin_mode: 0
-  //   });
-  // }, 2000);
+    setJobStatus("watering");
 
-  await seed.save();
+    // Go to location of seeding
+    await move(bot, x=point.x, y=point.y, z=-480)
+
+    // Turn on water (usually pin 8 for standard kits)
+    await bot.writePin({
+      pin_number: 8,
+      pin_value: 1,    // 1 = watering on, 0 = watering off
+      pin_mode: 0      // 0 = digital, 1 = analog
+    });
+
+    await sleep(2000)
+
+    // Turn off water
+    await bot.writePin({
+      pin_number: 8,
+      pin_value: 0,    // 1 = watering on, 0 = watering off
+      pin_mode: 0      // 0 = digital, 1 = analog
+    });
+  }
 
   // Go to left of seeder position
   await move(bot, x=2500, y=245, z=-410)
@@ -141,7 +164,7 @@ router.post("/start", async (req, res) => {
   }, 3000);
 
   res.status(200).send({
-    "message": "Seed is planted successfully"
+    "message": "Seeds are planted successfully"
   })
 });
 
