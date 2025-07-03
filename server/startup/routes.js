@@ -12,6 +12,8 @@ const moveRelative = require("../routes/moveRelative");
 const humidityCheck = require("../routes/humidityCheck");
 const error = require("../middleware/error");
 const wateringJob = require('../routes/wateringJob');
+const occupiedAreas = require("../routes/occupied-areas");
+
 
 module.exports = function (app) {
   app.use(express.json());
@@ -29,4 +31,6 @@ module.exports = function (app) {
   app.use('/api/watering', wateringJob);
   app.use("*", notFound);
   app.use(error); // we just give reference to this error function
+  app.use("/api/seeds", occupiedAreas);
+
 };
