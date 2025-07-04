@@ -6,6 +6,7 @@ const farmbotConfig = require("../routes/farmbotConfig");
 const statusRoutes = require("../routes/statusRoutes");
 const seedingJob = require("../routes/seedingJob");
 const farmbotPosition = require("../services/farmbotPosition");
+const { handleScheduledSeedingJobs } = require("../services/handleScheduledSeedingJobs");
 const notFound = require("../routes/notFound");
 const moveFarmbot = require("../routes/moveFarmbot");
 const moveRelative = require("../routes/moveRelative");
@@ -29,6 +30,7 @@ module.exports = function (app) {
   app.use("/api/botConfig", farmbotConfig);
   app.use('/api/status', statusRoutes);
   app.use('/api/watering', wateringJob);
+  handleScheduledSeedingJobs()
   app.use("*", notFound);
   app.use(error); // we just give reference to this error function
   app.use("/api/seeds", occupiedAreas);

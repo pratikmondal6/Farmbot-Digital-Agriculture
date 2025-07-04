@@ -20,10 +20,10 @@ function findSeedPoints(plantDetails, topLeft, bottomRight) {
   if (dist == 0) {
     dist = 50
   }
-  xLeft = topLeft.x
-  xRight = bottomRight.x
-  yUp = topLeft.y
-  yDown = bottomRight.y
+  xLeft = parseInt(topLeft.x, 10)
+  xRight = parseInt(bottomRight.x, 10)
+  yUp = parseInt(topLeft.y, 10)
+  yDown = parseInt(bottomRight.y, 10)
 
   for (let y = yDown+(dist/2); y <= yUp-(dist/2); y += dist) {
     for (let x = xLeft+(dist/2); x <= xRight-(dist/2); x += dist) {
@@ -62,8 +62,13 @@ router.post("/start", async (req, res) => {
   // const destY = parseInt(req.body.y)
   const depth = parseInt(req.body.z)
 
+  console.log("http://localhost:5000/plant/details/" + req.body.seed_name)
+  console.log(req.body)
+
   let plantDetails = await axios.get("http://localhost:5000/plant/details/" + req.body.seed_name)
   plantDetails = plantDetails.data
+  console.log("Plant details:")
+  console.log(plantDetails)
   if (!plantDetails) {
     plantDetails = {minimal_distance: 100}
   }
@@ -253,7 +258,7 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-// Delete a seeding job
+// Delete a seed
 router.delete("/seed/:id", async (req, res) => {
   try {
     await Seed.findByIdAndDelete(req.params.id);
