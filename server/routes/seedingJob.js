@@ -74,7 +74,7 @@ router.post("/start", async (req, res) => {
   }
   const seedPoints = findSeedPoints(plantDetails, req.body.topLeft, req.body.bottomRight)
 
-  if (seedPoints == []) {
+  if (seedPoints.length == 0) {
     return res.status(204).send({message: "No point is calculated"})
   }
 
