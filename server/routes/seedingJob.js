@@ -17,6 +17,9 @@ function sleep(ms) {
 function findSeedPoints(plantDetails, topLeft, bottomRight) {
   points = []
   dist = plantDetails.minimal_distance
+  if (dist == 0) {
+    dist = 50
+  }
   xLeft = topLeft.x
   xRight = bottomRight.x
   yUp = topLeft.y
@@ -28,6 +31,8 @@ function findSeedPoints(plantDetails, topLeft, bottomRight) {
     }
   }
 
+  console.log("Points:")
+  console.log(points)
   return points
 }
 
@@ -40,12 +45,12 @@ router.post("/start", async (req, res) => {
     })
   }
 
-  if (req.body.x === undefined || req.body.y === undefined) {
-    return res.status(500).send({
-      "status": 500,
-      "message": "x and y is not sent in body"
-    })
-  }
+  // if (req.body.x === undefined || req.body.y === undefined) {
+  //   return res.status(500).send({
+  //     "status": 500,
+  //     "message": "x and y is not sent in body"
+  //   })
+  // }
 
   const token = req.headers["auth-token"];
   let bot = new Farmbot({ token: token });
@@ -57,7 +62,8 @@ router.post("/start", async (req, res) => {
   // const destY = parseInt(req.body.y)
   const depth = parseInt(req.body.z)
 
-  const plantDetails = await axios.get("http://localhost:5000/plant/details/" + req.body.seed_name)
+  let plantDetails = await axios.get("http://localhost:5000/plant/details/" + req.body.seed_name)
+  plantDetails = plantDetails.data
   if (!plantDetails) {
     plantDetails = {minimal_distance: 100}
   }
@@ -138,7 +144,7 @@ router.post("/start", async (req, res) => {
       pin_mode: 0      // 0 = digital, 1 = analog
     });
 
-    await sleep(2000)
+    await sleep(1500)
 
     // Turn off water
     await bot.writePin({

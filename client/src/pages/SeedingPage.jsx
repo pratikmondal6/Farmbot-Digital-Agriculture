@@ -38,8 +38,8 @@ const SeedingPage = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea, se
     try {
       let data = {
         seed_name: plant,
-        seedX: SeedX,
-        seedY: SeedY,
+        seedX: seedLocation.x,
+        seedY: seedLocation.y,
         z: 50,
         ...seedingAreaLocation,
       }
