@@ -74,6 +74,10 @@ router.post("/start", async (req, res) => {
   }
   const seedPoints = findSeedPoints(plantDetails, req.body.topLeft, req.body.bottomRight)
 
+  if (seedPoints == []) {
+    return res.status(204).send({message: "No point is calculated"})
+  }
+
   // Go to higher than seeder object
   await move(bot, x=2630, y=245, z=-395)
 
@@ -118,29 +122,7 @@ router.post("/start", async (req, res) => {
       pin_mode: 0            // 0 = digital, 1 = analog
     });
 
-    // Go up
-    await move(bot, x=point.x, y=point.y, z=-480)
-
-    const seed = new Seed({
-      seed_name: req.body.seed_name ? req.body.seed_name : "random_seed",
-      seeding_date: req.body.seeding_date ? req.body.seeding_date : Date.now(),
-      seedX: seedX,
-      seedY: seedY,
-      x: point.x,
-      y: point.y,
-      z: depth,
-    });
-
-    await seed.save();
-
-  }
-
-  for (let point of seedPoints) {
-
     setJobStatus("watering");
-
-    // Go to location of seeding
-    await move(bot, x=point.x, y=point.y, z=-480)
 
     // Turn on water (usually pin 8 for standard kits)
     await bot.writePin({
@@ -157,6 +139,24 @@ router.post("/start", async (req, res) => {
       pin_value: 0,    // 1 = watering on, 0 = watering off
       pin_mode: 0      // 0 = digital, 1 = analog
     });
+
+    // Go up
+    await move(bot, x=point.x, y=point.y, z=-480)
+
+    setJobStatus("saving the seed");
+
+    const seed = new Seed({
+      seed_name: req.body.seed_name ? req.body.seed_name : "random_seed",
+      seeding_date: req.body.seeding_date ? req.body.seeding_date : Date.now(),
+      seedX: seedX,
+      seedY: seedY,
+      x: point.x,
+      y: point.y,
+      z: depth,
+    });
+
+    await seed.save();
+
   }
 
   // Go to left of seeder position
