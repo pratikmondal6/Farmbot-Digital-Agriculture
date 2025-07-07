@@ -12,7 +12,7 @@ const handleScheduledSeedingJobs = async () => {
   const bot = new Farmbot({ token });
   bot.connect()
   while (true) {
-    const response = await axios.get('http://localhost:5000/seedingJob/seedingJobs');
+    const response = await axios.get('http://localhost:5001/seedingJob/seedingJobs');
     seedingJobs = response.data
     // console.log("Seeding jobs:")
     // console.log(seedingJobs)
@@ -27,7 +27,7 @@ const handleScheduledSeedingJobs = async () => {
         console.log("Seeding job to start:")
         console.log(seedingJob)
         await axios.post(
-          "http://localhost:5000/seedingJob/start",
+          "http://localhost:5001/seedingJob/start",
           { ...seedingJob },                 // <-- request body (data)
           {
             headers: {
@@ -35,7 +35,7 @@ const handleScheduledSeedingJobs = async () => {
             }
           }
         );
-        await axios.delete("http://localhost:5000/seedingJob/" + seedingJob._id, {
+        await axios.delete("http://localhost:5001/seedingJob/" + seedingJob._id, {
           headers: {
             "Auth-Token": token,
           }
