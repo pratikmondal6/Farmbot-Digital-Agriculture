@@ -108,10 +108,17 @@ const SoilHumidityPage = ({ seedLocation }) => {
 
   const fetchHumidityHistory = async () => {
     try {
-      const response = await api.get('/api/soilHumidity');
+      // Get the auth token
+      const token = localStorage.getItem('authToken');
+
+      // Set headers with auth token if available
+      const headers = token ? { 'auth-token': token } : {};
+
+      const response = await api.get('/api/soilHumidity', { headers });
       setHumidityHistory(response.data);
     } catch (err) {
       console.error('Failed to fetch humidity history:', err);
+      // Don't show error to user for this background operation
     }
   };
 
@@ -127,43 +134,32 @@ const SoilHumidityPage = ({ seedLocation }) => {
     setHumidityData(null);
 
     try {
-      // Step 1: Move to soil sensor approach position
-      await api.post('/move', { 
-        x: SOIL_SENSOR_X, 
-        y: SOIL_SENSOR_Y, 
-        z: SOIL_SENSOR_APPROACH_Z 
-      });
+      // Get the auth token - assuming it's stored in localStorage
+      const token = localStorage.getItem('authToken');
 
-      // Step 2: Move to soil sensor attach position
-      await api.post('/move', { 
-        x: SOIL_SENSOR_X, 
-        y: SOIL_SENSOR_Y, 
-        z: SOIL_SENSOR_ATTACH_Z 
-      });
+      if (!token) {
+        setError('Authentication token not found. Please log in again.');
+        setLoading(false);
+        setIsChecking(false);
+        return;
+      }
 
-      // Step 3: Wait 2 seconds
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Set headers with auth token
+      const headers = {
+        'auth-token': token
+      };
 
-      // Step 4: Move X to offset position (keeping Y and Z the same)
-      await api.post('/move', { 
-        x: SOIL_SENSOR_X_OFFSET, 
-        y: SOIL_SENSOR_Y, 
-        z: SOIL_SENSOR_ATTACH_Z 
-      });
+      // Use the new read-sensor endpoint that handles the entire sequence in one request
+      const response = await api.post('/api/soilHumidity/read-sensor', {
+        targetX: selectedLocation.x,
+        targetY: selectedLocation.y,
+        targetZ: SOIL_SENSOR_ATTACH_Z
+      }, { headers });
 
-      // Step 5: Move to selected location
-      await api.post('/move', { 
-        x: selectedLocation.x, 
-        y: selectedLocation.y, 
-        z: SOIL_SENSOR_ATTACH_Z 
-      });
-
-      // Step 6: Check humidity at selected location
-      const response = await api.post('/api/soilHumidity/check', {
-        x: selectedLocation.x,
-        y: selectedLocation.y,
-        z: SOIL_SENSOR_ATTACH_Z
-      });
+      // Check if there's a warning in the response
+      if (response.data.warning) {
+        setError(`Warning: ${response.data.warning}`);
+      }
 
       setHumidityData(response.data);
 
@@ -171,7 +167,12 @@ const SoilHumidityPage = ({ seedLocation }) => {
       fetchHumidityHistory();
 
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to check soil humidity. Please try again.');
+      console.error('Error checking humidity:', err);
+      setError(
+        err.response?.data?.error || 
+        err.response?.data?.message || 
+        'Failed to check soil humidity. Please try again.'
+      );
     } finally {
       setLoading(false);
       setIsChecking(false);

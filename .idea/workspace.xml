@@ -4,13 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5967244a-5a94-4068-b152-342f43b305a9" name="Changes" comment="button added">
+    <list default="true" id="5967244a-5a94-4068-b152-342f43b305a9" name="Changes" comment="humidity updated">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/components/Dashboard/Sidebar.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/components/Dashboard/Sidebar.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/pages/Dashboard.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/Dashboard.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/pages/HumidityCheckPage.jsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/routes/humidityCheck.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/startup/routes.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/startup/routes.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/pages/SoilHumidityPage.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/SoilHumidityPage.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/routes/soilHumidity.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/routes/soilHumidity.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -223,7 +220,7 @@
       <workItem from="1751591953840" duration="499000" />
       <workItem from="1751627572663" duration="5980000" />
       <workItem from="1751745589405" duration="2301000" />
-      <workItem from="1751879917333" duration="1998000" />
+      <workItem from="1751879917333" duration="2908000" />
     </task>
     <task id="LOCAL-00001" summary="logout button">
       <option name="closed" value="true" />
@@ -273,7 +270,23 @@
       <option name="project" value="LOCAL" />
       <updated>1751410999210</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="humidity updated">
+      <option name="closed" value="true" />
+      <created>1751882234782</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1751882234782</updated>
+    </task>
+    <task id="LOCAL-00008" summary="humidity updated">
+      <option name="closed" value="true" />
+      <created>1751882309442</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1751882309442</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -296,6 +309,7 @@
     <MESSAGE value="m" />
     <MESSAGE value="humidity sensor feature working" />
     <MESSAGE value="button added" />
-    <option name="LAST_COMMIT_MESSAGE" value="button added" />
+    <MESSAGE value="humidity updated" />
+    <option name="LAST_COMMIT_MESSAGE" value="humidity updated" />
   </component>
 </project>
