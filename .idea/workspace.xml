@@ -6,7 +6,10 @@
   <component name="ChangeListManager">
     <list default="true" id="5967244a-5a94-4068-b152-342f43b305a9" name="Changes" comment="humidity updated">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/components/FieldMap.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/components/FieldMap.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/pages/Dashboard.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/Dashboard.jsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/src/pages/SoilHumidityPage.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/SoilHumidityPage.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/styles/farmbot-dashboard.css" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/styles/farmbot-dashboard.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/routes/soilHumidity.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/routes/soilHumidity.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -110,7 +113,7 @@
       <recent name="D:\team-uni\server" />
     </key>
   </component>
-  <component name="RunManager" selected="Docker.Dockerfile">
+  <component name="RunManager" selected="npm.start">
     <configuration name="All Tests" type="JavaScriptTestRunnerJest" temporary="true" nameIsGenerated="true">
       <node-interpreter value="project" />
       <jest-package value="$PROJECT_DIR$/node_modules/jest" />
@@ -170,8 +173,8 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Docker.Dockerfile" />
         <item itemvalue="npm.start" />
+        <item itemvalue="Docker.Dockerfile" />
         <item itemvalue="Jest.seedistance.test.js" />
         <item itemvalue="Jest.All Tests" />
         <item itemvalue="npm.test" />
@@ -220,7 +223,8 @@
       <workItem from="1751591953840" duration="499000" />
       <workItem from="1751627572663" duration="5980000" />
       <workItem from="1751745589405" duration="2301000" />
-      <workItem from="1751879917333" duration="2908000" />
+      <workItem from="1751879917333" duration="6355000" />
+      <workItem from="1751891077296" duration="4202000" />
     </task>
     <task id="LOCAL-00001" summary="logout button">
       <option name="closed" value="true" />
@@ -286,7 +290,15 @@
       <option name="project" value="LOCAL" />
       <updated>1751882309442</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="humidity updated">
+      <option name="closed" value="true" />
+      <created>1751882978519</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1751882978519</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

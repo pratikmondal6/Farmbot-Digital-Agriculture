@@ -10,7 +10,7 @@ const containerHeight = 750;
 const radius = 10;
 const margin = 2;
 
-const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, selectArea = false, onElementClick}) => {
+const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, selectArea = false, onElementClick, activeComponent}) => {
     const gridSpacing = 60;
     const [hoverPoint, setHoverPoint] = useState(null);
     const [selectedPoint, setSelectedPoint] = useState(null);
@@ -438,24 +438,90 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
 
     const handleMove = async (xNew, yNew, zNew) => {
         console.log(`Moving to position (${xNew}, ${yNew}, ${zNew})`);
+        console.log(`Active component: ${activeComponent}`);
         setSelectedPoint(null);
 
         try {
-            await instance.post('/move', {
-                x: xNew,
-                y: yNew,
-                z: -zNew
-            });
+            // If we're in the soil humidity page, first navigate to the soil sensor
+            if (activeComponent === "soilHumidityPage") {
+                console.log("In soil humidity page, first navigating to soil sensor");
 
-            // Set target position after successful API call
-            setTargetPosition({
-                x: xNew,
-                y: yNew,
-                z: zNew,
-            });
+                // Constants for soil sensor location
+                const SOIL_SENSOR_X = 2630;
+                const SOIL_SENSOR_Y = 350;
+                const SOIL_SENSOR_APPROACH_Z = -350;
+
+                try {
+                    // Get the auth token
+                    const token = sessionStorage.getItem('token');
+                    if (!token) {
+                        console.error('Authentication token not found');
+                        return;
+                    }
+
+                    console.log('Making request to /api/soilHumidity/read-sensor with target coordinates:', {
+                        targetX: xNew,
+                        targetY: yNew,
+                        targetZ: -zNew
+                    });
+
+                    // First move to the soil sensor and then to the target
+                    const response = await instance.post('/api/soilHumidity/read-sensor', {
+                        targetX: xNew,
+                        targetY: yNew,
+                        targetZ: -zNew
+                    }, {
+                        headers: {
+                            'auth-token': token
+                        }
+                    });
+
+                    console.log('Response from /api/soilHumidity/read-sensor:', response.data);
+
+                    // Update target position after the complete movement sequence
+                    setTargetPosition({
+                        x: xNew,
+                        y: yNew,
+                        z: zNew,
+                    });
+                } catch (sensorError) {
+                    console.error('Error in soil humidity sensor movement sequence:', sensorError);
+                    console.error('Error details:', sensorError.response ? sensorError.response.data : 'No response data');
+
+                    // Fallback to direct movement if the sensor sequence fails
+                    console.log('Falling back to direct movement');
+                    await instance.post('/move', {
+                        x: xNew,
+                        y: yNew,
+                        z: -zNew
+                    });
+
+                    setTargetPosition({
+                        x: xNew,
+                        y: yNew,
+                        z: zNew,
+                    });
+                }
+            } else {
+                // For other pages, just move directly to the target
+                console.log('Moving directly to target (not in soil humidity page)');
+                await instance.post('/move', {
+                    x: xNew,
+                    y: yNew,
+                    z: -zNew
+                });
+
+                // Set target position after successful API call
+                setTargetPosition({
+                    x: xNew,
+                    y: yNew,
+                    z: zNew,
+                });
+            }
             setSelectedPoint(null);
         } catch (error) {
             console.error('Error moving robot:', error);
+            console.error('Error details:', error.response ? error.response.data : 'No response data');
         }
     };
 

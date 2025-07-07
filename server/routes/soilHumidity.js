@@ -18,7 +18,12 @@ const SoilHumidity = mongoose.models.SoilHumidity || mongoose.model("SoilHumidit
 
 // Helper function to move the bot
 const move = async (bot, x, y, z) => {
-  await bot.moveAbsolute({ x: x, y: y, z: z, speed: 100 });
+  // Ensure coordinates are numbers
+  const xNum = Number(x);
+  const yNum = Number(y);
+  const zNum = Number(z);
+  console.log(`Moving to coordinates: x=${xNum}, y=${yNum}, z=${zNum}`);
+  await bot.moveAbsolute({ x: xNum, y: yNum, z: zNum, speed: 100 });
 }
 
 // Helper function to sleep
@@ -68,14 +73,23 @@ router.post("/read-sensor", async (req, res) => {
       const SOIL_SENSOR_Y = 350;
       const SOIL_SENSOR_APPROACH_Z = -350;
       const SOIL_SENSOR_ATTACH_Z = -410;
-      const SOIL_SENSOR_X_OFFSET = 2580;
+      const SOIL_SENSOR_X_OFFSET = 2560;
       const SOIL_SENSOR_PIN = 59; // Analog pin for soil moisture sensor
 
       // Step 1: Move to soil sensor approach position
       await move(bot, SOIL_SENSOR_X, SOIL_SENSOR_Y, SOIL_SENSOR_APPROACH_Z);
 
       // Step 2: Move to soil sensor attach position
-      await move(bot, SOIL_SENSOR_X, SOIL_SENSOR_Y, SOIL_SENSOR_ATTACH_Z);
+      try {
+        console.log("Attempting to move to soil sensor attach position...");
+        await move(bot, SOIL_SENSOR_X, SOIL_SENSOR_Y, SOIL_SENSOR_ATTACH_Z);
+        console.log("Successfully moved to soil sensor attach position");
+      } catch (attachError) {
+        console.error("Error moving to soil sensor attach position:", attachError);
+        // Try with a slightly different Z coordinate if the exact one fails
+        console.log("Trying with adjusted Z coordinate...");
+        await move(bot, SOIL_SENSOR_X, SOIL_SENSOR_Y, -400);
+      }
 
       // Step 3: Wait for the bot to stabilize
       await sleep(2000);
@@ -86,11 +100,31 @@ router.post("/read-sensor", async (req, res) => {
       setJobStatus("moving to target position");
 
       // Step 5: Move to target location
-      await move(bot, targetX, targetY, targetZ);
+      try {
+        console.log("Attempting to move to target location...");
+        await move(bot, targetX, targetY, targetZ);
+        console.log("Successfully moved to target location");
+      } catch (targetError) {
+        console.error("Error moving to target location:", targetError);
+        // Try with a slightly adjusted Z coordinate if the exact one fails
+        console.log("Trying with adjusted Z coordinate for target location...");
+        const adjustedZ = Number(targetZ) + 10; // Try 10mm higher
+        await move(bot, targetX, targetY, adjustedZ);
+      }
+
+      // Step 6: Change depth to -530 after reaching the target location
+      try {
+        console.log("Changing depth to -530...");
+        await move(bot, targetX, targetY, -530);
+        console.log("Successfully changed depth to -530");
+      } catch (depthError) {
+        console.error("Error changing depth to -530:", depthError);
+        // Continue with the process even if changing depth fails
+      }
 
       setJobStatus("reading soil humidity");
 
-      // Step 6: Read from the soil humidity sensor
+      // Step 7: Read from the soil humidity sensor
       const pinReadResult = await bot.readPin({
         pin_number: SOIL_SENSOR_PIN,
         pin_mode: 1 // 1 = analog
@@ -98,9 +132,12 @@ router.post("/read-sensor", async (req, res) => {
 
       // Convert the raw sensor value to a humidity percentage
       const rawValue = pinReadResult.value || 0;
-      const humidity = Math.round(100 - (rawValue / 1023 * 100));
+      // Display the actual raw value from the sensor (0-1023)
+      console.log("Raw sensor value:", rawValue);
+      // Calculate humidity percentage - lower values mean wetter soil, higher values mean drier soil
+      const humidity = Math.round((1023 - rawValue) / 1023 * 100);
 
-      // Step 7: Move back to a safe position
+      // Step 8: Move back to a safe position
       await move(bot, targetX, targetY, targetZ + 50);
 
       setJobStatus("Finished");
@@ -129,10 +166,12 @@ router.post("/read-sensor", async (req, res) => {
       });
     } catch (botError) {
       console.error("Farmbot error:", botError);
+      console.error("Error details:", JSON.stringify(botError, null, 2));
       setJobStatus("error");
 
       // If there's an error with the Farmbot, fall back to a simulated reading
-      const humidity = Math.floor(Math.random() * 41) + 30; // Random value between 30-70%
+      // Generate a random percentage value between 0-100%
+      const humidity = Math.floor(Math.random() * 101); // Random value between 0-100
 
       // Create a new soil humidity record with simulated data
       const newRecord = new SoilHumidity({
@@ -204,10 +243,12 @@ router.post("/check", async (req, res) => {
       });
 
       // Convert the raw sensor value to a humidity percentage (0-100%)
-      // Assuming sensor gives values between 0-1023, where 0 is wet and 1023 is dry
-      // Adjust this conversion based on your specific sensor characteristics
+      // Assuming sensor gives values between 0-1023
+      // Display the actual raw value from the sensor
       const rawValue = pinReadResult.value || 0;
-      const humidity = Math.round(100 - (rawValue / 1023 * 100));
+      console.log("Raw sensor value:", rawValue);
+      // Calculate humidity percentage - lower values mean wetter soil, higher values mean drier soil
+      const humidity = Math.round((1023 - rawValue) / 1023 * 100);
 
       // Move the bot back to a safe position
       await move(bot, x, y, z + 50); // Move up 50mm from the current position
@@ -241,7 +282,8 @@ router.post("/check", async (req, res) => {
       setJobStatus("error");
 
       // If there's an error with the Farmbot, fall back to a simulated reading
-      const humidity = Math.floor(Math.random() * 41) + 30; // Random value between 30-70%
+      // Generate a random percentage value between 0-100%
+      const humidity = Math.floor(Math.random() * 101); // Random value between 0-100
 
       // Create a new soil humidity record with simulated data
       const newRecord = new SoilHumidity({

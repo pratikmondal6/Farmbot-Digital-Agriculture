@@ -1,90 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import api from '../utils/api';
-import { FaWater, FaMapMarkerAlt, FaInfoCircle, FaClipboardList, FaRegLightbulb } from 'react-icons/fa';
-import { GiEarthSpit, GiWaterDrop } from 'react-icons/gi';
+import { FaWater, FaMapMarkerAlt, FaInfoCircle, FaTint } from 'react-icons/fa';
+import { GiEarthSpit } from 'react-icons/gi';
+import { WiHumidity } from 'react-icons/wi';
 
-// CSS styles for the component
-const styles = {
-  emptyHistoryContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '2rem',
-    backgroundColor: '#f9fafb',
-    borderRadius: '8px',
-    textAlign: 'center',
-    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-    margin: '1rem 0'
-  },
-  emptyHistoryIcon: {
-    marginBottom: '1rem',
-    backgroundColor: '#e0f2fe',
-    borderRadius: '50%',
-    width: '80px',
-    height: '80px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  emptyHistoryTitle: {
-    fontSize: '1.5rem',
-    fontWeight: 'bold',
-    color: '#1e40af',
-    margin: '0.5rem 0'
-  },
-  emptyHistoryMessage: {
-    color: '#4b5563',
-    marginBottom: '1.5rem',
-    maxWidth: '500px'
-  },
-  emptyHistoryTips: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '0.75rem',
-    backgroundColor: '#fff',
-    padding: '1rem',
-    borderRadius: '6px',
-    border: '1px solid #e5e7eb',
-    width: '100%',
-    maxWidth: '500px',
-    marginBottom: '1.5rem'
-  },
-  tip: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.75rem',
-    textAlign: 'left'
-  },
-  tipIcon: {
-    color: '#3b82f6',
-    minWidth: '20px'
-  },
-  emptyHistoryNote: {
-    display: 'flex',
-    alignItems: 'flex-start',
-    gap: '0.75rem',
-    backgroundColor: '#fffbeb',
-    padding: '1rem',
-    borderRadius: '6px',
-    border: '1px solid #fef3c7',
-    width: '100%',
-    maxWidth: '500px',
-    textAlign: 'left'
-  },
-  noteIcon: {
-    color: '#d97706',
-    marginTop: '3px',
-    minWidth: '20px'
-  }
-};
+// Component for soil humidity checking
 
 const SoilHumidityPage = ({ seedLocation }) => {
   const [isChecking, setIsChecking] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [humidityData, setHumidityData] = useState(null);
-  const [humidityHistory, setHumidityHistory] = useState([]);
   const [selectedLocation, setSelectedLocation] = useState(null);
 
   // Constants for soil sensor location
@@ -101,27 +27,6 @@ const SoilHumidityPage = ({ seedLocation }) => {
     }
   }, [seedLocation]);
 
-  useEffect(() => {
-    // Fetch humidity history when component mounts
-    fetchHumidityHistory();
-  }, []);
-
-  const fetchHumidityHistory = async () => {
-    try {
-      // Get the auth token
-      const token = localStorage.getItem('authToken');
-
-      // Set headers with auth token if available
-      const headers = token ? { 'auth-token': token } : {};
-
-      const response = await api.get('/api/soilHumidity', { headers });
-      setHumidityHistory(response.data);
-    } catch (err) {
-      console.error('Failed to fetch humidity history:', err);
-      // Don't show error to user for this background operation
-    }
-  };
-
   const handleCheckHumidity = async () => {
     if (!selectedLocation) {
       setError('Please select a location on the field map first.');
@@ -134,8 +39,8 @@ const SoilHumidityPage = ({ seedLocation }) => {
     setHumidityData(null);
 
     try {
-      // Get the auth token - assuming it's stored in localStorage
-      const token = localStorage.getItem('authToken');
+      // Get the auth token - assuming it's stored in sessionStorage
+      const token = sessionStorage.getItem('token');
 
       if (!token) {
         setError('Authentication token not found. Please log in again.');
@@ -163,9 +68,6 @@ const SoilHumidityPage = ({ seedLocation }) => {
 
       setHumidityData(response.data);
 
-      // Refresh humidity history
-      fetchHumidityHistory();
-
     } catch (err) {
       console.error('Error checking humidity:', err);
       setError(
@@ -179,107 +81,273 @@ const SoilHumidityPage = ({ seedLocation }) => {
     }
   };
 
+  // New styles for enhanced UI
+  const enhancedStyles = {
+    container: {
+      maxWidth: '800px',
+      margin: '0 auto',
+      padding: '2rem',
+      backgroundColor: '#f8fafc',
+      borderRadius: '12px',
+      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+    },
+    header: {
+      display: 'flex',
+      alignItems: 'center',
+      marginBottom: '2rem',
+      borderBottom: '2px solid #e2e8f0',
+      paddingBottom: '1rem',
+    },
+    headerIcon: {
+      fontSize: '2rem',
+      color: '#3b82f6',
+      marginRight: '1rem',
+    },
+    headerTitle: {
+      fontSize: '1.8rem',
+      fontWeight: 'bold',
+      color: '#1e40af',
+      margin: 0,
+    },
+    panel: {
+      backgroundColor: 'white',
+      borderRadius: '8px',
+      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)',
+      overflow: 'hidden',
+    },
+    panelHeader: {
+      backgroundColor: '#3b82f6',
+      color: 'white',
+      padding: '1rem',
+      fontWeight: 'bold',
+      fontSize: '1.2rem',
+    },
+    panelContent: {
+      padding: '1.5rem',
+    },
+    locationContainer: {
+      display: 'flex',
+      alignItems: 'center',
+      backgroundColor: '#f1f5f9',
+      padding: '1rem',
+      borderRadius: '6px',
+      marginBottom: '1.5rem',
+    },
+    locationIcon: {
+      color: '#f97316',
+      fontSize: '1.5rem',
+      marginRight: '0.75rem',
+    },
+    locationText: {
+      margin: 0,
+      fontWeight: 'bold',
+    },
+    locationCoords: {
+      margin: '0.5rem 0 0 0',
+      color: '#64748b',
+    },
+    noLocationText: {
+      color: '#94a3b8',
+      fontStyle: 'italic',
+      margin: '0 0 1.5rem 0',
+    },
+    button: {
+      backgroundColor: '#3b82f6',
+      color: 'white',
+      border: 'none',
+      padding: '0.75rem 1.5rem',
+      borderRadius: '6px',
+      fontWeight: 'bold',
+      cursor: 'pointer',
+      transition: 'background-color 0.2s',
+      width: '100%',
+      fontSize: '1rem',
+      marginBottom: '1.5rem',
+    },
+    buttonHover: {
+      backgroundColor: '#2563eb',
+    },
+    buttonDisabled: {
+      backgroundColor: '#94a3b8',
+      cursor: 'not-allowed',
+    },
+    errorMessage: {
+      backgroundColor: '#fee2e2',
+      color: '#b91c1c',
+      padding: '0.75rem',
+      borderRadius: '6px',
+      marginBottom: '1.5rem',
+      display: 'flex',
+      alignItems: 'center',
+    },
+    errorIcon: {
+      marginRight: '0.5rem',
+      color: '#ef4444',
+    },
+    humidityResult: {
+      backgroundColor: '#f0f9ff',
+      borderRadius: '8px',
+      padding: '1.5rem',
+      border: '1px solid #bae6fd',
+    },
+    humidityHeader: {
+      display: 'flex',
+      alignItems: 'center',
+      marginBottom: '1rem',
+      color: '#0369a1',
+      fontWeight: 'bold',
+      fontSize: '1.2rem',
+    },
+    humidityIcon: {
+      marginRight: '0.75rem',
+      fontSize: '1.5rem',
+      color: '#0ea5e9',
+    },
+    humidityValue: {
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      marginBottom: '1rem',
+    },
+    percentageDisplay: {
+      fontSize: '3rem',
+      fontWeight: 'bold',
+      color: '#0369a1',
+      margin: '0.5rem 0',
+    },
+    moistureLevel: {
+      padding: '0.5rem 1rem',
+      borderRadius: '20px',
+      fontWeight: 'bold',
+      marginBottom: '1rem',
+      textAlign: 'center',
+      width: 'fit-content',
+      margin: '0 auto',
+    },
+    timestamp: {
+      color: '#64748b',
+      fontSize: '0.9rem',
+      textAlign: 'center',
+      marginTop: '1rem',
+    },
+  };
+
+  // Function to get moisture level style based on humidity percentage
+  const getMoistureLevelStyle = (humidity) => {
+    if (humidity >= 80) {
+      return {
+        backgroundColor: '#dcfce7',
+        color: '#166534',
+        border: '1px solid #86efac',
+      };
+    } else if (humidity >= 60) {
+      return {
+        backgroundColor: '#d1fae5',
+        color: '#065f46',
+        border: '1px solid #6ee7b7',
+      };
+    } else if (humidity >= 40) {
+      return {
+        backgroundColor: '#ecfccb',
+        color: '#3f6212',
+        border: '1px solid #bef264',
+      };
+    } else if (humidity >= 20) {
+      return {
+        backgroundColor: '#fef9c3',
+        color: '#854d0e',
+        border: '1px solid #fde047',
+      };
+    } else {
+      return {
+        backgroundColor: '#fee2e2',
+        color: '#b91c1c',
+        border: '1px solid #fca5a5',
+      };
+    }
+  };
+
+  // Function to get moisture level text based on humidity percentage
+  const getMoistureLevelText = (humidity) => {
+    if (humidity >= 80) return 'Very Wet';
+    if (humidity >= 60) return 'Wet';
+    if (humidity >= 40) return 'Moist';
+    if (humidity >= 20) return 'Dry';
+    return 'Very Dry';
+  };
+
   return (
-    <div className="soil-humidity-page">
-      <div className="soil-humidity-header">
-        <h2><GiEarthSpit /> Soil Humidity Check</h2>
+    <div style={enhancedStyles.container}>
+      <div style={enhancedStyles.header}>
+        <GiEarthSpit style={enhancedStyles.headerIcon} />
+        <h2 style={enhancedStyles.headerTitle}>Soil Humidity Check</h2>
       </div>
 
-      <div className="soil-humidity-content">
-        <div className="soil-humidity-panel">
-          <div className="panel-header">
-            <h3>Check Soil Humidity</h3>
-          </div>
-
-          <div className="panel-content">
-            {selectedLocation ? (
-              <div className="selected-location">
-                <h4><FaMapMarkerAlt /> Selected Location</h4>
-                <p>X: {selectedLocation.x}, Y: {selectedLocation.y}</p>
-              </div>
-            ) : (
-              <div className="no-location">
-                <p>Please select a location on the field map.</p>
-              </div>
-            )}
-
-            <button 
-              className="check-humidity-btn"
-              onClick={handleCheckHumidity}
-              disabled={loading || !selectedLocation}
-            >
-              {loading ? 'Checking...' : 'Check Humidity'}
-            </button>
-
-            {error && <div className="error-message">{error}</div>}
-
-            {humidityData && (
-              <div className="humidity-result">
-                <h4><FaWater /> Humidity Result</h4>
-                <p className="humidity-value">{humidityData.humidity}%</p>
-                <p className="humidity-timestamp">
-                  Checked at: {new Date(humidityData.timestamp).toLocaleString()}
-                </p>
-              </div>
-            )}
-          </div>
+      <div style={enhancedStyles.panel}>
+        <div style={enhancedStyles.panelHeader}>
+          <h3 style={{ margin: 0 }}>Check Soil Humidity</h3>
         </div>
 
-        <div className="humidity-history-panel">
-          <div className="panel-header">
-            <h3>Humidity History</h3>
-          </div>
+        <div style={enhancedStyles.panelContent}>
+          {selectedLocation ? (
+            <div style={enhancedStyles.locationContainer}>
+              <FaMapMarkerAlt style={enhancedStyles.locationIcon} />
+              <div>
+                <p style={enhancedStyles.locationText}>Selected Location</p>
+                <p style={enhancedStyles.locationCoords}>X: {selectedLocation.x}, Y: {selectedLocation.y}</p>
+              </div>
+            </div>
+          ) : (
+            <div style={enhancedStyles.noLocationText}>
+              <p>Please select a location on the field map.</p>
+            </div>
+          )}
 
-          <div className="panel-content">
-            {humidityHistory.length > 0 ? (
-              <table className="humidity-table">
-                <thead>
-                  <tr>
-                    <th>Location</th>
-                    <th>Humidity</th>
-                    <th>Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {humidityHistory.map((record, index) => (
-                    <tr key={index}>
-                      <td>X: {record.x}, Y: {record.y}</td>
-                      <td>{record.humidity}%</td>
-                      <td>{new Date(record.timestamp).toLocaleString()}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <div style={styles.emptyHistoryContainer}>
-                <div style={styles.emptyHistoryIcon}>
-                  <GiWaterDrop size={50} color="#3b82f6" />
-                </div>
-                <h4 style={styles.emptyHistoryTitle}>No Humidity Records Found</h4>
-                <p style={styles.emptyHistoryMessage}>
-                  You haven't checked soil humidity yet. Start by selecting a location on the field map and clicking the "Check Humidity" button.
-                </p>
-                <div style={styles.emptyHistoryTips}>
-                  <div style={styles.tip}>
-                    <FaMapMarkerAlt style={styles.tipIcon} size={18} />
-                    <span>Select a location on the map</span>
-                  </div>
-                  <div style={styles.tip}>
-                    <FaWater style={styles.tipIcon} size={18} />
-                    <span>Click "Check Humidity" to measure soil moisture</span>
-                  </div>
-                  <div style={styles.tip}>
-                    <FaClipboardList style={styles.tipIcon} size={18} />
-                    <span>View your results in the history table</span>
-                  </div>
-                </div>
-                <div style={styles.emptyHistoryNote}>
-                  <FaRegLightbulb style={styles.noteIcon} size={18} />
-                  <p>Regular soil humidity checks help optimize watering schedules and improve plant health.</p>
+          <button 
+            style={{
+              ...enhancedStyles.button,
+              ...(loading || !selectedLocation ? enhancedStyles.buttonDisabled : {}),
+              ':hover': enhancedStyles.buttonHover
+            }}
+            onClick={handleCheckHumidity}
+            disabled={loading || !selectedLocation}
+          >
+            {loading ? 'Checking...' : 'Check Humidity'}
+          </button>
+
+          {error && (
+            <div style={enhancedStyles.errorMessage}>
+              <FaInfoCircle style={enhancedStyles.errorIcon} />
+              {error}
+            </div>
+          )}
+
+          {humidityData && (
+            <div style={enhancedStyles.humidityResult}>
+              <div style={enhancedStyles.humidityHeader}>
+                <WiHumidity style={enhancedStyles.humidityIcon} />
+                <span>Soil Moisture at Selected Location</span>
+              </div>
+
+              <div style={enhancedStyles.humidityValue}>
+                <span style={enhancedStyles.percentageDisplay}>
+                  {humidityData.humidity}%
+                </span>
+                <div 
+                  style={{
+                    ...enhancedStyles.moistureLevel,
+                    ...getMoistureLevelStyle(humidityData.humidity)
+                  }}
+                >
+                  {getMoistureLevelText(humidityData.humidity)}
                 </div>
               </div>
-            )}
-          </div>
+
+              <p style={enhancedStyles.timestamp}>
+                Checked at: {new Date(humidityData.timestamp).toLocaleString()}
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>
