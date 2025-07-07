@@ -35,25 +35,32 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ message: "Another seed is already scheduled to be watered at this date and time. Only one seed can be watered at a time." });
     }
 
-    // 3. Check: No other job exists for the same plant at any time
-    for (const plantType of plantTypes) {
-      const alreadyScheduled = await WateringJob.findOne({ plantType });
+    // 3. Check: No other job exists for the same seed location at any time
+    const positions = await SeedingJob.find({ seed_name: { $in: plantTypes } });
+    for (const plant of positions) {
+      const alreadyScheduled = await WateringJob.findOne({ x: plant.x, y: plant.y });
       if (alreadyScheduled) {
-        return res.status(400).json({ message: `Seed "${plantType}" already has a watering job scheduled. Edit job in calender to change.` });
+        return res.status(400).json({ message: `Seed at (${plant.x}, ${plant.y}) already has a watering job scheduled. Edit job in calendar to change.` });
       }
     }
 
-    // Get x/y for each plantType from SeedingJob
-    const positions = await SeedingJob.find({ seed_name: { $in: plantTypes } });
-    const jobs = positions.map(plant => ({
-      plantType: plant.seed_name,
-      x: plant.x,
-      y: plant.y,
-      z,
-      waterAmount: waterAmounts[plant.seed_name],
-      date,
-      interval,
-    }));
+    // 4. Schedule each seed with a +2min offset
+    let jobs = [];
+    let offsetMinutes = 0;
+    for (const plant of positions) {
+      const scheduledDate = new Date(requestedDate.getTime() + offsetMinutes * 60000); // 60000 ms = 1 min
+      jobs.push({
+        plantType: plant.seed_name,
+        x: plant.x,
+        y: plant.y,
+        z,
+        waterAmount: waterAmounts[plant.seed_name],
+        date: scheduledDate,
+        interval,
+      });
+      offsetMinutes += 2; // increment by 2 minutes for each seed
+    }
+
     const created = await WateringJob.insertMany(jobs);
     res.status(201).json(created);
   } catch (err) {
