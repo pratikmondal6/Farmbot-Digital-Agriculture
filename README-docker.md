@@ -15,10 +15,10 @@ EasyFarm is a simple full-stack farming management application with a Node.js ba
     ```
 4. **Run the Docker container**:
     ```bash
-    docker run -p 3000:3000 -p 5000:5000 easy-farm
+    docker run -p 3000:3000 -p 5001:5001 easy-farm
     ```
     - React frontend: [http://localhost:3000](http://localhost:3000)
-    - Node.js backend: [http://localhost:5000](http://localhost:5000)
+    - Node.js backend: [http://localhost:5001](http://localhost:5001)
 
 ### Build and run with docker-compose (Alternative method)
 
@@ -32,17 +32,17 @@ EasyFarm is a simple full-stack farming management application with a Node.js ba
   ```
 ## 🏗️ Ports
 - **3000**: React frontend (served with `serve`)
-- **5000**: Node.js backend
+- **5001**: Node.js backend
 
 ## 📁 Project Structure
 /client – React frontend  
 /server – Node.js backend  
 Dockerfile – Docker build configuration
 
-**Stop and remove any container using port 3000 or 5000  (Optional, only needed if there is conflicts & you want to clean up existing ports)**
+**Stop and remove any container using port 3000 or 5001  (Optional, only needed if there is conflicts & you want to clean up existing ports)**
 ```bash
 ```powershell
 docker ps -q --filter "publish=3000" | ForEach-Object { docker stop $_; docker rm $_ }; `
-docker ps -q --filter "publish=5000" | ForEach-Object { docker stop $_; docker rm $_ }; `
+docker ps -q --filter "publish=5001" | ForEach-Object { docker stop $_; docker rm $_ }; `
 
 

@@ -25,7 +25,7 @@ const LoginPage = ({setIsLoggedIn}) => {
     setLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:5000/login', {
+      const response = await axios.post('http://localhost:5001/login', {
         email,
         password,
       });

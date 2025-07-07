@@ -6,7 +6,7 @@ const config = require('config');
 const routes = require('./startup/routes');
 const plantRoutes = require('./routes/plantRoutes');
 const seedistanceRoutes = require('./routes/seedistance');
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 5001;
 
 
 app.use(cors());
