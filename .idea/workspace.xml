@@ -4,14 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5967244a-5a94-4068-b152-342f43b305a9" name="Changes" comment="humidity updated">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/components/FieldMap.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/components/FieldMap.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/pages/Dashboard.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/Dashboard.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/pages/SoilHumidityPage.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/SoilHumidityPage.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/styles/farmbot-dashboard.css" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/styles/farmbot-dashboard.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/routes/soilHumidity.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/routes/soilHumidity.js" afterDir="false" />
-    </list>
+    <list default="true" id="5967244a-5a94-4068-b152-342f43b305a9" name="Changes" comment="humidity updated" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -224,7 +217,7 @@
       <workItem from="1751627572663" duration="5980000" />
       <workItem from="1751745589405" duration="2301000" />
       <workItem from="1751879917333" duration="6355000" />
-      <workItem from="1751891077296" duration="4202000" />
+      <workItem from="1751891077296" duration="4524000" />
     </task>
     <task id="LOCAL-00001" summary="logout button">
       <option name="closed" value="true" />
@@ -298,7 +291,15 @@
       <option name="project" value="LOCAL" />
       <updated>1751882978519</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="humidity updated">
+      <option name="closed" value="true" />
+      <created>1751895416149</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1751895416149</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
