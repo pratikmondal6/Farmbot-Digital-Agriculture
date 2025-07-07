@@ -11,3 +11,5 @@ node_modules/
 
 # Ignore IntelliJ IDEA project files
 .idea/
+/.idea
+.idea/workspace.xml
