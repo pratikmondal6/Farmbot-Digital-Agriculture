@@ -5,6 +5,7 @@ import instance from "../utils/api";
 let scaleX = 0;
 let scaleY = 0;
 
+
 const containerWidth = 1200;
 const containerHeight = 750;
 const radius = 10;
@@ -12,6 +13,7 @@ const margin = 2;
 
 const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, selectArea = false, onElementClick}) => {
     const gridSpacing = 60;
+    const [showSafetyCircles, setShowSafetyCircles] = useState(true);
     const [hoverPoint, setHoverPoint] = useState(null);
     const [selectedPoint, setSelectedPoint] = useState(null);
     const [currentPosition, setCurrentPosition] = useState({x: 0, y: 0});
@@ -270,20 +272,36 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
         };
     }, []);
 
-    // Fetch Seed Locations
-    const fetchSeedLocations = async () => {
-        try {
-            const response = await instance.get('/seedingJob/seeds');
-            const seedLocations = response.data;
+                    // Fetch Seed Locations
+                    const fetchSeedLocations = async () => {
+                    try {
+                        const response = await instance.get('/seedingJob/seeds');
+                        const seedLocations = response.data;
 
-            return seedLocations.map(seed => ({
-                ...seed,
-                color: "#6d2ccf",
-            }));
-        } catch (error) {
-            console.error('Error fetching seed locations:', error);
-        }
-    }
+                        const seedsWithDetails = await Promise.all(seedLocations.map(async (seed) => {
+                            try {
+                                const detailRes = await instance.get(`/plant/details/${seed.seed_name}`);
+                                return {
+                                    ...seed,
+                                    min_distance: detailRes.data.minimal_distance,
+                                    color: "#6d2ccf"
+                                };
+                            } catch (error) {
+                                console.error(`Fehler beim Laden von Details für ${seed.seed_name}:`, error);
+                                return {
+                                    ...seed,
+                                    min_distance: 100, // fallback
+                                    color: "#6d2ccf"
+                                };
+                            }
+                        }));
+
+                        return seedsWithDetails;
+                    } catch (error) {
+                        console.error('Error fetching seed locations:', error);
+                        return [];
+                    }
+                };
 
     useEffect(() => {
         const loadSeedLocations = async () => {
@@ -503,6 +521,19 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
 
     return (
         <div className="field-map-container">
+            <button
+            onClick={() => setShowSafetyCircles(prev => !prev)}
+            style={{
+                marginBottom: "20px",
+                padding: "6px 12px",
+                borderRadius: "6px",
+                border: "1px solid #aaa",
+                backgroundColor: "#f3f3f3",
+                cursor: "pointer"
+            }}
+        >
+            {showSafetyCircles ? "Radius off" : "Radius on"}
+        </button>
             <svg
                 width={containerWidth + (2 * marginPx)}
                 height={containerHeight + (2 * marginPx)}
@@ -583,6 +614,20 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
                 {/* Render planted seeds */}
                 {plantedSeeds.map((seed, index) => (
                     <g key={`seed-${index}`}>
+                            {/* Sicherheitskreis (nur wenn min_distance vorhanden) */}
+                            {showSafetyCircles && seed.min_distance && parseFloat(seed.min_distance) > 0 && (
+                            <circle
+                                cx={parseInt(seed.x) * scaleX}
+                                cy={containerHeight - (parseInt(seed.y) * scaleY)}
+                                r={parseFloat(seed.min_distance) * scaleX}
+                                fill="none"
+                                stroke="red"
+                                strokeDasharray="4,2"
+                                strokeWidth="1"
+                            />
+                        )}
+
+                    
                         <circle
                             cx={parseInt(seed.x) * scaleX}
                             cy={containerHeight - (parseInt(seed.y) * scaleY)}
