@@ -6,7 +6,7 @@ export default function StatusCard() {
 
     const fetchStatus = async () => {
         try {
-            const response = await axios.get('http://localhost:5000/api/status');
+            const response = await axios.get('http://localhost:5001/api/status');
             setStatus(response.data.status);
         } catch (err) {
             console.error('Failed to fetch status:', err);

@@ -67,6 +67,6 @@ Moving Farmbot:
 ```
 import api from "../utils/api";
 
-const response = await api.post('http://localhost:5000/move, {x: 200, y: 500, z: 0})
+const response = await api.post('http://localhost:5001/move, {x: 200, y: 500, z: 0})
 const result = await response.data;
 ```

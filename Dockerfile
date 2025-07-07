@@ -20,7 +20,7 @@ COPY server /app/server
 RUN npm run build --prefix client
 
 EXPOSE 3000
-EXPOSE 5000
+EXPOSE 5001
 
 # Start both backend and frontend
 CMD ["npx", "concurrently", "npm run dev --prefix server", "serve -s client/build"]
