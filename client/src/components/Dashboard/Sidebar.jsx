@@ -26,15 +26,16 @@ export default function Sidebar({onSelectComponent}) {
                 <button className={getClass("seedingJobQueue")} onClick={() => {onSelectComponent("seedingJobQueue"); setActiveClass("seedingJobQueue")}}>
                     🪏 {(activeClass == "dashboard" || isHovered) && <span>Seeding job queue</span>}
                 </button>
-                <button className={getClass("humidityCheckPage")} onClick={() => {onSelectComponent("humidityCheckPage"); setActiveClass("humidityCheckPage")}}>
-                    💧 {(activeClass == "dashboard" || isHovered) && <span>Soil humidity check</span>}
-                </button>
                 <button className={getClass("botControlPanel")} onClick={() => {onSelectComponent("botControlPanel"); setActiveClass("botControlPanel")}}>
                     🕹️ {(activeClass == "dashboard" || isHovered) && <span>Bot control panel</span>}
                 </button>
                 <button
                   className={getClass("wateringJobPage")} onClick={() => { onSelectComponent("wateringJobPage"); setActiveClass("wateringJobPage");}}> 
                     🚿 {(activeClass === "dashboard" || isHovered) && <span>Watering jobs</span>}
+                </button>
+                <button
+                  className={getClass("soilHumidityPage")} onClick={() => { onSelectComponent("soilHumidityPage"); setActiveClass("soilHumidityPage");}}> 
+                    💧 {(activeClass === "dashboard" || isHovered) && <span>Soil Humidity</span>}
                 </button>
             </nav>
         </aside>

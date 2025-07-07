@@ -4,11 +4,11 @@ import '../styles/farmbot-dashboard.css';
 import Sidebar from '../components/Dashboard/Sidebar';
 import FieldMap from '../components/FieldMap';
 import SeedingPage from './SeedingPage';
-import HumidityCheckPage from './HumidityCheckPage';
 import FarmbotMoving from './FarmbotMoving';
 import AddPlanttype from './AddPlanttype';
 import SeedingJobQueue from './SeedingJobQueue';
 import WateringJobPage from './WateringJobPage';
+import SoilHumidityPage from './SoilHumidityPage';
 
 
 export default function FarmBotDashboard() {
@@ -36,11 +36,11 @@ export default function FarmBotDashboard() {
                 <Sidebar onSelectComponent={handleComponentSelection}/>
                 {visibleComponent=="seedingJob" && <SeedingPage seedLocation={seedPoints} selectArea={selectArea} setSelectArea={setSelectArea} seedingAreaLocation={seedingAreaLocation}/>}
                 {visibleComponent=="seedingJobQueue" && <SeedingJobQueue seedLocation={seedPoints} selectArea={selectArea} setSelectArea={setSelectArea} seedingAreaLocation={seedingAreaLocation}/>}
-                {visibleComponent=="humidityCheckPage" && <HumidityCheckPage />}
                 {visibleComponent=="botControlPanel" && <FarmbotMoving />}
                 {visibleComponent=="addPlantType" && <AddPlanttype />}
                 {visibleComponent=="c" && <SeedingPage />}
                 {visibleComponent=="wateringJobPage" && <WateringJobPage />}
+                {visibleComponent=="soilHumidityPage" && <SoilHumidityPage seedLocation={seedPoints} />}
                 <FieldMap activeComponent={visibleComponent} onAreaSelect={handleAreaSelect} selectArea={selectArea} onElementClick={handleClickElement}/>
             </div>
         </div>
