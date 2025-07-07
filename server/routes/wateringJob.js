@@ -4,6 +4,19 @@ const { Farmbot } =  require("farmbot");
 const WateringJob = require("../models/watering"); // adjust path as needed
 const { Seed: SeedingJob } = require("../models/seed");
 
+
+const move = async (bot, x, y, z) => {
+  await bot.moveAbsolute({ x: x, y: y, z: z, speed: 100 });
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+const mlToMS = (ml) => {
+  return ml * 10
+}
+
 // console.log("wateringJob.js loaded");
 
 // GET all watering jobs
@@ -66,6 +79,101 @@ router.post("/", async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// Start a watering job
+router.post("/start", async (req, res) => {
+  if (!req.headers["auth-token"]) {
+    return res.status(401).send({
+      "status": 401,
+      "message": "Not authorized.",
+    })
+  }
+
+  if (req.body.plantType === undefined, req.body.waterAmount === undefined) {
+    return res.status(500).send({
+      "status": 500,
+      "message": "Plant type or watering amount is not sent in body"
+    })
+  }
+
+  const token = req.headers["auth-token"];
+  let bot = new Farmbot({ token: token });
+  await bot.connect()
+
+  const plantType = req.body.plantType
+  const waterAmount = parseInt(req.body.waterAmount)
+
+  const seedsToWater = await Seed.find({seed_name: plantType});
+  console.log("Seeds to water:")
+  console.log(seedsToWater)
+
+
+  if (!seedsToWater) {
+    res.status(500).send({
+      "message": "No seed with fiven plant type found!"
+    })
+  }
+
+  setJobStatus("moving to watering nuzzle");
+
+  // Go to higher than watering nuzzle
+  await move(bot, x=2630, y=150, z=-395)
+
+  // Go down to get watering nuzzle
+  await move(bot, x=2630, y=150, z=-410)
+
+  // Go a little outside to take it out
+  await move(bot, x=2500, y=150, z=-410)
+
+  for (let seedToWater of seedsToWater) {
+    seedX = parseInt(seedToWater.x)
+    seedY = parseInt(seedToWater.y)
+
+    setJobStatus("moving to seed");
+
+    // Go to a little higher from seed (x=2130, y=25)
+    await move(bot, x=seedX, y=seedY, z=-480)
+
+    setJobStatus("watering");
+
+    // Turn on water (usually pin 8 for standard kits)
+    await bot.writePin({
+      pin_number: 8,
+      pin_value: 1,    // 1 = watering on, 0 = watering off
+      pin_mode: 0      // 0 = digital, 1 = analog
+    });
+
+    await sleep(mlToMS(waterAmount))
+
+    // Turn off water
+    await bot.writePin({
+      pin_number: 8,
+      pin_value: 0,    // 1 = watering on, 0 = watering off
+      pin_mode: 0      // 0 = digital, 1 = analog
+    });
+  }
+
+  setJobStatus("putting back watering nuzzle");
+
+  // Go to left of watering nuzzle
+  await move(bot, x=2500, y=150, z=-410)
+
+  // Go to watering nuzzle
+  await move(bot, x=2630, y=150, z=-410)
+
+  // Go up to release it
+  await move(bot, x=2630, y=150, z=-395)
+
+  setJobStatus("Finished");
+
+  setTimeout(() => {
+    setJobStatus("online");
+  }, 3000);
+
+  res.status(200).send({
+    "message": "Watering seeds is done successfully"
+  })
 });
 
 // UPDATE a watering job
