@@ -62,10 +62,10 @@ router.post("/start", async (req, res) => {
   // const destY = parseInt(req.body.y)
   const depth = parseInt(req.body.z)
 
-  console.log("http://localhost:5000/plant/details/" + req.body.seed_name)
+  console.log("http://localhost:5001/plant/details/" + req.body.seed_name)
   console.log(req.body)
 
-  let plantDetails = await axios.get("http://localhost:5000/plant/details/" + req.body.seed_name)
+  let plantDetails = await axios.get("http://localhost:5001/plant/details/" + req.body.seed_name)
   plantDetails = plantDetails.data
   console.log("Plant details:")
   console.log(plantDetails)
