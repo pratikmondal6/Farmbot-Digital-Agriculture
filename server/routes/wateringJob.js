@@ -2,7 +2,9 @@ const express = require("express");
 const router = express.Router();
 const { Farmbot } =  require("farmbot");
 const WateringJob = require("../models/watering"); // adjust path as needed
-const { Seed: SeedingJob } = require("../models/seed");
+const { Seed } = require("../models/seed");
+const { setJobStatus } = require("../services/farmbotStatusService");
+const { findShortestPath } = require("../services/findShortestPath")
 
 
 const move = async (bot, x, y, z) => {
@@ -49,7 +51,7 @@ router.post("/", async (req, res) => {
     }
 
     // 3. Check: No other job exists for the same seed location at any time
-    const positions = await SeedingJob.find({ seed_name: { $in: plantTypes } });
+    const positions = await Seed.find({ seed_name: { $in: plantTypes } });
     for (const plant of positions) {
       const alreadyScheduled = await WateringJob.findOne({ x: plant.x, y: plant.y });
       if (alreadyScheduled) {
@@ -104,13 +106,13 @@ router.post("/start", async (req, res) => {
   const plantType = req.body.plantType
   const waterAmount = parseInt(req.body.waterAmount)
 
-  const seedsToWater = await Seed.find({seed_name: plantType});
+  let seedsToWater = await Seed.find({seed_name: plantType});
+  seedsToWater = findShortestPath(seedsToWater);
   console.log("Seeds to water:")
   console.log(seedsToWater)
 
-
   if (!seedsToWater) {
-    res.status(500).send({
+    return res.status(500).send({
       "message": "No seed with fiven plant type found!"
     })
   }
