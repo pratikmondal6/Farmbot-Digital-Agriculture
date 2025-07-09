@@ -43,8 +43,14 @@ router.post("/start", async (req, res) => {
   // const destY = parseInt(req.body.y)
   // const depth = parseInt(req.body.z)
 
-  let plantDetails = await Plant.findOne({ plant_type: req.body.seed_name })
-  const seedPoints = await generatePlantablePoints(plantDetails, req.body.topLeft, req.body.bottomRight)
+  let seedPoints = []
+  if (req.body.seedPoints) {
+    seedPoints = req.body.seedPoints
+  }
+  else {
+    let plantDetails = await Plant.findOne({ plant_type: req.body.seed_name })
+    seedPoints = await generatePlantablePoints(plantDetails, req.body.topLeft, req.body.bottomRight)
+  }
   console.log("calculated points")
   console.log(seedPoints)
 
@@ -156,6 +162,12 @@ router.post("/start", async (req, res) => {
 // Get all seeds
 router.get("/seeds", async (req, res) => {
   const seeds = await Seed.find({});
+  res.status(200).send(seeds)
+})
+
+// Get future seeds with job id
+router.get("/futureSeeds/job/:id", async (req, res) => {
+  const seeds = await FutureSeed.find({ seeding_job_id: req.params.id });
   res.status(200).send(seeds)
 })
 

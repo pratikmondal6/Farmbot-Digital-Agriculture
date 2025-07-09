@@ -26,15 +26,25 @@ const handleScheduledSeedingJobs = async () => {
       if (timestamp <= Date.now()) {
         console.log("Seeding job to start:")
         console.log(seedingJob)
+        const futureSeeds = await axios.get("http://localhost:5000/seedingJob/futureSeeds/job/" + seedingJob._id, {
+          headers: {
+            "Auth-Token": token,
+          }
+        })
         await axios.post(
           "http://localhost:5000/seedingJob/start",
-          { ...seedingJob },                 // <-- request body (data)
+          { ...seedingJob, seedPoints: futureSeeds.data },                 // <-- request body (data)
           {
             headers: {
               "auth-token": token        // <-- headers go here
             }
           }
         );
+        await axios.delete("http://localhost:5000/seedingJob/futureSeed/job/" + seedingJob._id, {
+          headers: {
+            "Auth-Token": token,
+          }
+        })
         await axios.delete("http://localhost:5000/seedingJob/" + seedingJob._id, {
           headers: {
             "Auth-Token": token,
