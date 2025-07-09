@@ -14,6 +14,7 @@ const error = require("../middleware/error");
 const wateringJob = require('../routes/wateringJob');
 const occupiedAreas = require("../routes/occupied-areas");
 const soilHumidity = require("../routes/soilHumidity");
+const areaHumidity = require("../routes/areaHumidity");
 
 
 module.exports = function (app) {
@@ -30,6 +31,7 @@ module.exports = function (app) {
   app.use('/api/status', statusRoutes);
   app.use('/api/watering', wateringJob);
   app.use('/api/soilHumidity', soilHumidity);
+  app.use('/api/areaHumidity', areaHumidity);
   handleScheduledSeedingJobs()
   app.use("*", notFound);
   app.use(error); // we just give reference to this error function

@@ -4,7 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5967244a-5a94-4068-b152-342f43b305a9" name="Changes" comment="humidity updated" />
+    <list default="true" id="5967244a-5a94-4068-b152-342f43b305a9" name="Changes" comment="Revert &quot;humidity updated&quot;&#10;&#10;This reverts commit 92b07af831748fe78c2c62ece443b90f9a6e6aaa.&#10;&#10;# Conflicts:&#10;#&#9;.idea/workspace.xml&#10;#&#9;client/src/pages/SoilHumidityPage.jsx&#10;#&#9;server/routes/soilHumidity.js">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/services/handleScheduledSeedingJobs.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/services/handleScheduledSeedingJobs.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/startup/routes.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/startup/routes.js" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -20,7 +24,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="feature/dashboard-implementation" />
+        <entry key="$PROJECT_DIR$" value="main" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -127,15 +131,6 @@
     <configuration name="api_test.js" type="NodeJSConfigurationType" temporary="true" nameIsGenerated="true" path-to-js-file="$PROJECT_DIR$/server/node_modules/farmbot/dist/__tests__/api_test.js" working-dir="$PROJECT_DIR$/server/node_modules/farmbot/dist/__tests__">
       <method v="2" />
     </configuration>
-    <configuration name="Dockerfile" type="docker-deploy" factoryName="dockerfile" temporary="true" server-name="Docker">
-      <deployment type="dockerfile">
-        <settings>
-          <option name="containerName" value="" />
-          <option name="sourceFilePath" value="Dockerfile" />
-        </settings>
-      </deployment>
-      <method v="2" />
-    </configuration>
     <configuration name="start" type="js.build_tools.npm" temporary="true" nameIsGenerated="true">
       <package-json value="$PROJECT_DIR$/client/package.json" />
       <command value="run" />
@@ -157,7 +152,6 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Docker.Dockerfile" />
       <item itemvalue="Jest.All Tests" />
       <item itemvalue="Jest.seedistance.test.js" />
       <item itemvalue="Node.js.api_test.js" />
@@ -167,10 +161,10 @@
     <recent_temporary>
       <list>
         <item itemvalue="npm.start" />
-        <item itemvalue="Docker.Dockerfile" />
+        <item itemvalue="npm.test" />
+        <item itemvalue="Node.js.api_test.js" />
         <item itemvalue="Jest.seedistance.test.js" />
         <item itemvalue="Jest.All Tests" />
-        <item itemvalue="npm.test" />
       </list>
     </recent_temporary>
   </component>
@@ -216,8 +210,9 @@
       <workItem from="1751591953840" duration="499000" />
       <workItem from="1751627572663" duration="5980000" />
       <workItem from="1751745589405" duration="2301000" />
-      <workItem from="1751879917333" duration="6355000" />
-      <workItem from="1751891077296" duration="4524000" />
+      <workItem from="1751879917333" duration="1998000" />
+      <workItem from="1751912231021" duration="1151000" />
+      <workItem from="1752008636962" duration="1713000" />
     </task>
     <task id="LOCAL-00001" summary="logout button">
       <option name="closed" value="true" />
@@ -267,39 +262,7 @@
       <option name="project" value="LOCAL" />
       <updated>1751410999210</updated>
     </task>
-    <task id="LOCAL-00007" summary="humidity updated">
-      <option name="closed" value="true" />
-      <created>1751882234782</created>
-      <option name="number" value="00007" />
-      <option name="presentableId" value="LOCAL-00007" />
-      <option name="project" value="LOCAL" />
-      <updated>1751882234782</updated>
-    </task>
-    <task id="LOCAL-00008" summary="humidity updated">
-      <option name="closed" value="true" />
-      <created>1751882309442</created>
-      <option name="number" value="00008" />
-      <option name="presentableId" value="LOCAL-00008" />
-      <option name="project" value="LOCAL" />
-      <updated>1751882309442</updated>
-    </task>
-    <task id="LOCAL-00009" summary="humidity updated">
-      <option name="closed" value="true" />
-      <created>1751882978519</created>
-      <option name="number" value="00009" />
-      <option name="presentableId" value="LOCAL-00009" />
-      <option name="project" value="LOCAL" />
-      <updated>1751882978519</updated>
-    </task>
-    <task id="LOCAL-00010" summary="humidity updated">
-      <option name="closed" value="true" />
-      <created>1751895416149</created>
-      <option name="number" value="00010" />
-      <option name="presentableId" value="LOCAL-00010" />
-      <option name="project" value="LOCAL" />
-      <updated>1751895416149</updated>
-    </task>
-    <option name="localTasksCounter" value="11" />
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -322,7 +285,6 @@
     <MESSAGE value="m" />
     <MESSAGE value="humidity sensor feature working" />
     <MESSAGE value="button added" />
-    <MESSAGE value="humidity updated" />
-    <option name="LAST_COMMIT_MESSAGE" value="humidity updated" />
+    <option name="LAST_COMMIT_MESSAGE" value="button added" />
   </component>
 </project>
