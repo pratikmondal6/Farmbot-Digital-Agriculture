@@ -248,7 +248,7 @@ router.put("/:id", async (req, res) => {
   session.startTransaction();
 
   try {
-    let seedingJob = SeedJob.findById(req.params.id)
+    let seedingJob = await SeedJob.findById(req.params.id)
     if (!seedingJob) {
       return res.status(500).send({ message: "No seeding job with the given id found!" })
     }
