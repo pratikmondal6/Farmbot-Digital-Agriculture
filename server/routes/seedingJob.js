@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const mongoose = require('mongoose');
 const { Seed } = require("../models/seed");
 const { FutureSeed } = require("../models/futureSeed");
 const { SeedJob } = require("../models/seedingJob");
@@ -243,27 +244,52 @@ router.post("/schedule", async (req, res) => {
 
 // Update a seeding job
 router.put("/:id", async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
-    const updated = await SeedJob.findByIdAndUpdate(
-      req.params.id,
-      {
-        $set: {
+    let seedingJob = SeedJob.findById(req.params.id)
+    if (!seedingJob) {
+      return res.status(500).send({ message: "No seeding job with the given id found!" })
+    }
+    
+    if (seedingJob.topRight != req.body.topRight || seedingJob.bottomLeft != req.body.bottomLeft) {
+      await FutureSeed.deleteMany({ seeding_job_id: req.params.id });
+      let plantDetails = await Plant.findOne({ plant_type: req.body.seed_name })
+      const seedPoints = await generatePlantablePoints(plantDetails, req.body.topLeft, req.body.bottomRight)
+
+      for (let point of seedPoints) {
+        const futureSeed = new FutureSeed({
+          seeding_job_id: req.params.id,
           seed_name: req.body.seed_name,
-          seeding_date: req.body.seeding_date,
           seedX: req.body.seedX,
           seedY: req.body.seedY,
-          z: req.body.z,
-          topRight: req.body.topRight,
-          topLeft: req.body.topLeft,
-          bottomRight: req.body.bottomRight,
-          bottomLeft: req.body.bottomLeft,
-        }
-      },
-      { new: true }
-    );
-    res.json(updated);
+          x: point.x,
+          y: point.y,
+          z: 50,
+        });
+
+        await futureSeed.save();
+      }
+    }
+    seedingJob.seeding_date = req.body.seeding_date
+    seedingJob.seed_name = req.body.seed_name
+    seedingJob.seedX = req.body.seedX
+    seedingJob.seedY = req.body.seedY
+    seedingJob.z = req.body.z
+    seedingJob.topRight = req.body.topRight
+    seedingJob.topLeft = req.body.topLeft
+    seedingJob.bottomRight = req.body.bottomRight
+    seedingJob.bottomLeft = req.body.bottomLeft
+    await seedingJob.save()
+
+    await session.commitTransaction();
+    res.status(200).send({ message: "Seeding job updated successfully" })
   } catch (err) {
+    await session.abortTransaction();
     res.status(500).json({ error: err.message });
+  } finally {
+    session.endSession();
   }
 });
 
@@ -301,6 +327,7 @@ router.delete("/futureSeed/job/:id", async (req, res) => {
 router.delete("/:id", async (req, res) => {
   try {
     await SeedJob.findByIdAndDelete(req.params.id);
+    await FutureSeed.deleteMany({ seeding_job_id: req.params.id });
     res.status(200).send({ massege: "Item deleted successfully" });
   } catch (err) {
     res.status(500).json({ error: err.message });

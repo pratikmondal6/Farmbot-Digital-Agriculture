@@ -268,7 +268,7 @@ const SeedingJobQueue = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea
                   style={{
                   ...styles.button2,
                   ...(isHovered ? styles.buttonHover : {}),
-                  ...( (!plant || !X || !Y|| ScheduledDate || Time || loading) ? styles.buttonDisabled : {} )
+                  ...( (loading==true) ? styles.buttonDisabled : {} )
                   }}
                   onMouseEnter={() => setIsHovered(true)}
                   onMouseLeave={() => setIsHovered(false)}
@@ -347,6 +347,11 @@ const styles = {
     cursor: 'pointer',
     transitionDuration: '0.3s'
   },
+  buttonDisabled: {
+    backgroundColor: '#cccccc',
+    cursor: 'not-allowed',
+    transform: 'none',
+} ,
   details: {
     whiteSpace: 'nowrap',
     marginRight: '10px',
