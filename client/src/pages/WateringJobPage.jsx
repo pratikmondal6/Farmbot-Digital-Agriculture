@@ -177,13 +177,13 @@ const WateringJobPage = () => {
 
     // Check: No other job exists for the selected plant(s) (at any time)
     for (const ptId of selectedPlantTypes) {
-      const ptName = plantTypes.find(pt => pt.id === ptId)?.name;
+      // ptId should now be the unique seed id or location
       const alreadyScheduled = wateringJobs.some(job =>
-        job.plantType === ptName &&
+        job.seedId === ptId && // <-- use unique seed id/location
         (!editingJobId || job._id !== editingJobId)
       );
       if (alreadyScheduled) {
-        setError(`Seed "${ptName}" already has a watering job scheduled. Edit job in calender to change.`);
+        setError(`This seed already has a watering job scheduled. Edit job in calendar to change.`);
         return;
       }
     }
@@ -234,61 +234,22 @@ const WateringJobPage = () => {
   };
 
   return (
-    <section style={{ width: "100%", maxWidth: 900, margin: "0 auto", padding: 24 }}>
-      <div style={{ display: "flex", gap: 16, marginBottom: 24 }}>
-        <button
-          style={{
-            background: "#38bdf8",
-            color: "#fff",
-            border: "none",
-            borderRadius: 8,
-            padding: "10px 20px",
-            fontWeight: "bold",
-            fontSize: "1rem",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            boxShadow: "0 2px 8px #0002",
-          }}
-          onClick={() => { setShowCreatePanel(true); setShowJobsPanel(false); resetForm(); }}
-        >
-          <FaShower style={{ color: "#2563eb", fontSize: 22 }} />
-          Create Watering Job
-        </button>
-        <button
-          style={{
-            background: "#fde047",
-            color: "#b45309",
-            border: "none",
-            borderRadius: 8,
-            padding: "10px 20px",
-            fontWeight: "bold",
-            fontSize: "1rem",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            boxShadow: "0 2px 8px #0002",
-          }}
-          onClick={() => { setShowJobsPanel(true); setShowCreatePanel(false); }}
-        >
-          <FaRegCalendarAlt style={{ color: "#b45309", fontSize: 20 }} />
-          Watering Schedule
-        </button>
+    <section style={{ maxWidth: 450, margin: "0", padding: "0px 10px 24px 10px" }}>
+      <div style={{ display: "flex", gap: 16, marginBottom: 10 }}>
+                
       </div>
 
-      {showCreatePanel && (
+      {showCreatePanel && 
         <div
           style={{
             background: "#f0fdf4",
-            border: "1px solid #22c55e",
+            border: "none",
             borderRadius: 12,
-            padding: 24, // smaller padding
-            minWidth: 240, // smaller min width
-            maxWidth: 340, // smaller max width
+            padding: 10,
+            minWidth: 280,
+            maxWidth: 450,
             boxShadow: "0 2px 8px #0002",
-            margin: "0 auto",
+            margin: "0", // <-- left align
             marginBottom: 24,
             maxHeight: "90vh",
             overflowY: "auto",
@@ -309,12 +270,13 @@ const WateringJobPage = () => {
           >
             ×
           </button>
-          <h3 style={{ color: "#14532d" }}>{editingJobId ? "Edit Watering Job" : "Create Watering Job"}</h3>
+          <h3 style={{ color: "#14532d", fontWeight: "bold", fontSize: 20 }}>{editingJobId ? "Edit Watering Job" : "Create Watering Job"}</h3>
+          <h3 style={{height: 16}}></h3>
           <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             {/* Plant type selection dropdown */}
             <div>
               <label style={{ fontWeight: "bold", color: "#14532d" }}>Select seed:</label>
-              <div style={{ position: "relative", marginTop: 4 }}>
+              <div style={{ position: "relative", marginTop: 8 }}>
                 <div
                   style={{
                     border: "1px solid #22c55e",
@@ -331,10 +293,7 @@ const WateringJobPage = () => {
                     ? "All seeds selected"
                     : selectedPlantTypes.length === 0
                     ? "Select seed"
-                    : plantTypes
-                        .filter(pt => selectedPlantTypes.includes(pt.id))
-                        .map(pt => pt.name)
-                        .join(", ")}
+                    : plantTypes.find(pt => pt.id === selectedPlantTypes[0])?.name}
                   <span style={{ float: "right" }}>▼</span>
                 </div>
                 {dropdownOpen && (
@@ -359,17 +318,17 @@ const WateringJobPage = () => {
                         style={{
                           padding: "8px 12px",
                           cursor: "pointer",
-                          background: selectedPlantTypes.includes(type.id) ? "#bbf7d0" : "#fff",
+                          background: selectedPlantTypes[0] === type.id ? "#bbf7d0" : "#fff",
                           color: "#14532d",
                           display: "flex",
                           alignItems: "center",
                           gap: 8,
                         }}
-                        onClick={() => handlePlantTypeToggle(type.id)}
+                        onClick={() => setSelectedPlantTypes([type.id])}
                       >
                         <input
-                          type="checkbox"
-                          checked={selectedPlantTypes.includes(type.id)}
+                          type="radio"
+                          checked={selectedPlantTypes[0] === type.id}
                           readOnly
                         />
                         {type.name}
@@ -399,12 +358,12 @@ const WateringJobPage = () => {
                         border: "1px solid #22c55e",
                       }}
                     />
-                    <span style={{ color: "#2563eb" }}>[ml]</span>
+                    <span style={{ color: "#16a34a" }}>[ml]</span>
                   </div>
                 ))}
             </div>
             {/* Z coordinate */}
-            <div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <label style={{ fontWeight: "bold", color: "#14532d" }}>Z Coordinate (height):</label>
               <input
                 type="number"
@@ -415,13 +374,13 @@ const WateringJobPage = () => {
                   padding: "4px 8px",
                   borderRadius: 4,
                   border: "1px solid #22c55e",
-                  marginLeft: 8,
+                  margin: 0
                 }}
               />
-              <span style={{ color: "#16a34a", marginLeft: 4 }}>[mm]</span>
+              <span style={{ color: "#16a34a", marginLeft: 4, whiteSpace: "nowrap" }}>[mm]</span>
             </div>
             {/* Date/time */}
-            <div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <label style={{ fontWeight: "bold", color: "#14532d" }}>First Execution:</label>
               <input
                 type="datetime-local"
@@ -432,7 +391,6 @@ const WateringJobPage = () => {
                   padding: "4px 8px",
                   borderRadius: 4,
                   border: "1px solid #22c55e",
-                  marginLeft: 8,
                 }}
               />
             </div>
@@ -475,42 +433,60 @@ const WateringJobPage = () => {
             >
               {editingJobId ? "Update Watering Job" : "Create Watering Job"}
             </button>
+            {/* Watering Schedule button below submit */}
+            <div style={{ display: "flex", justifyContent: "center" }}>
+              <button
+                type="button"
+                style={{
+                  background: "#fde047",
+                  color: "#b45309",
+                  border: "none",
+                  borderRadius: 8,
+                  padding: "12px 0",
+                  fontWeight: "bold",
+                  fontSize: "1rem",
+                  cursor: "pointer",
+                  width: "100%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                  boxShadow: "0 2px 8px #0002",
+                  marginTop: 8,
+                }}
+                onClick={() => { setShowJobsPanel(true); setShowCreatePanel(false); }}
+              >
+                <FaRegCalendarAlt style={{ color: "#b45309", fontSize: 18 }} />
+                See Watering Schedule
+              </button>
+            </div>
           </form>
         </div>
-      )}
+      }
 
       {showJobsPanel && (
         <div
           style={{
             background: "#fefce8",
-            border: "1px solid #fde047",
+            border: "none",
             borderRadius: 12,
-            padding: 16, // smaller padding
-            minWidth: 180, // smaller min width
-            maxWidth: 350, // smaller max width
+            padding: 10,
+            minWidth: 280,
+            maxWidth: 450,
             boxShadow: "0 2px 8px #0002",
-            margin: "0 auto",
-            marginBottom: 16, // smaller margin
-            maxHeight: "70vh", // smaller height
+            margin: "0", // <-- left align
+            marginBottom: 16,
+            maxHeight: "70vh",
             overflowY: "auto",
+            position: "static",
+            display: "flex",
+            flexDirection: "column"
           }}
         >
-          <button
-            style={{
-              position: "absolute",
-              top: 8,
-              right: 8,
-              background: "transparent",
-              border: "none",
-              fontSize: 16,
-              cursor: "pointer",
-            }}
-            title="Close"
-            onClick={() => setShowJobsPanel(false)}
-          >
-            ×
-          </button>
-          <h3 style={{ color: "#b45309", fontSize: "1rem" }}>Existing Watering Jobs</h3>
+          
+          <h3 style={{ color: "#b45309", fontSize: 20, fontWeight: "bold" }}>Watering Schedule</h3>
+          <h3 style={{ height: 16 }}></h3>
+          <h3 style={{ color: "#b45309", fontSize: 16, fontWeight: "bold" }}>Existing Watering Jobs:</h3>
           {wateringJobs.length === 0 ? (
             <p style={{ fontSize: "0.85rem" }}>No watering jobs found.</p>
           ) : (
@@ -619,6 +595,30 @@ const WateringJobPage = () => {
               </tbody>
             </table>
           )}
+          {/* Move Create Watering Job button here, always at the bottom */}
+          <button
+            style={{
+              background: "#38bdf8",
+              color: "#fff",
+              border: "none",
+              borderRadius: 8,
+              padding: "8px 16px",
+              fontWeight: "bold",
+              fontSize: "1rem",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              boxShadow: "0 2px 8px #0002",
+              marginTop: 5,
+              marginBottom: 0
+            }}
+            onClick={() => { setShowCreatePanel(true); setShowJobsPanel(false); resetForm(); }}
+          >
+            <FaShower style={{ color: "#2563eb", fontSize: 16 }} />
+            Create Watering Job
+          </button>
         </div>
       )}
     </section>
