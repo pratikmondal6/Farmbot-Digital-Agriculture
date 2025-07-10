@@ -234,8 +234,8 @@ const WateringJobPage = () => {
   };
 
   return (
-    <section style={{ width: "100%", maxWidth: 450, margin: "0", padding: "0px 24px 24px 24px" }}>
-      <div style={{ display: "flex", gap: 16, marginBottom: 24 }}>
+    <section style={{ maxWidth: 450, margin: "0", padding: "0px 10px 24px 10px" }}>
+      <div style={{ display: "flex", gap: 16, marginBottom: 10 }}>
                 
       </div>
 
@@ -374,13 +374,13 @@ const WateringJobPage = () => {
                   padding: "4px 8px",
                   borderRadius: 4,
                   border: "1px solid #22c55e",
-                  marginLeft: 8,
+                  margin: 0
                 }}
               />
               <span style={{ color: "#16a34a", marginLeft: 4, whiteSpace: "nowrap" }}>[mm]</span>
             </div>
             {/* Date/time */}
-            <div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <label style={{ fontWeight: "bold", color: "#14532d" }}>First Execution:</label>
               <input
                 type="datetime-local"
@@ -391,7 +391,6 @@ const WateringJobPage = () => {
                   padding: "4px 8px",
                   borderRadius: 4,
                   border: "1px solid #22c55e",
-                  marginLeft: 8,
                 }}
               />
             </div>
