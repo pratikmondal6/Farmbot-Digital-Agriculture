@@ -1,0 +1,112 @@
+/* CSS styles for the SoilHumidityPage component */
+.soil-humidity-container {
+    margin: 10px;
+    background-color: #f8fafc;
+}
+
+.soil-humidity-form {
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+}
+
+.soil-humidity-title {
+    margin-bottom: 1rem;
+    font-size: 1.3rem;
+    font-weight: bold;
+    text-align: center;
+    color: #14532d;
+}
+
+.soil-humidity-label {
+    margin: 0.5rem 0 0.2rem;
+    font-weight: bold;
+    color: #14532d;
+    transition: color 0.3s ease;
+}
+
+.soil-humidity-input {
+    padding: 0.5rem;
+    font-size: 1rem;
+    font-weight: bold;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    margin-bottom: 1rem;
+}
+
+.soil-humidity-button {
+    padding: 0.7rem;
+    font-size: 1rem;
+    font-weight: bold;
+    background-color: #22c55e;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition-duration: 0.3s;
+}
+
+.soil-humidity-button:hover {
+    background-color: rgb(0, 163, 60);
+    transform: scale(1.05);
+}
+
+.soil-humidity-button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.soil-humidity-button-select {
+    padding: 10px 10px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    background-color: #22c55e;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition-duration: 0.3s;
+}
+
+.soil-humidity-button-select:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.soil-humidity-error {
+    color: #14532d;
+    width: 50%;
+    margin-left: 22%;
+    background-color: rgb(211, 245, 204);
+    border: 1px solid #22c55e;
+    padding: 0.6rem;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    text-align: center;
+    transition: 0.3s;
+}
+
+.soil-humidity-area-selection {
+    display: flex;
+    flex-direction: column;
+    justify-content: left;
+    gap: 10px;
+}
+
+.soil-humidity-area-selection input {
+    width: 100%;
+}
+
+.soil-humidity-button-container {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    gap: 20px;
+}
