@@ -35,7 +35,8 @@ router.get("/", async (req, res) => {
 router.post("/", async (req, res) => {
   console.log("Received POST /api/watering:", req.body);
   try {
-    const { plantTypes, waterAmounts, z, date, interval } = req.body;
+    // Accept only one plantType and waterAmount
+    const { plantType, waterAmount, z, date, interval } = req.body;
 
     // 1. Check: First execution is not in the past
     const now = new Date();
@@ -44,40 +45,22 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ message: "First execution cannot be in the past." });
     }
 
-    // 2. Check: No other job exists at the same date/time for any seed
-    const conflictAtTime = await WateringJob.findOne({ date: requestedDate });
-    if (conflictAtTime) {
-      return res.status(400).json({ message: "Another seed is already scheduled to be watered at this date and time. Only one seed can be watered at a time." });
+    // 2. Check: No other job exists for the same plant type at the same time
+    const alreadyScheduled = await WateringJob.findOne({ plantType, date: requestedDate });
+    if (alreadyScheduled) {
+      return res.status(400).json({ message: `Plant type "${plantType}" already has a watering job scheduled at this time.` });
     }
 
-    // 3. Check: No other job exists for the same seed location at any time
-    const positions = await Seed.find({ seed_name: { $in: plantTypes } });
-    for (const plant of positions) {
-      const alreadyScheduled = await WateringJob.findOne({ x: plant.x, y: plant.y });
-      if (alreadyScheduled) {
-        return res.status(400).json({ message: `Seed at (${plant.x}, ${plant.y}) already has a watering job scheduled. Edit job in calendar to change.` });
-      }
-    }
-
-    // 4. Schedule each seed with a +2min offset
-    let jobs = [];
-    let offsetMinutes = 0;
-    for (const plant of positions) {
-      const scheduledDate = new Date(requestedDate.getTime() + offsetMinutes * 60000); // 60000 ms = 1 min
-      jobs.push({
-        plantType: plant.seed_name,
-        x: plant.x,
-        y: plant.y,
-        z,
-        waterAmount: waterAmounts[plant.seed_name],
-        date: scheduledDate,
-        interval,
-      });
-      offsetMinutes += 2; // increment by 2 minutes for each seed
-    }
-
-    const created = await WateringJob.insertMany(jobs);
-    res.status(201).json(created);
+    // 3. Create only one job for the plant type
+    const job = new WateringJob({
+      plantType,
+      waterAmount,
+      z,
+      date: requestedDate,
+      interval,
+    });
+    await job.save();
+    res.status(201).json(job);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -185,8 +168,8 @@ router.put("/:id", async (req, res) => {
       req.params.id,
       {
         $set: {
-          plantType: req.body.plantTypes[0], // or handle multiple if needed
-          waterAmount: req.body.waterAmounts[req.body.plantTypes[0]],
+          plantType: req.body.plantType,
+          waterAmount: req.body.waterAmount,
           z: req.body.z,
           date: req.body.date,
           interval: req.body.interval,

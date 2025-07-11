@@ -10,7 +10,7 @@ const WateringJobPage = () => {
   const [showCreatePanel, setShowCreatePanel] = useState(false);
   const [showJobsPanel, setShowJobsPanel] = useState(true); // Show jobs by default
   const [plantTypes, setPlantTypes] = useState([]);
-  const [selectedPlantTypes, setSelectedPlantTypes] = useState([]);
+  const [selectedPlantType, setSelectedPlantType] = useState(""); // Only one type
   const [waterAmounts, setWaterAmounts] = useState({});
   const [z, setZ] = useState(DEFAULT_Z);
   const [date, setDate] = useState(new Date().toISOString().slice(0, 16));
@@ -32,18 +32,14 @@ const WateringJobPage = () => {
   };
 
   const handleStartWatering = async () => {
-    setIsWatering(true)
-    for (let plantType of selectedPlantTypes) {
-      console.log("Seeds to water:")
-      console.log(plantType)
-      console.log("Water amount:")
-      console.log(waterAmounts[plantType])
+    setIsWatering(true);
+    if (selectedPlantType) {
       await api.post("/api/watering/start", {
-        plantType: plantType,
-        waterAmount: waterAmounts[plantType]
-      })
+        plantType: selectedPlantType,
+        waterAmount: waterAmounts[selectedPlantType]
+      });
     }
-    setIsWatering(false)
+    setIsWatering(false);
   }
 
   // Fetch plant types from the API
@@ -105,7 +101,7 @@ const WateringJobPage = () => {
   // Reset form to default "create" mode
   const resetForm = () => {
     setEditingJobId(null);
-    setSelectedPlantTypes([]);
+    setSelectedPlantType("");
     // Reset water amounts to "50" for all plant types
     const defaults = {};
     plantTypes.forEach(pt => { defaults[pt.id] = "50"; });
@@ -116,27 +112,12 @@ const WateringJobPage = () => {
     setDropdownOpen(false);
   };
 
-  const handlePlantTypeToggle = (id) => {
-    setSelectedPlantTypes((prev) =>
-      prev.includes(id)
-        ? prev.filter(pid => pid !== id)
-        : [...prev, id]
-    );
-  };
-
-  const handleWaterAmountChange = (id, value) => {
-    setWaterAmounts((prev) => ({
-      ...prev,
-      [id]: value,
-    }));
-  };
-
   const handleEdit = (job) => {
     setEditingJobId(job._id);
 
     // Find the plant type object by name and get its id
     const pt = plantTypes.find(pt => pt.name === job.plantType);
-    setSelectedPlantTypes(pt ? [pt.id] : []);
+    setSelectedPlantType(pt ? pt.id : ""); // <-- use singular
 
     // Set waterAmounts for the selected plant type (convert to string for input)
     const wa = {};
@@ -191,30 +172,14 @@ const WateringJobPage = () => {
       return;
     }
 
-    // Check: No other job exists for the selected plant(s) (at any time)
-    for (const ptId of selectedPlantTypes) {
-      // ptId should now be the unique seed id or location
-      const alreadyScheduled = wateringJobs.some(job =>
-        job.seedId === ptId && // <-- use unique seed id/location
-        (!editingJobId || job._id !== editingJobId)
-      );
-      if (alreadyScheduled) {
-        setError(`This seed already has a watering job scheduled. Edit job in calendar to change.`);
-        return;
-      }
-    }
-
-    // Map selectedPlantTypes (IDs) to names
-    const selectedNames = plantTypes
-      .filter(pt => selectedPlantTypes.includes(pt.id))
-      .map(pt => pt.name);
-
-    // Map waterAmounts keys from IDs to names
-    const waterAmountsByName = {};
-    for (const pt of plantTypes) {
-      if (selectedPlantTypes.includes(pt.id)) {
-        waterAmountsByName[pt.name] = Number(waterAmounts[pt.id]);
-      }
+    // Only check for one plant type
+    const alreadyScheduled = wateringJobs.some(job =>
+      job.plantType === selectedPlantType &&
+      (!editingJobId || job._id !== editingJobId)
+    );
+    if (alreadyScheduled) {
+      setError("This plant type already has a watering job scheduled. Edit job in calendar to change.");
+      return;
     }
 
     // Convert local datetime-local value to UTC ISO string
@@ -224,10 +189,10 @@ const WateringJobPage = () => {
     }
 
     const payload = {
-      plantTypes: selectedNames,
-      waterAmounts: waterAmountsByName,
+      plantType: selectedPlantType,
+      waterAmount: Number(waterAmounts[selectedPlantType]),
       z,
-      date: utcDate, // use UTC string
+      date: utcDate,
       interval,
     };
     console.log("Submitting payload:", payload);
@@ -248,6 +213,14 @@ const WateringJobPage = () => {
       console.error(err);
     }
   };
+
+  const handleWaterAmountChange = (typeId, value) => {
+    setWaterAmounts(prev => ({
+      ...prev,
+      [typeId]: value
+    }));
+  };
+
 
   return (
     <section style={{ maxWidth: 450, margin: "0", padding: "0px 10px 24px 10px" }}>
@@ -271,21 +244,7 @@ const WateringJobPage = () => {
             overflowY: "auto",
           }}
         >
-          <button
-            style={{
-              position: "absolute",
-              top: 8,
-              right: 8,
-              background: "transparent",
-              border: "none",
-              fontSize: 20,
-              cursor: "pointer",
-            }}
-            title="Close"
-            onClick={() => setShowCreatePanel(false)}
-          >
-            ×
-          </button>
+          
           <h3 style={{ color: "#14532d", fontWeight: "bold", fontSize: 20 }}>{editingJobId ? "Edit Watering Job" : "Create Watering Job"}</h3>
           <h3 style={{height: 16}}></h3>
           <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -305,11 +264,9 @@ const WateringJobPage = () => {
                   }}
                   onClick={() => setDropdownOpen((open) => !open)}
                 >
-                  {selectedPlantTypes.length === plantTypes.length
-                    ? "All seeds selected"
-                    : selectedPlantTypes.length === 0
-                    ? "Select seed"
-                    : plantTypes.find(pt => pt.id === selectedPlantTypes[0])?.name}
+                  {selectedPlantType
+                    ? plantTypes.find(pt => pt.id === selectedPlantType)?.name
+                    : "Select seed"}
                   <span style={{ float: "right" }}>▼</span>
                 </div>
                 {dropdownOpen && (
@@ -334,19 +291,17 @@ const WateringJobPage = () => {
                         style={{
                           padding: "8px 12px",
                           cursor: "pointer",
-                          background: selectedPlantTypes[0] === type.id ? "#bbf7d0" : "#fff",
+                          background: selectedPlantType === type.id ? "#bbf7d0" : "#fff",
                           color: "#14532d",
                           display: "flex",
                           alignItems: "center",
                           gap: 8,
                         }}
-                        onClick={() => setSelectedPlantTypes([type.id])}
+                        onClick={() => {
+                          setSelectedPlantType(type.id);
+                          setDropdownOpen(false);
+                        }}
                       >
-                        <input
-                          type="radio"
-                          checked={selectedPlantTypes[0] === type.id}
-                          readOnly
-                        />
                         {type.name}
                       </div>
                     ))}
@@ -357,26 +312,26 @@ const WateringJobPage = () => {
             {/* Water amount input per plant type */}
             <div>
               <label style={{ fontWeight: "bold", color: "#14532d" }}>Water Amount per Seed:</label>
-              {plantTypes
-                .filter(pt => selectedPlantTypes.includes(pt.id))
-                .map((type) => (
-                  <div key={type.id} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                    <span style={{ minWidth: 60, textTransform: "capitalize" }}>{type.name}:</span>
-                    <input
-                      type="number"
-                      min={0}
-                      value={waterAmounts[type.id] ?? "50"}
-                      onChange={(e) => handleWaterAmountChange(type.id, e.target.value)}
-                      style={{
-                        width: 80,
-                        padding: "4px 8px",
-                        borderRadius: 4,
-                        border: "1px solid #22c55e",
-                      }}
-                    />
-                    <span style={{ color: "#16a34a" }}>[ml]</span>
-                  </div>
-                ))}
+              {selectedPlantType && (
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                  <span style={{ minWidth: 60, textTransform: "capitalize" }}>
+                    {plantTypes.find(pt => pt.id === selectedPlantType)?.name}:
+                  </span>
+                  <input
+                    type="number"
+                    min={0}
+                    value={waterAmounts[selectedPlantType] ?? "50"}
+                    onChange={(e) => handleWaterAmountChange(selectedPlantType, e.target.value)}
+                    style={{
+                      width: 80,
+                      padding: "4px 8px",
+                      borderRadius: 4,
+                      border: "1px solid #22c55e",
+                    }}
+                  />
+                  <span style={{ color: "#16a34a" }}>[ml]</span>
+                </div>
+              )}
             </div>
             {/* Z coordinate */}
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -429,7 +384,20 @@ const WateringJobPage = () => {
               <span style={{ color: "#16a34a", marginLeft: 4 }}>[h]</span>
             </div>
             {error && (
-              <div style={{ color: "#dc2626", background: "#fee2e2", padding: 8, borderRadius: 4, marginBottom: 8 }}>
+              <div
+                style={{
+                  color: "#dc2626",
+                  background: "#fee2e2",
+                  padding: "4px 6px",
+                  borderRadius: 4,
+                  marginBottom: 8,
+                  fontSize: "0.85rem",
+                  maxWidth: 440,
+                  wordBreak: "break-word",
+                  whiteSpace: "pre-line",
+                  lineHeight: 1.2,
+                }}
+              >
                 {error}
               </div>
             )}
