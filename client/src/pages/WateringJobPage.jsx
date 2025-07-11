@@ -20,6 +20,7 @@ const WateringJobPage = () => {
   const [editingJobId, setEditingJobId] = useState(null);
   const [error, setError] = useState("");
   const [timezone, setTimezone] = useState("UTC");
+  const [isWatering, setIsWatering] = useState(false);
 
   // Helper for local datetime-local string
   const getLocalDateTimeString = () => {
@@ -29,6 +30,21 @@ const WateringJobPage = () => {
     const local = new Date(now.getTime() - offset * 60000);
     return local.toISOString().slice(0, 16);
   };
+
+  const handleStartWatering = async () => {
+    setIsWatering(true)
+    for (let plantType of selectedPlantTypes) {
+      console.log("Seeds to water:")
+      console.log(plantType)
+      console.log("Water amount:")
+      console.log(waterAmounts[plantType])
+      await api.post("/api/watering/start", {
+        plantType: plantType,
+        waterAmount: waterAmounts[plantType]
+      })
+    }
+    setIsWatering(false)
+  }
 
   // Fetch plant types from the API
   useEffect(() => {
@@ -433,6 +449,28 @@ const WateringJobPage = () => {
             >
               {editingJobId ? "Update Watering Job" : "Create Watering Job"}
             </button>
+            <button
+              type="button"
+              disabled = {isWatering}
+              style={{
+                background: isWatering ? "#94a3b8" : "#22c55e",
+                color: "#fff",
+                border: "none",
+                borderRadius: 8,
+                padding: "12px 0",
+                fontWeight: "bold",
+                fontSize: "1rem",
+                cursor: isWatering ? "not-allowed" : "pointer",
+                marginTop: 8,
+                opacity: isWatering ? 0.6 : 1
+              }}
+              onClick={() => {
+                setIsWatering(true);
+                handleStartWatering();
+              }}
+            >
+              {isWatering ? "Watering..." : "Start Now (Once)"}
+            </button>
             {/* Watering Schedule button below submit */}
             <div style={{ display: "flex", justifyContent: "center" }}>
               <button
@@ -611,7 +649,7 @@ const WateringJobPage = () => {
               justifyContent: "center",
               gap: 8,
               boxShadow: "0 2px 8px #0002",
-              marginTop: 5,
+              marginTop: 15,
               marginBottom: 0
             }}
             onClick={() => { setShowCreatePanel(true); setShowJobsPanel(false); resetForm(); }}
