@@ -522,18 +522,11 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
     return (
         <div className="field-map-container">
             <button
-            onClick={() => setShowSafetyCircles(prev => !prev)}
-            style={{
-                marginBottom: "20px",
-                padding: "6px 12px",
-                borderRadius: "6px",
-                border: "1px solid #aaa",
-                backgroundColor: "#f3f3f3",
-                cursor: "pointer"
-            }}
-        >
-            {showSafetyCircles ? "Radius off" : "Radius on"}
-        </button>
+                className="toggle-radius-button"
+                onClick={() => setShowSafetyCircles(prev => !prev)}
+            >
+                {showSafetyCircles ? "Radius off" : "Radius on"}
+            </button>
             <svg
                 width={containerWidth + (2 * marginPx)}
                 height={containerHeight + (2 * marginPx)}
@@ -620,9 +613,9 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
                                 cx={parseInt(seed.x) * scaleX}
                                 cy={containerHeight - (parseInt(seed.y) * scaleY)}
                                 r={parseFloat(seed.min_distance) * scaleX}
-                                fill="none"
-                                stroke="red"
-                                strokeDasharray="4,2"
+                                fill="rgba(255, 0, 0, 0.2)"        // halbtransparente Füllung
+                                stroke="red"                      // rote Umrandung
+                                strokeDasharray="4,2"            // gestrichelt
                                 strokeWidth="1"
                             />
                         )}
