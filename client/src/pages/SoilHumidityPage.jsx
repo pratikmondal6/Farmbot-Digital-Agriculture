@@ -50,7 +50,15 @@ const SoilHumidityPage = ({ selectArea, setSelectArea, selectedAreaLocation }) =
     return (
         <div className="soil-humidity-container">
             <div>
-                <form className="soil-humidity-form">
+                <form
+                    className="soil-humidity-form"
+                    style={{
+                        background: "#f0fdf4",
+                        borderRadius: 12,
+                        padding: "16px 10px 24px 10px",
+                        boxShadow: "0 2px 8px #0002"
+                    }}
+                >
                     <h2 className="soil-humidity-title">Soil Humidity Measurement</h2>
 
                     <label className="soil-humidity-label">Measurement Area</label>

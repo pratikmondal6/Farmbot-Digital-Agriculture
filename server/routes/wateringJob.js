@@ -35,8 +35,7 @@ router.get("/", async (req, res) => {
 router.post("/", async (req, res) => {
   console.log("Received POST /api/watering:", req.body);
   try {
-    // Accept only one plantType and waterAmount
-    const { plantType, waterAmount, z, date, interval } = req.body;
+    const { plantType, waterAmount, waterUnit, z, date, interval } = req.body; // <-- add waterUnit
 
     // 1. Check: First execution is not in the past
     const now = new Date();
@@ -55,6 +54,7 @@ router.post("/", async (req, res) => {
     const job = new WateringJob({
       plantType,
       waterAmount,
+      waterUnit, // <-- save unit
       z,
       date: requestedDate,
       interval,
@@ -173,6 +173,7 @@ router.put("/:id", async (req, res) => {
         $set: {
           plantType: req.body.plantType,
           waterAmount: req.body.waterAmount,
+          waterUnit: req.body.waterUnit, // <-- save unit
           z: req.body.z,
           date: req.body.date,
           interval: req.body.interval,

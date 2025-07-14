@@ -15,6 +15,8 @@ const AddPlanttype = () => {
   const [error, setError] = useState('');
   const [distanceError, setDistanceError] = useState('');
   const [allPlants, setAllPlants] = useState([]);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [selectedPlantType, setSelectedPlantType] = useState('');
 
   const loadAllPlants = async () => {
     try {
@@ -37,7 +39,7 @@ const AddPlanttype = () => {
       const response = await api.get('/api/plant/types');
       setPlantTypes(response.data);
     } catch {
-      console.error('Error while loading Planttypes');
+      console.error('Error while loading plant types');
     }
   };
 
@@ -85,12 +87,12 @@ const AddPlanttype = () => {
     if (plantType) {
       // UPDATE-Mode
       await api.put('/api/plant/update', {
-        plantType, // Original name
-        newPlantType: newPlantType.trim(), // New name (can stay the same)
+        plantType,
+        newPlantType: newPlantType.trim(),
         seeding_depth: Number(depth),
         minimal_distance: Number(distance),
       });
-      alert('Planttype updated');
+      alert('Plant type updated');
     } else {
       // CREATE-Mode
       await api.post('/api/plant/add-type', {
@@ -98,11 +100,12 @@ const AddPlanttype = () => {
         minimal_distance: Number(distance),
         seeding_depth: Number(depth),
       });
-      alert('New Planttype created');
+      alert('New plant type created');
+      // After adding, show "+ Add new plant type..." in dropdown
+      setSelectedPlantType('');
+      setPlantType('');
     }
 
-    // Reset input fields
-    setPlantType('');
     setNewPlantType('');
     setDepth('');
     setDistance('');
@@ -111,11 +114,12 @@ const AddPlanttype = () => {
     await loadAllPlants();
 
   } catch (err) {
-    alert(err.response?.data?.error || 'Fehler beim Speichern');
+    alert(err.response?.data?.error || 'Saving Error');
     console.error(err);
   }
 };
 
+  // Replace the buttonGroup with dropdown
   return (
   <div style={styles.wholedesign}>
 
@@ -127,25 +131,93 @@ const AddPlanttype = () => {
 
         {isOpen && (
           <div style={styles.container}>
-            <label style={styles.label}>Choose Planttype:</label>
-            <div style={styles.buttonGroup}>
-              {plantTypes.map(type => (
-                <button
-                  key={type}
-                  onClick={() => handlePlantClick(type)}
+            <label style={{ ...styles.label, marginTop: "24px", fontSize: 22}}>
+              Create a new plant type or select an existing type:
+            </label>
+            <div style={{ position: "relative", marginTop: 3 }}>
+              <div
+                style={{
+                  border: "1px solid #22c55e",
+                  borderRadius: 6,
+                  padding: "6px 8px",
+                  background: "#fff",
+                  cursor: "pointer",
+                  minWidth: 120,
+                  color: "#14532d",
+                }}
+                onClick={() => setDropdownOpen((open) => !open)}
+              >
+                {selectedPlantType
+                  ? selectedPlantType
+                  : "Select plant type"}
+                <span style={{ float: "right" }}>▼</span>
+              </div>
+              {dropdownOpen && (
+                <div
                   style={{
-                    ...styles.plantButton,
-                    backgroundColor: plantType === type ? '#15803d' : '#bbf7d0',
-                    color: plantType === type ? 'white' : '#064e3b'
+                    position: "absolute",
+                    top: "100%",
+                    left: 0,
+                    right: 0,
+                    background: "#fff",
+                    border: "1px solid #22c55e",
+                    borderRadius: 6,
+                    zIndex: 10,
+                    boxShadow: "0 2px 8px #0001",
+                    maxHeight: 180,
+                    overflowY: "auto",
                   }}
                 >
-                  {type}
-                </button>
-              ))}
+                  {/* Add new plant type option at the top */}
+                  <div
+                    style={{
+                      padding: "8px 12px",
+                      cursor: "pointer",
+                      background: "#f0fdf4",
+                      color: "#14532d",
+                      borderBottom: "1px solid #22c55e",
+                      fontStyle: "italic"
+                    }}
+                    onClick={() => {
+                      setSelectedPlantType('');
+                      setPlantType('');
+                      setNewPlantType('');
+                      setDepth('0');        // <-- Default depth 0 mm
+                      setDistance('50');    // <-- Default minimal distance 50 mm
+                      setDropdownOpen(false);
+                    }}
+                  >
+                    + Add new plant type...
+                  </div>
+                  {plantTypes.map((type) => (
+                    <div
+                      key={type}
+                      style={{
+                        padding: "8px 12px",
+                        cursor: "pointer",
+                        background: selectedPlantType === type ? "#bbf7d0" : "#fff",
+                        color: "#14532d",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                      }}
+                      onClick={() => {
+                        setSelectedPlantType(type);
+                        setPlantType(type);
+                        setNewPlantType(type);
+                        setDropdownOpen(false);
+                        handlePlantClick(type);
+                      }}
+                    >
+                      {type}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <label style={styles.label}>
-              New Planttype:
+              New plant type:
               <input
                 type="text"
                 value={newPlantType}
@@ -165,7 +237,24 @@ const AddPlanttype = () => {
                 style={styles.input}
               />
             </label>
-            {error && <div style={styles.error}>{error}</div>}
+            {error && (
+  <div
+    style={{
+      color: "#dc2626",
+      background: "#fee2e2",
+      padding: "4px 6px",
+      borderRadius: 4,
+      marginBottom: 8,
+      fontSize: "0.85rem",
+      maxWidth: 440,
+      wordBreak: "break-word",
+      whiteSpace: "pre-line",
+      lineHeight: 1.2,
+    }}
+  >
+    {error}
+  </div>
+)}
 
             <label style={styles.label}>
               Minimal distance (mm):
@@ -178,9 +267,26 @@ const AddPlanttype = () => {
                 style={styles.input}
               />
             </label>
-            {distanceError && <div style={styles.error}>{distanceError}</div>}
+            {distanceError && (
+  <div
+    style={{
+      color: "#dc2626",
+      background: "#fee2e2",
+      padding: "4px 6px",
+      borderRadius: 4,
+      marginBottom: 8,
+      fontSize: "0.85rem",
+      maxWidth: 440,
+      wordBreak: "break-word",
+      whiteSpace: "pre-line",
+      lineHeight: 1.2,
+    }}
+  >
+    {distanceError}
+  </div>
+)}
 
-            <button onClick={saveAll} style={styles.button}>Speichern</button>
+            <button onClick={saveAll} style={styles.button}>Save</button>
           </div>
         )}
               {/* <button onClick={() => navigate('/')} style={styles.backButton}>← Back to Dashboard</button> */}
