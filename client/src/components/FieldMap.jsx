@@ -319,6 +319,38 @@ const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeCompo
         loadSeedLocations();
     }, []);
 
+    // fetch selected areas from the server
+    const fetchSelectedAreas = async () => {
+        console.log("Fetching selected areas");
+        try {
+            const response = await instance.get('/seedingJob/seedingJobs');
+
+            const selectedAreas = response.data.map(area => ({
+                x1: parseInt(area.bottomLeft.x),
+                y1: parseInt(area.bottomLeft.y),
+                x2: parseInt(area.topRight.x),
+                y2: parseInt(area.topRight.y),
+                name: `Planted ${area.plant}`,
+                color: "rgba(255,0,0,0.24)",
+            }));
+
+            console.log("Selected areas fetched:", selectedAreas);
+
+            setDisabledAreas(prevAreas => {
+                console.log(prevAreas)
+                return [...prevAreas, ...selectedAreas];
+            });
+
+            console.log("disable areas", disabledAreas);
+        } catch (error) {
+            console.error('Error fetching selected areas:', error);
+        }
+    };
+
+    useEffect(() => {
+        fetchSelectedAreas();
+    }, []);
+
     // Grid drawing
     const drawGrid = () => {
         const elements = [];
@@ -486,41 +518,12 @@ const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeCompo
         });
     };
 
-    // fetch selected areas from the server
-    const fetchSelectedAreas = async () => {
-        console.log("Fetching selected areas");
-        try {
-            const response = await instance.get('/api/seed');
-
-            const selectedAreas = response.data.map(area => ({
-                ...area,
-                name: `Planted ${area.plant}`,
-                color: "rgba(255,0,0,0.24)",
-            }));
-
-            console.log("Selected areas fetched:", selectedAreas);
-
-            setDisabledAreas(prevAreas => {
-                console.log(prevAreas)
-                return [...prevAreas, ...selectedAreas];
-            });
-
-            console.log("disable areas", disabledAreas);
-        } catch (error) {
-            console.error('Error fetching selected areas:', error);
-        }
-    };
-
-    useEffect(() => {
-        fetchSelectedAreas();
-    }, []);
-
     return (
         <div className="field-map-container">
             <svg
                 width={containerWidth + (2 * marginPx) + (2 * border)}
                 height={containerHeight + (2 * marginPx) + (2 * border)}
-                viewBox={`${-marginPx} ${-marginPx } ${containerWidth + (2 * marginPx)} ${containerHeight + (2 * marginPx)}`}
+                viewBox={`${-marginPx} ${-marginPx} ${containerWidth + (2 * marginPx)} ${containerHeight + (2 * marginPx)}`}
                 onMouseDown={handleStartSelection}
                 onMouseMove={isSelectingArea ? handleSelectionMove : handleMouseMove}
                 onMouseUp={handleEndSelection}
