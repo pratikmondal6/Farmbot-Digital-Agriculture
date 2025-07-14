@@ -102,6 +102,9 @@ router.post("/start", async (req, res) => {
 
   setJobStatus("moving to watering nuzzle");
 
+  // Go a little outside and upper than watering nuzzle
+  await move(bot, x=2500, y=150, z=-395)
+
   // Go to higher than watering nuzzle
   await move(bot, x=2630, y=150, z=-395)
 
