@@ -6,11 +6,34 @@ let scaleX = 0;
 let scaleY = 0;
 
 const containerWidth = 1200;
-const containerHeight = 750;
+const containerHeight = 600;
 const radius = 10;
 const margin = 2;
+const border = 15; // Border width
+const widthInMeter = 2700;
+const heightInMeter = 1200;
 
-const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, selectArea = false, onElementClick, activeComponent}) => {
+// functions for coordinate calculations
+const meterToPixelX = (x) => x * scaleX;
+const meterToPixelY = (y) => containerHeight - (y * scaleY);
+const pixelToMeterX = (pixelX) => Math.floor(pixelX / scaleX);
+const pixelToMeterY = (pixelY) => Math.floor((containerHeight - pixelY) / scaleY);
+
+// function to convert event coordinates to meter coordinates
+const eventToMeterCoordinates = (event, svgRect) => {
+    const marginPx = margin * scaleX;
+    // Adjust for border only
+    const pixelX = event.clientX - svgRect.left - marginPx - border;
+    const pixelY = event.clientY - svgRect.top - marginPx - border;
+    return {
+        x: pixelToMeterX(pixelX),
+        y: pixelToMeterY(pixelY),
+        pixelX,
+        pixelY
+    };
+};
+
+const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeComponent}) => {
     const gridSpacing = 60;
     const [hoverPoint, setHoverPoint] = useState(null);
     const [selectedPoint, setSelectedPoint] = useState(null);
@@ -20,7 +43,7 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
     const [selectionStart, setSelectionStart] = useState(null);
     const [selectionEnd, setSelectionEnd] = useState(null);
     const [plantedSeeds, setPlantedSeeds] = useState([]);
-    const [disabledAreas, setDisabledAreas] =  useState([
+    const [disabledAreas, setDisabledAreas] = useState([
         {
             x1: 2545,
             y1: 100,
@@ -41,9 +64,9 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
         },
     ]);
 
-        useEffect(() => {
-            setIsSelectingArea(selectArea);
-        }, [selectArea]);
+    useEffect(() => {
+        setIsSelectingArea(selectArea);
+    }, [selectArea]);
 
     const isPointInDisabledArea = (x, y) => {
         return disabledAreas.some(area => {
@@ -129,21 +152,19 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
         if (!isSelectingArea) return;
 
         const svgRect = event.currentTarget.getBoundingClientRect();
-        const x = Math.floor((event.clientX - svgRect.left - marginPx) / scaleX);
-        const y = Math.floor((containerHeight - (event.clientY - svgRect.top - marginPx)) / scaleY);
+        const coords = eventToMeterCoordinates(event, svgRect);
 
-        setSelectionStart({x, y});
-        setSelectionEnd({x, y});
+        setSelectionStart({x: coords.x, y: coords.y});
+        setSelectionEnd({x: coords.x, y: coords.y});
     };
 
     const handleSelectionMove = (event) => {
         if (!isSelectingArea || !selectionStart) return;
 
         const svgRect = event.currentTarget.getBoundingClientRect();
-        const x = Math.floor((event.clientX - svgRect.left - marginPx) / scaleX);
-        const y = Math.floor((containerHeight - (event.clientY - svgRect.top - marginPx)) / scaleY);
+        const coords = eventToMeterCoordinates(event, svgRect);
 
-        setSelectionEnd({x, y});
+        setSelectionEnd({x: coords.x, y: coords.y});
     };
 
     const handleEndSelection = () => {
@@ -210,13 +231,13 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
 
     // Animation function
     const animate = () => {
-        const speed = 0.05; // Adjust for smoother/faster movement
+        const speed = 0.05;
 
         setCurrentPosition(prev => {
             const dx = targetPosition.x - prev.x;
             const dy = targetPosition.y - prev.y;
 
-            // If we're close enough to target, snap to it
+            // If we're close enough to target
             if (Math.abs(dx) < 0.1 && Math.abs(dy) < 0.1) {
                 return targetPosition;
             }
@@ -307,10 +328,10 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
                 <line
                     key={`h-${y}`}
                     x1={-marginPx}
-                    y1={y * scaleY}
+                    y1={meterToPixelY(y)}
                     x2={containerWidth + marginPx}
-                    y2={y * scaleY}
-                    stroke="#aaa"
+                    y2={meterToPixelY(y)}
+                    stroke="#000000"
                     strokeWidth="0.2"
                 />
             );
@@ -320,11 +341,11 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
             elements.push(
                 <line
                     key={`v-${x}`}
-                    x1={x * scaleX}
+                    x1={meterToPixelX(x)}
                     y1={-marginPx}
-                    x2={x * scaleX}
+                    x2={meterToPixelX(x)}
                     y2={containerHeight + marginPx}
-                    stroke="#aaa"
+                    stroke="#000000"
                     strokeWidth="0.2"
                 />
             );
@@ -337,8 +358,8 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
         for (const [, elements] of Object.entries(fieldMapElements)) {
             if (Array.isArray(elements)) {
                 for (const element of elements) {
-                    const elementCenterX = element.x * scaleX;
-                    const elementCenterY = containerHeight - (element.y * scaleY);
+                    const elementCenterX = meterToPixelX(element.x);
+                    const elementCenterY = meterToPixelY(element.y);
                     const distance = Math.sqrt(
                         Math.pow(x - elementCenterX, 2) +
                         Math.pow(y - elementCenterY, 2)
@@ -351,8 +372,8 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
                 }
             } else if (elements && typeof elements === 'object') {
                 // Handle single objects (like robot)
-                const elementCenterX = elements.x * scaleX;
-                const elementCenterY = containerHeight - (elements.y * scaleY);
+                const elementCenterX = meterToPixelX(elements.x);
+                const elementCenterY = meterToPixelY(elements.y);
                 const distance = Math.sqrt(
                     Math.pow(x - elementCenterX, 2) +
                     Math.pow(y - elementCenterY, 2)
@@ -368,8 +389,8 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
 
     function handlePlantedSeedHover(plantedSeeds, x, y) {
         for (const plantedSeed of plantedSeeds) {
-            const plantedSeedCenterX = plantedSeed.x * scaleX;
-            const plantedSeedCenterY = containerHeight - (plantedSeed.y * scaleY);
+            const plantedSeedCenterX = meterToPixelX(plantedSeed.x);
+            const plantedSeedCenterY = meterToPixelY(plantedSeed.y);
             const distance = Math.sqrt(
                 Math.pow(x - plantedSeedCenterX, 2) +
                 Math.pow(y - plantedSeedCenterY, 2)
@@ -385,32 +406,25 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
 
     const handleMouseMove = (event) => {
         const svgRect = event.currentTarget.getBoundingClientRect();
-        const x = event.clientX - svgRect.left - marginPx;
-        const y = event.clientY - svgRect.top - marginPx;
+        const coords = eventToMeterCoordinates(event, svgRect);
 
-        const meterX = Math.floor(x / scaleX);
-        const meterY = Math.floor((containerHeight - y) / scaleY);
-
-        if (isPointInDisabledArea(meterX, meterY)) {
+        if (isPointInDisabledArea(coords.x, coords.y)) {
             setHoverPoint(null);
             return;
         }
 
-        if (handleMapElementHover(fieldMapElements, x, y))
+        if (handleMapElementHover(fieldMapElements, coords.pixelX, coords.pixelY))
             return;
-        if (handlePlantedSeedHover(plantedSeeds, x, y))
+        if (handlePlantedSeedHover(plantedSeeds, coords.pixelX, coords.pixelY))
             return;
 
-        if (meterX >= 0 && meterX <= widthInMeter && meterY >= 0 && meterY <= heightInMeter) {
-            const pixelX = x;
-            const pixelY = y;
-
+        if (coords.x >= 0 && coords.x <= widthInMeter && coords.y >= 0 && coords.y <= heightInMeter) {
             setHoverPoint({
                 ...hoverPoint,
-                x: meterX,
-                y: meterY,
-                pixelX,
-                pixelY,
+                x: coords.x,
+                y: coords.y,
+                pixelX: coords.pixelX,
+                pixelY: coords.pixelY,
             });
         } else {
             setHoverPoint(null);
@@ -438,90 +452,24 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
 
     const handleMove = async (xNew, yNew, zNew) => {
         console.log(`Moving to position (${xNew}, ${yNew}, ${zNew})`);
-        console.log(`Active component: ${activeComponent}`);
         setSelectedPoint(null);
 
         try {
-            // If we're in the soil humidity page, first navigate to the soil sensor
-            if (activeComponent === "soilHumidityPage") {
-                console.log("In soil humidity page, first navigating to soil sensor");
+            await instance.post('/move', {
+                x: xNew,
+                y: yNew,
+                z: -zNew
+            });
 
-                // Constants for soil sensor location
-                const SOIL_SENSOR_X = 2630;
-                const SOIL_SENSOR_Y = 350;
-                const SOIL_SENSOR_APPROACH_Z = -350;
-
-                try {
-                    // Get the auth token
-                    const token = sessionStorage.getItem('token');
-                    if (!token) {
-                        console.error('Authentication token not found');
-                        return;
-                    }
-
-                    console.log('Making request to /api/soilHumidity/read-sensor with target coordinates:', {
-                        targetX: xNew,
-                        targetY: yNew,
-                        targetZ: -zNew
-                    });
-
-                    // First move to the soil sensor and then to the target
-                    const response = await instance.post('/api/soilHumidity/read-sensor', {
-                        targetX: xNew,
-                        targetY: yNew,
-                        targetZ: -zNew
-                    }, {
-                        headers: {
-                            'auth-token': token
-                        }
-                    });
-
-                    console.log('Response from /api/soilHumidity/read-sensor:', response.data);
-
-                    // Update target position after the complete movement sequence
-                    setTargetPosition({
-                        x: xNew,
-                        y: yNew,
-                        z: zNew,
-                    });
-                } catch (sensorError) {
-                    console.error('Error in soil humidity sensor movement sequence:', sensorError);
-                    console.error('Error details:', sensorError.response ? sensorError.response.data : 'No response data');
-
-                    // Fallback to direct movement if the sensor sequence fails
-                    console.log('Falling back to direct movement');
-                    await instance.post('/move', {
-                        x: xNew,
-                        y: yNew,
-                        z: -zNew
-                    });
-
-                    setTargetPosition({
-                        x: xNew,
-                        y: yNew,
-                        z: zNew,
-                    });
-                }
-            } else {
-                // For other pages, just move directly to the target
-                console.log('Moving directly to target (not in soil humidity page)');
-                await instance.post('/move', {
-                    x: xNew,
-                    y: yNew,
-                    z: -zNew
-                });
-
-                // Set target position after successful API call
-                setTargetPosition({
-                    x: xNew,
-                    y: yNew,
-                    z: zNew,
-                });
-            }
+            // Set target position after successful API call
+            setTargetPosition({
+                x: xNew,
+                y: yNew,
+                z: zNew,
+            });
             setSelectedPoint(null);
         } catch (error) {
             console.error('Error moving robot:', error);
-            console.error('Error details:', error.response ? error.response.data : 'No response data');
         }
     };
 
@@ -570,9 +518,9 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
     return (
         <div className="field-map-container">
             <svg
-                width={containerWidth + (2 * marginPx)}
-                height={containerHeight + (2 * marginPx)}
-                viewBox={`${-marginPx} ${-marginPx} ${containerWidth + (2 * marginPx)} ${containerHeight + (2 * marginPx)}`}
+                width={containerWidth + (2 * marginPx) + (2 * border)}
+                height={containerHeight + (2 * marginPx) + (2 * border)}
+                viewBox={`${-marginPx} ${-marginPx } ${containerWidth + (2 * marginPx)} ${containerHeight + (2 * marginPx)}`}
                 onMouseDown={handleStartSelection}
                 onMouseMove={isSelectingArea ? handleSelectionMove : handleMouseMove}
                 onMouseUp={handleEndSelection}
@@ -584,15 +532,15 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
                 {/* Render disabled areas */}
                 {disabledAreas.map((area, index) => (
                     <g key={`disabled-area-${index}`}>
-                        <Rectangle area={area} />
+                        <Rectangle area={area}/>
                     </g>
                 ))}
 
                 {/* robot circle */}
                 <circle
                     className="robot-circle"
-                    cx={currentPosition.x * scaleX}
-                    cy={containerHeight - (currentPosition.y * scaleY)}
+                    cx={meterToPixelX(currentPosition.x)}
+                    cy={meterToPixelY(currentPosition.y)}
                     r={radius}
                     fill="#16a34a"
                     stroke="#fff"
@@ -621,7 +569,7 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
                                     onPointerLeave={() => handleElementHover(key, index, false)}
                                 />
                                 {element.isHovered && (
-                                    <Text x={element.x} y={element.y} text={element.text} />
+                                    <Text x={element.x} y={element.y} text={element.text}/>
                                 )}
                             </g>
                         ));
@@ -638,7 +586,7 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
                                     onPointerLeave={() => handleElementHover(key, null, false)}
                                 />
                                 {elements.isHovered &&
-                                    <Text x={elements.x} y={elements.y} text={elements.text} />
+                                    <Text x={elements.x} y={elements.y} text={elements.text}/>
                                 }
                             </g>
                         );
@@ -650,8 +598,8 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
                 {plantedSeeds.map((seed, index) => (
                     <g key={`seed-${index}`}>
                         <circle
-                            cx={parseInt(seed.x) * scaleX}
-                            cy={containerHeight - (parseInt(seed.y) * scaleY)}
+                            cx={meterToPixelX(parseInt(seed.x))}
+                            cy={meterToPixelY(parseInt(seed.y))}
                             r={radius * 0.8}
                             fill="#6d2ccf"
                             fillOpacity={0.8}
@@ -671,7 +619,7 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
                             }}
                         />
                         {seed.isHovered &&
-                            <Text x={seed.x} y={seed.y} text={seed.seed_name} />
+                            <Text x={seed.x} y={seed.y} text={seed.seed_name}/>
                         }
                     </g>
                 ))}
@@ -680,31 +628,31 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
                 {hoverPoint && (
                     <>
                         <line
-                            x1={hoverPoint.x * scaleX}
+                            x1={hoverPoint.pixelX}
                             y1={-marginPx}
-                            x2={hoverPoint.x * scaleX}
+                            x2={hoverPoint.pixelX}
                             y2={containerHeight + marginPx}
                             stroke="#000000"
                             strokeWidth="1"
                         />
                         <line
                             x1={-marginPx}
-                            y1={containerHeight - (hoverPoint.y * scaleY)}
+                            y1={hoverPoint.pixelY}
                             x2={containerWidth + marginPx}
-                            y2={containerHeight - (hoverPoint.y * scaleY)}
+                            y2={hoverPoint.pixelY}
                             stroke="#000000"
                             strokeWidth="1"
                         />
-                        <Text x={hoverPoint.x} y={hoverPoint.y} text={`(${hoverPoint.x}, ${hoverPoint.y})`} />
+                        <Text x={hoverPoint.x} y={hoverPoint.y} text={`(${hoverPoint.x}, ${hoverPoint.y})`}/>
                     </>
                 )}
 
                 {isSelectingArea && selectionStart && selectionEnd && (
                     <rect
-                        x={Math.min(selectionStart.x, selectionEnd.x) * scaleX}
-                        y={containerHeight - Math.max(selectionStart.y, selectionEnd.y) * scaleY}
-                        width={Math.abs(selectionEnd.x - selectionStart.x) * scaleX}
-                        height={Math.abs(selectionEnd.y - selectionStart.y) * scaleY}
+                        x={meterToPixelX(Math.min(selectionStart.x, selectionEnd.x))}
+                        y={meterToPixelY(Math.max(selectionStart.y, selectionEnd.y))}
+                        width={Math.abs(meterToPixelX(selectionEnd.x) - meterToPixelX(selectionStart.x))}
+                        height={Math.abs(meterToPixelY(selectionEnd.y) - meterToPixelY(selectionStart.y))}
                         fill="rgba(0, 123, 255, 0.2)"
                         stroke="rgb(0, 123, 255)"
                         strokeWidth="2"
@@ -724,14 +672,14 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
 };
 
 const Text = ({x, y, text}) => {
-    const isNearLeft = x < containerWidth * 0.2;
-    const isNearTop = y < containerHeight * 0.2;
+    const isNearLeft = x < widthInMeter * 0.2;
+    const isNearTop = y < heightInMeter * 0.2;
 
     return (
         <text
-            x = {x * scaleX + (isNearLeft ? 10 : -10)}
-            y = {containerHeight - (y * scaleY) + (isNearTop ? -10 : 20)}
-            textAnchor = {isNearLeft ? "start" : "end"}
+            x={meterToPixelX(x) + (isNearLeft ? 10 : -10)}
+            y={meterToPixelY(y) + (isNearTop ? -10 : 20)}
+            textAnchor={isNearLeft ? "start" : "end"}
             fill="#333"
             fontSize="12"
         >
@@ -795,8 +743,8 @@ const ActionModal = ({position, onMove, previousZ}) => {
 const Circle = ({x, y, color, onClick, onPointerEnter, onPointerLeave}) => {
     return (
         <circle
-            cx={x * scaleX}
-            cy={containerHeight - (y * scaleY)}
+            cx={meterToPixelX(x)}
+            cy={meterToPixelY(y)}
             r={radius}
             fill={color}
             fillOpacity={0.8}
@@ -813,10 +761,10 @@ const Circle = ({x, y, color, onClick, onPointerEnter, onPointerLeave}) => {
 const Rectangle = ({area}) => {
     return (
         <rect
-            x={area.x1 * scaleX}
-            y={containerHeight - (area.y2 * scaleY)}
-            width={(area.x2 - area.x1) * scaleX}
-            height={(area.y2 - area.y1) * scaleY}
+            x={meterToPixelX(area.x1)}
+            y={meterToPixelY(area.y2)}
+            width={meterToPixelX(area.x2) - meterToPixelX(area.x1)}
+            height={meterToPixelY(area.y1) - meterToPixelY(area.y2)}
             fill={area.color}
             stroke="#666"
             strokeWidth="1"

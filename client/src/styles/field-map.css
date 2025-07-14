@@ -7,6 +7,9 @@
 
 .field-map-container svg {
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    background-color: rgb(195, 161, 127);
+    border: 15px solid rgba(177, 88, 44, 0.75);
+    border-radius: 10px;
 }
 
 .action-modal {
