@@ -6,6 +6,7 @@ const WateringJobSchema = new mongoose.Schema({
   y: Number,
   z: Number,
   waterAmount: Number,
+  waterUnit: String, 
   date: String,
   interval: Number,
 });
