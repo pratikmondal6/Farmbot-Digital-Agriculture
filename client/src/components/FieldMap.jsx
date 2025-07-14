@@ -283,7 +283,7 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
                                 const detailRes = await instance.get(`/plant/details/${seed.seed_name}`);
                                 return {
                                     ...seed,
-                                    min_distance: detailRes.data.minimal_distance,
+                                    min_distance: detailRes.data.minimal_distance/2,
                                     color: "#6d2ccf"
                                 };
                             } catch (error) {
