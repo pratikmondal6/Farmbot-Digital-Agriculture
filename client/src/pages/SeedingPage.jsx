@@ -3,9 +3,9 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import api from "../utils/api";
 
-const now = new Date();
-const defaultDate = now.toISOString().slice(0, 10); // "YYYY-MM-DD"
-const defaultTime = now.toTimeString().slice(0, 5); // "HH:MM"
+// const now = new Date();
+// const defaultDate = now.toISOString().slice(0, 10); // "YYYY-MM-DD"
+// const defaultTime = now.toTimeString().slice(0, 5); // "HH:MM"
 
 const SeedingPage = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea, seedingAreaLocation}) => {
   const navigate = useNavigate();
@@ -13,8 +13,8 @@ const SeedingPage = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea, se
   const [plant, setPlant] = useState('');
   const [SeedX, setSeedX] = useState('');
   const [SeedY, setSeedY] = useState('');
-  const [ScheduledDate, setDate] = useState(defaultDate);
-  const [Time, setTime] = useState(defaultTime);
+  const [ScheduledDate, setDate] = useState('');
+  const [Time, setTime] = useState('');
   const [isHovered, setIsHovered] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
