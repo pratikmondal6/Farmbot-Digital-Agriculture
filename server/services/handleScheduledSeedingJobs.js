@@ -53,7 +53,7 @@ const handleScheduledSeedingJobs = async () => {
       }
     }
 
-    await sleep(60000)
+    await sleep(30000)
 
   }
 }

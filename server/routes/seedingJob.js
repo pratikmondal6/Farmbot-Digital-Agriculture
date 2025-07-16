@@ -59,6 +59,9 @@ router.post("/start", async (req, res) => {
     return res.status(204).send({message: "No point is calculated"})
   }
 
+  // Go a little outside and upper than seeding object
+  await move(bot, x=2500, y=245, z=-395)
+
   // Go to higher than seeder object
   await move(bot, x=2630, y=245, z=-395)
 

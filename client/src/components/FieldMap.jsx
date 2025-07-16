@@ -5,6 +5,7 @@ import instance from "../utils/api";
 let scaleX = 0;
 let scaleY = 0;
 
+
 const containerWidth = 1200;
 const containerHeight = 600;
 const radius = 10;
@@ -35,6 +36,7 @@ const eventToMeterCoordinates = (event, svgRect) => {
 
 const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeComponent}) => {
     const gridSpacing = 60;
+    const [showSafetyCircles, setShowSafetyCircles] = useState(true);
     const [hoverPoint, setHoverPoint] = useState(null);
     const [selectedPoint, setSelectedPoint] = useState(null);
     const [currentPosition, setCurrentPosition] = useState({x: 0, y: 0});
@@ -291,20 +293,36 @@ const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeCompo
         };
     }, []);
 
-    // Fetch Seed Locations
-    const fetchSeedLocations = async () => {
-        try {
-            const response = await instance.get('/seedingJob/seeds');
-            const seedLocations = response.data;
+                    // Fetch Seed Locations
+                    const fetchSeedLocations = async () => {
+                    try {
+                        const response = await instance.get('/seedingJob/seeds');
+                        const seedLocations = response.data;
 
-            return seedLocations.map(seed => ({
-                ...seed,
-                color: "#6d2ccf",
-            }));
-        } catch (error) {
-            console.error('Error fetching seed locations:', error);
-        }
-    }
+                        const seedsWithDetails = await Promise.all(seedLocations.map(async (seed) => {
+                            try {
+                                const detailRes = await instance.get(`/plant/details/${seed.seed_name}`);
+                                return {
+                                    ...seed,
+                                    min_distance: detailRes.data.minimal_distance/2,
+                                    color: "#6d2ccf"
+                                };
+                            } catch (error) {
+                                console.error(`Fehler beim Laden von Details für ${seed.seed_name}:`, error);
+                                return {
+                                    ...seed,
+                                    min_distance: 100, // fallback
+                                    color: "#6d2ccf"
+                                };
+                            }
+                        }));
+
+                        return seedsWithDetails;
+                    } catch (error) {
+                        console.error('Error fetching seed locations:', error);
+                        return [];
+                    }
+                };
 
     useEffect(() => {
         const loadSeedLocations = async () => {
@@ -558,6 +576,12 @@ const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeCompo
 
     return (
         <div className="field-map-container">
+            <button
+                className="toggle-radius-button"
+                onClick={() => setShowSafetyCircles(prev => !prev)}
+            >
+                {showSafetyCircles ? "Radius off" : "Radius on"}
+            </button>
             <svg
                 width={containerWidth + (2 * marginPx) + (2 * border)}
                 height={containerHeight + (2 * marginPx) + (2 * border)}
@@ -638,6 +662,20 @@ const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeCompo
                 {/* Render planted seeds */}
                 {plantedSeeds.map((seed, index) => (
                     <g key={`seed-${index}`}>
+                            {/* Sicherheitskreis (nur wenn min_distance vorhanden) */}
+                            {showSafetyCircles && seed.min_distance && parseFloat(seed.min_distance) > 0 && (
+                            <circle
+                                cx={parseInt(seed.x) * scaleX}
+                                cy={containerHeight - (parseInt(seed.y) * scaleY)}
+                                r={parseFloat(seed.min_distance) * scaleX}
+                                fill="rgba(255, 0, 0, 0.2)"        // halbtransparente Füllung
+                                stroke="red"                      // rote Umrandung
+                                strokeDasharray="4,2"            // gestrichelt
+                                strokeWidth="1"
+                            />
+                        )}
+
+                    
                         <circle
                             cx={meterToPixelX(parseInt(seed.x))}
                             cy={meterToPixelY(parseInt(seed.y))}
