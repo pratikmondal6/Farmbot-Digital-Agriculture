@@ -516,8 +516,8 @@ const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeCompo
         if (hoverPoint) {
             setSelectedPoint({
                 ...hoverPoint,
-                x: event.clientX,
-                y: event.clientY,
+                x: hoverPoint.pixelX,
+                y: hoverPoint.pixelY,
                 meterX: hoverPoint.x,
                 meterY: hoverPoint.y,
             });
@@ -799,8 +799,15 @@ const ActionModal = ({position, onMove, previousZ}) => {
         }
     };
 
+    // Calculate position relative to the SVG container
+    const modalStyle = {
+        position: 'absolute',
+        left: `${position.pixelX + border}px`,
+        top: `${position.pixelY + border}px`
+    };
+
     return (
-        <div className="action-modal" style={{left: position.x, top: position.y}}>
+        <div className="action-modal" style={modalStyle}>
             <div className="action-modal-content">
                 <div className="action-modal-input-container">
                     <label className="action-modal-label">Width:</label>
