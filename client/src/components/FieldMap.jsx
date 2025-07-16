@@ -7,7 +7,7 @@ let scaleY = 0;
 
 
 const containerWidth = 1200;
-const containerHeight = 600;
+const containerHeight = 550;
 const radius = 10;
 const margin = 2;
 const border = 15; // Border width
@@ -304,7 +304,7 @@ const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeCompo
                                 const detailRes = await instance.get(`/plant/details/${seed.seed_name}`);
                                 return {
                                     ...seed,
-                                    min_distance: detailRes.data.minimal_distance/2,
+                                    min_distance: detailRes.data.minimal_distance,
                                     color: "#6d2ccf"
                                 };
                             } catch (error) {
