@@ -10,7 +10,7 @@ const containerHeight = 750;
 const radius = 10;
 const margin = 2;
 
-const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, selectArea = false, onElementClick, activeComponent}) => {
+const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, selectArea = false, onElementClick, activeComponent, humidityData}) => {
     const gridSpacing = 60;
     const [hoverPoint, setHoverPoint] = useState(null);
     const [selectedPoint, setSelectedPoint] = useState(null);
@@ -40,6 +40,16 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
             color: "rgba(128,128,128,0.2)"
         },
     ]);
+
+    // Function to get color based on humidity value
+    const getHumidityColor = (value) => {
+        // Color scale from red (dry) to blue (wet)
+        if (value >= 80) return "rgba(0, 0, 255, 0.6)"; // Very wet - blue
+        if (value >= 60) return "rgba(0, 255, 255, 0.6)"; // Wet - cyan
+        if (value >= 40) return "rgba(0, 255, 0, 0.6)"; // Medium - green
+        if (value >= 20) return "rgba(255, 255, 0, 0.6)"; // Dry - yellow
+        return "rgba(255, 0, 0, 0.6)"; // Very dry - red
+    };
 
         useEffect(() => {
             setIsSelectingArea(selectArea);
@@ -333,6 +343,78 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
         return elements;
     };
 
+    // Function to render humidity heatmap
+    const renderHumidityHeatmap = () => {
+        if (!humidityData || !humidityData.readings || !humidityData.area) {
+            return null;
+        }
+
+        const { readings, area } = humidityData;
+        const elements = [];
+
+        if (readings.length === 0) {
+            return null;
+        }
+
+        // Calculate the grid size (assuming it's a square grid)
+        const gridSize = Math.sqrt(readings.length);
+
+        // Calculate the size of each cell in the heatmap
+        const cellWidth = (area.bottomRight.x - area.topLeft.x) / (gridSize > 1 ? gridSize - 1 : 1);
+        const cellHeight = (area.topLeft.y - area.bottomLeft.y) / (gridSize > 1 ? gridSize - 1 : 1);
+
+        // Create a heatmap cell for each reading
+        readings.forEach((reading, index) => {
+            // Extract values, handling different possible formats
+            const x = reading.x !== undefined ? reading.x : (reading.position ? reading.position.x : 0);
+            const y = reading.y !== undefined ? reading.y : (reading.position ? reading.position.y : 0);
+            const value = reading.value !== undefined ? reading.value : (reading.reading_value !== undefined ? reading.reading_value : 0);
+
+            if (x === 0 && y === 0) {
+                console.warn("Invalid coordinates for humidity reading", reading);
+                return; // Skip this reading
+            }
+
+            // Calculate the corners of the cell
+            const x1 = x - cellWidth / 2;
+            const y1 = y - cellHeight / 2;
+            const x2 = x + cellWidth / 2;
+            const y2 = y + cellHeight / 2;
+
+            // Add a rectangle for this cell
+            elements.push(
+                <rect
+                    key={`humidity-cell-${index}`}
+                    x={x1 * scaleX}
+                    y={containerHeight - (y2 * scaleY)}
+                    width={cellWidth * scaleX}
+                    height={cellHeight * scaleY}
+                    fill={getHumidityColor(value)}
+                    stroke="rgba(0,0,0,0.2)"
+                    strokeWidth="1"
+                />
+            );
+
+            // Add a text label with the humidity value
+            elements.push(
+                <text
+                    key={`humidity-text-${index}`}
+                    x={x * scaleX}
+                    y={containerHeight - (y * scaleY)}
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    fill="#000"
+                    fontSize="12"
+                    fontWeight="bold"
+                >
+                    {value}%
+                </text>
+            );
+        });
+
+        return elements;
+    };
+
     function handleMapElementHover(fieldMapElements, x, y) {
         for (const [, elements] of Object.entries(fieldMapElements)) {
             if (Array.isArray(elements)) {
@@ -567,8 +649,42 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
         fetchSelectedAreas();
     }, []);
 
+    // Render humidity legend if data is available
+    const renderHumidityLegend = () => {
+        if (!humidityData || activeComponent !== "soilHumidityPage") {
+            return null;
+        }
+
+        return (
+            <div className="humidity-legend">
+                <h3>Soil Humidity</h3>
+                <div className="legend-item">
+                    <div className="legend-color" style={{ backgroundColor: "rgba(0, 0, 255, 0.6)" }}></div>
+                    <span>80-100% (Very Wet)</span>
+                </div>
+                <div className="legend-item">
+                    <div className="legend-color" style={{ backgroundColor: "rgba(0, 255, 255, 0.6)" }}></div>
+                    <span>60-79% (Wet)</span>
+                </div>
+                <div className="legend-item">
+                    <div className="legend-color" style={{ backgroundColor: "rgba(0, 255, 0, 0.6)" }}></div>
+                    <span>40-59% (Medium)</span>
+                </div>
+                <div className="legend-item">
+                    <div className="legend-color" style={{ backgroundColor: "rgba(255, 255, 0, 0.6)" }}></div>
+                    <span>20-39% (Dry)</span>
+                </div>
+                <div className="legend-item">
+                    <div className="legend-color" style={{ backgroundColor: "rgba(255, 0, 0, 0.6)" }}></div>
+                    <span>0-19% (Very Dry)</span>
+                </div>
+            </div>
+        );
+    };
+
     return (
         <div className="field-map-container">
+            {renderHumidityLegend()}
             <svg
                 width={containerWidth + (2 * marginPx)}
                 height={containerHeight + (2 * marginPx)}
@@ -587,6 +703,9 @@ const FieldMap = ({widthInMeter = 2700, heightInMeter = 1200, onAreaSelect, sele
                         <Rectangle area={area} />
                     </g>
                 ))}
+
+                {/* Render humidity heatmap if data is available */}
+                {activeComponent === "soilHumidityPage" && renderHumidityHeatmap()}
 
                 {/* robot circle */}
                 <circle

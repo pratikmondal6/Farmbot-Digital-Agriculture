@@ -16,6 +16,7 @@ export default function FarmBotDashboard() {
     const [seedPoints, setSeedPoints] = useState({})
     const [selectArea, setSelectArea] = useState(false)
     const [seedingAreaLocation, setSeedingAreaLocation] = useState()
+    const [humidityData, setHumidityData] = useState(null)
 
     const handleComponentSelection = (visibleComp) => {
         setVisibleComponent(visibleComp);
@@ -29,6 +30,10 @@ export default function FarmBotDashboard() {
         setSeedingAreaLocation(points)
     }
 
+    const handleHumidityReadings = (data) => {
+        setHumidityData(data)
+    }
+
     return (
         <div className="dashboard-container">
             <Header />
@@ -40,8 +45,8 @@ export default function FarmBotDashboard() {
                 {visibleComponent=="addPlantType" && <AddPlanttype />}
                 {visibleComponent=="c" && <SeedingPage />}
                 {visibleComponent=="wateringJobPage" && <WateringJobPage />}
-                {visibleComponent=="soilHumidityPage" && <SoilHumidityPage selectArea={selectArea} setSelectArea={setSelectArea} selectedAreaLocation={seedingAreaLocation} />}
-                <FieldMap activeComponent={visibleComponent} onAreaSelect={handleAreaSelect} selectArea={selectArea} onElementClick={handleClickElement}/>
+                {visibleComponent=="soilHumidityPage" && <SoilHumidityPage selectArea={selectArea} setSelectArea={setSelectArea} selectedAreaLocation={seedingAreaLocation} onHumidityReadings={handleHumidityReadings} />}
+                <FieldMap activeComponent={visibleComponent} onAreaSelect={handleAreaSelect} selectArea={selectArea} onElementClick={handleClickElement} humidityData={humidityData} />
             </div>
         </div>
     );
