@@ -16,6 +16,7 @@ const wateringJob = require('../routes/wateringJob');
 const occupiedAreas = require("../routes/occupied-areas");
 const soilHumidity = require("../routes/soilHumidity");
 const areaHumidity = require("../routes/areaHumidity");
+const conversion = require("../routes/conversion")
 
 
 module.exports = function (app) {
@@ -33,6 +34,7 @@ module.exports = function (app) {
   app.use('/api/watering', wateringJob);
   app.use('/api/soilHumidity', soilHumidity);
   app.use('/api/areaHumidity', areaHumidity);
+  app.use('/api/conversion', conversion);
   handleScheduledSeedingJobs()
   handleScheduledWateringJobs()
   app.use("*", notFound);
