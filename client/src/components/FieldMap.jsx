@@ -2,6 +2,31 @@ import React, {useEffect, useState} from 'react';
 import '../styles/field-map.css';
 import instance from "../utils/api";
 
+const getPlantIconPath = (seedName) => {
+    const name = seedName?.toLowerCase();
+    console.log(name)
+    try {
+        switch (name) {
+            case 'carrot':
+                return require('../assets/images/carrot.png');
+            case 'tomato':
+                return require('../assets/images/tomato.png');
+            case 'lettuce':
+                return require('../assets/images/lettuce.png');
+            case 'kiwi':
+                return require('../assets/images/kiwi.png');
+            default:
+                return require('../assets/images/fallback.png');
+        }
+    } catch (e) {
+        console.warn('Missing icon for:', seedName);
+        return require('../assets/images/fallback.png');
+    }
+};
+
+export const PLANT_ICON_WIDTH = 30; // larger size
+export const PLANT_ICON_HEIGHT = 30;
+
 let scaleX = 0;
 let scaleY = 0;
 
@@ -662,29 +687,24 @@ const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeCompo
                 {/* Render planted seeds */}
                 {plantedSeeds.map((seed, index) => (
                     <g key={`seed-${index}`}>
-                            {/* Sicherheitskreis (nur wenn min_distance vorhanden) */}
-                            {showSafetyCircles && seed.min_distance && parseFloat(seed.min_distance) > 0 && (
+                        {showSafetyCircles && seed.min_distance && parseFloat(seed.min_distance) > 0 && (
                             <circle
                                 cx={parseInt(seed.x) * scaleX}
                                 cy={containerHeight - (parseInt(seed.y) * scaleY)}
                                 r={parseFloat(seed.min_distance) * scaleX}
-                                fill="rgba(255, 0, 0, 0.2)"        // halbtransparente Füllung
-                                stroke="red"                      // rote Umrandung
-                                strokeDasharray="4,2"            // gestrichelt
+                                fill="rgba(255, 0, 0, 0.2)"
+                                stroke="red"
+                                strokeDasharray="4,2"
                                 strokeWidth="1"
                             />
                         )}
 
-                    
-                        <circle
-                            cx={meterToPixelX(parseInt(seed.x))}
-                            cy={meterToPixelY(parseInt(seed.y))}
-                            r={radius * 0.8}
-                            fill="#6d2ccf"
-                            fillOpacity={0.8}
-                            stroke="#333"
-                            strokeWidth="1"
-                            style={{cursor: 'pointer'}}
+                        <image
+                            href={getPlantIconPath(seed.seed_name)}
+                            x={(parseInt(seed.x) * scaleX) - PLANT_ICON_WIDTH / 2}
+                            y={(containerHeight - (parseInt(seed.y) * scaleY)) - PLANT_ICON_HEIGHT / 2}
+                            width={PLANT_ICON_WIDTH}
+                            height={PLANT_ICON_HEIGHT}
                             onPointerEnter={() => {
                                 // Show seed info on hover
                                 const element = plantedSeeds[index];
@@ -696,7 +716,9 @@ const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeCompo
                                 element.isHovered = false;
                                 setPlantedSeeds([...plantedSeeds]);
                             }}
+                            style={{ cursor: 'pointer' }}
                         />
+
                         {seed.isHovered &&
                             <Text x={seed.x} y={seed.y} text={seed.seed_name}/>
                         }
