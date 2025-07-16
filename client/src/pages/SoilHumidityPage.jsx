@@ -1,21 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState} from 'react';
 import axios from 'axios';
 import '../styles/soil-humidity-page.css';
 
-const SoilHumidityPage = ({ selectArea, setSelectArea, selectedAreaLocation }) => {
+const SoilHumidityPage = ({selectArea, setSelectArea, selectedAreaLocation, setSelectedAreaLocation}) => {
     const [loading, setLoading] = useState({
         measure: false,
         return: false
     });
 
-    const handleSelectArea = () => {
-        setSelectArea(true);
-        selectedAreaLocation = null;
-    };
-
     const handleMeasureHumidity = async () => {
         try {
-            setLoading(prev => ({ ...prev, measure: true }));
+            setLoading(prev => ({...prev, measure: true}));
             const response = await axios.post('/api/humidity/measure', {
                 area: selectedAreaLocation
             });
@@ -27,13 +22,13 @@ const SoilHumidityPage = ({ selectArea, setSelectArea, selectedAreaLocation }) =
             console.error('Error measuring humidity:', error);
             alert('Failed to measure humidity. Please try again.');
         } finally {
-            setLoading(prev => ({ ...prev, measure: false }));
+            setLoading(prev => ({...prev, measure: false}));
         }
     };
 
     const handleReturnDevice = async () => {
         try {
-            setLoading(prev => ({ ...prev, return: true }));
+            setLoading(prev => ({...prev, return: true}));
             const response = await axios.post('/api/device/return-home');
 
             if (response.status === 200) {
@@ -43,7 +38,7 @@ const SoilHumidityPage = ({ selectArea, setSelectArea, selectedAreaLocation }) =
             console.error('Error returning device:', error);
             alert('Failed to return device. Please try again.');
         } finally {
-            setLoading(prev => ({ ...prev, return: false }));
+            setLoading(prev => ({...prev, return: false}));
         }
     };
 
@@ -58,12 +53,14 @@ const SoilHumidityPage = ({ selectArea, setSelectArea, selectedAreaLocation }) =
                         <button
                             type='button'
                             className="soil-humidity-button-select"
-                            onClick={handleSelectArea}
+                            onClick={() => {
+                                setSelectArea(!selectArea)
+                            }}
                         >
                             Select Area
                         </button>
                         <input
-                            value={selectedAreaLocation ? `(${selectedAreaLocation.topLeft.x}, ${selectedAreaLocation.topLeft.y}) to (${selectedAreaLocation.bottomRight.x}, ${selectedAreaLocation.bottomRight.y})` : ''}
+                            value={selectedAreaLocation ? `(${selectedAreaLocation.bottomLeft.x}, ${selectedAreaLocation.bottomLeft.y}) to (${selectedAreaLocation.topRight.x}, ${selectedAreaLocation.topRight.y})` : ''}
                             disabled
                             type="text"
                         />

@@ -40,7 +40,7 @@ export default function FarmBotDashboard() {
                 {visibleComponent=="addPlantType" && <AddPlanttype />}
                 {visibleComponent=="c" && <SeedingPage />}
                 {visibleComponent=="wateringJobPage" && <WateringJobPage />}
-                {visibleComponent=="soilHumidityPage" && <SoilHumidityPage selectArea={selectArea} setSelectArea={setSelectArea} selectedAreaLocation={seedingAreaLocation} />}
+                {visibleComponent=="soilHumidityPage" && <SoilHumidityPage selectArea={selectArea} setSelectArea={setSelectArea} selectedAreaLocation={seedingAreaLocation} setSelectedAreaLocation={setSeedingAreaLocation} />}
                 <FieldMap activeComponent={visibleComponent} onAreaSelect={handleAreaSelect} selectArea={selectArea} onElementClick={handleClickElement}/>
             </div>
         </div>

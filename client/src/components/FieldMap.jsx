@@ -173,7 +173,7 @@ const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeCompo
         const isSamePoint = Math.abs(selectionStart.x - selectionEnd.x) < 15 &&
             Math.abs(selectionStart.y - selectionEnd.y) < 15;
 
-        if (isSamePoint) {
+        if (isSamePoint && activeComponent !== "soilHumidityPage") {
             setIsSelectingArea(false);
             setSelectionStart(null);
             setSelectionEnd(null);
@@ -191,7 +191,7 @@ const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeCompo
             return !(x2 < area.x1 || x1 > area.x2 || y2 < area.y1 || y1 > area.y2);
         });
 
-        if (hasOverlap) {
+        if (hasOverlap && activeComponent !== "soilHumidityPage") {
             setIsSelectingArea(true);
             setSelectionStart(null);
             setSelectionEnd(null);
@@ -331,7 +331,7 @@ const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeCompo
                 x2: parseInt(area.topRight.x),
                 y2: parseInt(area.topRight.y),
                 name: `Planted ${area.plant}`,
-                color: "rgba(255,0,0,0.24)",
+                color: "rgba(0,47,255,0.09)",
             }));
 
             console.log("Selected areas fetched:", selectedAreas);
@@ -479,6 +479,44 @@ const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeCompo
                 meterY: hoverPoint.y,
             });
             setHoverPoint(null);
+        } else if (activeComponent === "soilHumidityPage") {
+            // For soil humidity page, check if click is on a disabled area
+            const svgRect = event.currentTarget.getBoundingClientRect();
+            const coords = eventToMeterCoordinates(event, svgRect);
+
+            // Find which disabled area was clicked
+            const clickedArea = disabledAreas.find(area =>
+                coords.x >= area.x1 && coords.x <= area.x2 &&
+                coords.y >= area.y1 && coords.y <= area.y2
+            );
+
+            if (clickedArea) {
+                // Convert the clicked area to the format expected by onAreaSelect
+                const points = {
+                    topLeft: {
+                        x: clickedArea.x1,
+                        y: clickedArea.y2
+                    },
+                    topRight: {
+                        x: clickedArea.x2,
+                        y: clickedArea.y2
+                    },
+                    bottomLeft: {
+                        x: clickedArea.x1,
+                        y: clickedArea.y1
+                    },
+                    bottomRight: {
+                        x: clickedArea.x2,
+                        y: clickedArea.y1
+                    }
+                };
+
+                console.log("Clicked on existing area:", points);
+
+                if (onAreaSelect) {
+                    onAreaSelect(points);
+                }
+            }
         }
     };
 
