@@ -38,8 +38,8 @@ router.post("/start", async (req, res) => {
   let bot = new Farmbot({ token: token });
   await bot.connect()
 
-  // const seedX = parseInt(req.body.seedX)
-  // const seedY = parseInt(req.body.seedY)
+  const seedX = parseInt(req.body.seedX)
+  const seedY = parseInt(req.body.seedY)
   // const destX = parseInt(req.body.x)
   // const destY = parseInt(req.body.y)
   // const depth = parseInt(req.body.z)
@@ -92,12 +92,12 @@ router.post("/start", async (req, res) => {
     await move(bot, x=seedX, y=seedY, z=-480)
 
     // Go to location of seeding
-    await move(bot, x=point.x, y=point.y, z=-480)
+    await move(bot, x=point.x-20, y=point.y, z=-480)
 
     setJobStatus("seeding");
 
     // Go down and seed
-    await move(bot, x=point.x, y=point.y, z=-530)
+    await move(bot, x=point.x-20, y=point.y, z=-530)
 
     // Stop suction
     await bot.writePin({
