@@ -3,6 +3,8 @@ const express = require("express");
 const router = express.Router();
 const { setJobStatus } = require("../services/farmbotStatusService");
 const { Humidity } = require("../models/humidity");
+const { Seed } = require("../models/seed");
+const Plant = require("../models/plan");
 
 // Helper function to move the bot
 const move = async (bot, x, y, z) => {
@@ -17,6 +19,63 @@ const move = async (bot, x, y, z) => {
 // Helper function to sleep
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// Helper function to check if a point overlaps with existing seeds or plants
+async function isPointOverlappingWithPlantsOrSeeds(x, y) {
+  try {
+    // Get all seeds from the database
+    const seeds = await Seed.find({});
+    // Get all plants from the database to get their minimal_distance
+    const plants = await Plant.find({});
+
+    // Create lookup map: plant_type -> minimal_distance
+    const spacingMap = {};
+    plants.forEach(p => {
+      const name = p.plant_type?.toLowerCase().trim();
+      if (name) {
+        spacingMap[name] = p.minimal_distance || 100;
+      }
+    });
+
+    const defaultSpacing = 100;
+
+    // Check if the point overlaps with any seed
+    return seeds.some(seed => {
+      const name = seed.seed_name?.toLowerCase().trim();
+      const spacing = spacingMap[name] || defaultSpacing;
+      const radius = spacing / 2;
+
+      const dx = seed.x - x;
+      const dy = seed.y - y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      return distance < radius;
+    });
+  } catch (error) {
+    console.error("Error checking if point overlaps with plants or seeds:", error);
+    return false; // In case of error, assume no overlap to continue with measurement
+  }
+}
+
+// Helper function to find an alternative point for humidity measurement
+async function findAlternativePoint(originalX, originalY, areaWidth, areaHeight, topLeft, attempts = 5) {
+  // Try a few random positions within the area
+  for (let i = 0; i < attempts; i++) {
+    // Generate a random position within the area
+    const randomX = topLeft.x + Math.random() * areaWidth;
+    const randomY = topLeft.y + Math.random() * areaHeight;
+
+    // Check if this point overlaps with plants or seeds
+    const overlaps = await isPointOverlappingWithPlantsOrSeeds(randomX, randomY);
+
+    if (!overlaps) {
+      return { x: randomX, y: randomY };
+    }
+  }
+
+  // If all attempts failed, return the original point
+  return { x: originalX, y: originalY };
 }
 
 // Endpoint for measuring humidity in a selected area
@@ -47,7 +106,7 @@ router.post("/measure", async (req, res) => {
     setJobStatus("measuring soil humidity");
 
     // Constants for soil sensor location
-    const SOIL_SENSOR_X = 2630;
+    const SOIL_SENSOR_X = 2631;
     const SOIL_SENSOR_Y = 350;
     const SOIL_SENSOR_APPROACH_Z = -350;
     const SOIL_SENSOR_ATTACH_Z = -410;
@@ -150,8 +209,20 @@ router.post("/measure", async (req, res) => {
     for (let i = 0; i < GRID_SIZE; i++) {
       for (let j = 0; j < GRID_SIZE; j++) {
         // Calculate the coordinates for this point
-        const pointX = topLeft.x + (areaWidth * (i / (GRID_SIZE - 1)));
-        const pointY = topLeft.y + (areaHeight * (j / (GRID_SIZE - 1)));
+        let pointX = topLeft.x + (areaWidth * (i / (GRID_SIZE - 1)));
+        let pointY = topLeft.y + (areaHeight * (j / (GRID_SIZE - 1)));
+
+        // Check if this point overlaps with plants or seeds
+        const overlapsWithPlants = await isPointOverlappingWithPlantsOrSeeds(pointX, pointY);
+
+        if (overlapsWithPlants) {
+          console.log(`Point (${pointX}, ${pointY}) overlaps with plants or seeds. Finding alternative point...`);
+          // Find an alternative point that doesn't overlap with plants or seeds
+          const alternativePoint = await findAlternativePoint(pointX, pointY, areaWidth, areaHeight, topLeft);
+          pointX = alternativePoint.x;
+          pointY = alternativePoint.y;
+          console.log(`Using alternative point (${pointX}, ${pointY}) for measurement`);
+        }
 
         try {
           console.log(`Moving to point (${pointX}, ${pointY})...`);
@@ -165,16 +236,52 @@ router.post("/measure", async (req, res) => {
           await sleep(1000);
 
           // Read from the soil humidity sensor
+          console.log("Reading from soil humidity sensor pin:", SOIL_SENSOR_PIN);
+
+          // First, ensure we're using the correct pin mode
+          try {
+            await bot.setPinMode({
+              pin_number: SOIL_SENSOR_PIN,
+              pin_mode: 1 // 1 = analog input
+            });
+            console.log("Successfully set pin mode to analog");
+          } catch (pinModeError) {
+            console.error("Error setting pin mode:", pinModeError);
+            // Continue anyway
+          }
+
+          // Wait a moment for the pin mode to take effect
+          await sleep(500);
+
+          // Now read the pin value
           const pinReadResult = await bot.readPin({
             pin_number: SOIL_SENSOR_PIN,
             pin_mode: 1 // 1 = analog
           });
 
+          console.log("Pin read result:", pinReadResult);
+
+          // Get the current time
+          const read_at = new Date().toISOString();
+          console.log("Read at:", read_at);
+
           // Convert the raw sensor value to a humidity percentage
           const rawValue = pinReadResult.value || 0;
           console.log("Raw sensor value:", rawValue);
+
           // Calculate humidity percentage - higher values mean wetter soil, lower values mean drier soil
           const humidityValue = Math.round((rawValue / 1023) * 100);
+
+          // Log the reading with position information
+          console.log("Sensor reading:", {
+            x: pointX,
+            y: pointY,
+            z: FIXED_DEPTH,
+            mode: 1,
+            pin: SOIL_SENSOR_PIN,
+            value: rawValue,
+            read_at: read_at
+          });
 
           // Save the humidity reading to the database
           const humidityReading = new Humidity({

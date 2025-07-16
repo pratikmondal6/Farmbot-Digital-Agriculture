@@ -122,17 +122,51 @@ router.post("/read-sensor", async (req, res) => {
 
     // Step 7: Read from the soil humidity sensor
     try {
+      console.log("Reading from soil humidity sensor pin:", SOIL_SENSOR_PIN);
+
+      // First, ensure we're using the correct pin mode
+      try {
+        await bot.setPinMode({
+          pin_number: SOIL_SENSOR_PIN,
+          pin_mode: 1 // 1 = analog input
+        });
+        console.log("Successfully set pin mode to analog");
+      } catch (pinModeError) {
+        console.error("Error setting pin mode:", pinModeError);
+        // Continue anyway
+      }
+
+      // Wait a moment for the pin mode to take effect
+      await sleep(500);
+
+      // Now read the pin value
       const pinReadResult = await bot.readPin({
         pin_number: SOIL_SENSOR_PIN,
         pin_mode: 1 // 1 = analog
       });
 
+      // Get the current time
+      const read_at = new Date().toISOString();
+      console.log("Read at:", read_at);
+
       // Convert the raw sensor value to a humidity percentage
       const rawValue = pinReadResult.value || 0;
       // Display the actual raw value from the sensor (0-1023)
       console.log("Raw sensor value:", rawValue);
+
       // Calculate humidity percentage - higher values mean wetter soil, lower values mean drier soil
       humidityValue = Math.round((rawValue / 1023) * 100);
+
+      // Log the reading with position information
+      console.log("Sensor reading:", {
+        x: x,
+        y: y,
+        z: targetZ,
+        mode: 1,
+        pin: SOIL_SENSOR_PIN,
+        value: rawValue,
+        read_at: read_at
+      });
     } catch (sensorError) {
       console.error("Error reading from soil humidity sensor:", sensorError);
       // If sensor reading fails, use simulated data

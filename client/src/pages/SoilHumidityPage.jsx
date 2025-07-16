@@ -2,6 +2,148 @@ import React, { useState, useEffect } from 'react';
 import api from '../utils/api';
 import '../styles/soil-humidity-page.css';
 
+// Component to render the humidity heatmap
+const HumidityHeatmap = ({ readings, area }) => {
+    if (!readings || !area) return null;
+
+    // Calculate the bounds of the selected area
+    const minX = Math.min(area.topLeft.x, area.bottomLeft.x);
+    const maxX = Math.max(area.topRight.x, area.bottomRight.x);
+    const minY = Math.min(area.bottomLeft.y, area.bottomRight.y);
+    const maxY = Math.max(area.topLeft.y, area.topRight.y);
+
+    // Calculate width and height of the area
+    const width = maxX - minX;
+    const height = maxY - minY;
+
+    // Function to get color based on humidity value
+    const getHumidityColor = (value) => {
+        // Color scale from dry (red) to wet (blue)
+        if (value < 25) return `rgba(255, 0, 0, 0.7)`; // Very dry - red
+        if (value < 50) return `rgba(255, 165, 0, 0.7)`; // Dry - orange
+        if (value < 75) return `rgba(255, 255, 0, 0.7)`; // Medium - yellow
+        return `rgba(0, 0, 255, 0.7)`; // Wet - blue
+    };
+
+    // Create a grid of cells for the heatmap
+    const cellSize = 20; // Size of each cell in the heatmap
+    const numCellsX = Math.ceil(width / cellSize);
+    const numCellsY = Math.ceil(height / cellSize);
+
+    // Create an interpolated grid of humidity values
+    const grid = [];
+    for (let y = 0; y < numCellsY; y++) {
+        for (let x = 0; x < numCellsX; x++) {
+            const cellX = minX + (x * cellSize);
+            const cellY = minY + (y * cellSize);
+
+            // Interpolate humidity value based on distance to each reading
+            let totalWeight = 0;
+            let weightedSum = 0;
+
+            readings.forEach(reading => {
+                // Calculate distance from cell to reading
+                const distance = Math.sqrt(
+                    Math.pow(cellX - reading.x, 2) + 
+                    Math.pow(cellY - reading.y, 2)
+                );
+
+                // Use inverse distance weighting
+                const weight = distance === 0 ? 1000 : 1 / (distance * distance);
+                totalWeight += weight;
+                weightedSum += weight * parseInt(reading.value);
+            });
+
+            const interpolatedValue = totalWeight > 0 ? weightedSum / totalWeight : 0;
+
+            grid.push({
+                x: cellX,
+                y: cellY,
+                value: interpolatedValue
+            });
+        }
+    }
+
+    return (
+        <div className="humidity-heatmap-container">
+            <h3>Humidity Heatmap</h3>
+            <div className="heatmap-legend">
+                <div className="legend-item">
+                    <div className="legend-color" style={{ backgroundColor: 'rgba(255, 0, 0, 0.7)' }}></div>
+                    <span>Very Dry (0-25%)</span>
+                </div>
+                <div className="legend-item">
+                    <div className="legend-color" style={{ backgroundColor: 'rgba(255, 165, 0, 0.7)' }}></div>
+                    <span>Dry (25-50%)</span>
+                </div>
+                <div className="legend-item">
+                    <div className="legend-color" style={{ backgroundColor: 'rgba(255, 255, 0, 0.7)' }}></div>
+                    <span>Medium (50-75%)</span>
+                </div>
+                <div className="legend-item">
+                    <div className="legend-color" style={{ backgroundColor: 'rgba(0, 0, 255, 0.7)' }}></div>
+                    <span>Wet (75-100%)</span>
+                </div>
+            </div>
+            <svg 
+                width="100%" 
+                height="300" 
+                viewBox={`${minX} ${minY} ${width} ${height}`}
+                style={{ border: '1px solid #ccc', marginTop: '10px' }}
+                preserveAspectRatio="xMidYMid meet"
+            >
+                {/* Render the selected area outline */}
+                <path 
+                    d={`M ${area.topLeft.x} ${area.topLeft.y} 
+                        L ${area.topRight.x} ${area.topRight.y} 
+                        L ${area.bottomRight.x} ${area.bottomRight.y} 
+                        L ${area.bottomLeft.x} ${area.bottomLeft.y} Z`}
+                    fill="none"
+                    stroke="#000"
+                    strokeWidth="2"
+                />
+
+                {/* Render the heatmap cells */}
+                {grid.map((cell, index) => (
+                    <rect
+                        key={index}
+                        x={cell.x}
+                        y={cell.y}
+                        width={cellSize}
+                        height={cellSize}
+                        fill={getHumidityColor(cell.value)}
+                    />
+                ))}
+
+                {/* Render the actual reading points */}
+                {readings.map((reading, index) => (
+                    <circle
+                        key={index}
+                        cx={reading.x}
+                        cy={reading.y}
+                        r="5"
+                        fill="#fff"
+                        stroke="#000"
+                        strokeWidth="1"
+                    />
+                ))}
+            </svg>
+            <div className="humidity-readings">
+                <h4>Humidity Readings:</h4>
+                <ul>
+                    {readings.map((reading, index) => (
+                        <li key={index}>
+                            Point {reading.point}: {reading.value}% 
+                            {reading.simulated ? ' (Simulated)' : ''}
+                            at ({reading.x}, {reading.y})
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        </div>
+    );
+};
+
 const SoilHumidityPage = ({ selectArea, setSelectArea, selectedAreaLocation, onHumidityReadings }) => {
     const [loading, setLoading] = useState({
         measure: false
@@ -52,6 +194,9 @@ const SoilHumidityPage = ({ selectArea, setSelectArea, selectedAreaLocation, onH
                 if (response.status === 200) {
                     // Store the humidity readings in state
                     setHumidityReadings(response.data.readings);
+
+                    // Store the area in state for the heatmap
+                    setSelectedArea(response.data.area);
 
                     // Pass the humidity readings and area to the parent component
                     if (onHumidityReadings) {
@@ -139,6 +284,11 @@ const SoilHumidityPage = ({ selectArea, setSelectArea, selectedAreaLocation, onH
                         </button>
                     </div>
                 </form>
+
+                {/* Render the heatmap if we have humidity readings */}
+                {humidityReadings && selectedArea && (
+                    <HumidityHeatmap readings={humidityReadings} area={selectedArea} />
+                )}
             </div>
         </div>
     );
