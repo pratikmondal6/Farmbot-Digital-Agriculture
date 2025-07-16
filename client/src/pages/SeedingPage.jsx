@@ -93,6 +93,7 @@ const SeedingPage = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea, se
       );
     } finally {
       setLoading(false);
+      window.location.reload()
     }
   }
 
