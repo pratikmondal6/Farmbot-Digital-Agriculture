@@ -58,6 +58,7 @@ router.post("/", async (req, res) => {
       z,
       date: requestedDate,
       interval,
+      lastWateredDate: ""
     });
     await job.save();
     res.status(201).json(job);

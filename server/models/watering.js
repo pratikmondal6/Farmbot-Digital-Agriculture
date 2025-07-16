@@ -9,6 +9,7 @@ const WateringJobSchema = new mongoose.Schema({
   waterUnit: String, 
   date: String,
   interval: Number,
+  lastWateredDate: String
 });
 
 module.exports = mongoose.model("WateringJob", WateringJobSchema);
