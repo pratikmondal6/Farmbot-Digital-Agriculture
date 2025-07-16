@@ -138,7 +138,7 @@ const SeedingJobQueue = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea
     {editPage === false && (
       <div
         style={{
-          background: "#fefce8",
+          background: "#f0fdf4",
           border: "none",
           borderRadius: 12,
           padding: 10,
@@ -154,21 +154,21 @@ const SeedingJobQueue = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea
           flexDirection: "column"
         }}
       >
-        <h3 style={{ color: "#b45309", fontSize: 20, fontWeight: "bold" }}>Seeding Job Queue</h3>
+        <h3 style={{ color: "#14532d", fontSize: 20, fontWeight: "bold" }}>Seeding Job Queue</h3>
         <h3 style={{ height: 16 }}></h3>
-        <h3 style={{ color: "#b45309", fontSize: 16, fontWeight: "bold" }}>Existing Seeding Jobs:</h3>
+        <h3 style={{ color: "#14532d", fontSize: 16, fontWeight: "bold" }}>Existing Seeding Jobs:</h3>
         {seedingJobs.length === 0 ? (
           <p style={{ fontSize: "0.85rem" }}>No seeding jobs found.</p>
         ) : (
           <table style={{ width: "100%", borderCollapse: "collapse", background: "#fff", fontSize: "0.80rem" }}>
             <thead>
-              <tr style={{ background: "#fef9c3" }}>
-                <th style={{ padding: "2px 1px", border: "1px solid #fde047", fontSize: "0.75rem", width: 55 }}>Seed</th>
-                <th style={{ padding: "2px 1px", border: "1px solid #fde047", fontSize: "0.75rem", width: 38 }}>Seed X</th>
-                <th style={{ padding: "2px 1px", border: "1px solid #fde047", fontSize: "0.75rem", width: 38 }}>Seed Y</th>
-                <th style={{ padding: "2px 1px", border: "1px solid #fde047", fontSize: "0.75rem", width: 80 }}>Date</th>
-                <th style={{ padding: "2px 1px", border: "1px solid #fde047", fontSize: "0.75rem", width: 80 }}>Time</th>
-                <th style={{ padding: "2px 1px", border: "1px solid #fde047", fontSize: "0.75rem", width: 60 }}>Actions</th>
+              <tr style={{ background: "#e1f6ddff" }}>
+                <th style={{ padding: "2px 1px", border: "1px solid #22c55e", fontSize: "0.75rem", width: 55 }}>Seed</th>
+                <th style={{ padding: "2px 1px", border: "1px solid #22c55e", fontSize: "0.75rem", width: 38 }}>Seed X</th>
+                <th style={{ padding: "2px 1px", border: "1px solid #22c55e", fontSize: "0.75rem", width: 38 }}>Seed Y</th>
+                <th style={{ padding: "2px 1px", border: "1px solid #22c55e", fontSize: "0.75rem", width: 80 }}>Date</th>
+                <th style={{ padding: "2px 1px", border: "1px solid #22c55e", fontSize: "0.75rem", width: 80 }}>Time</th>
+                <th style={{ padding: "2px 1px", border: "1px solid #22c55e", fontSize: "0.75rem", width: 60 }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -180,26 +180,26 @@ const SeedingJobQueue = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea
                   const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                   return (
                     <tr key={job._id || idx}>
-                      <td style={{ padding: "2px 1px", border: "1px solid #fde047", fontSize: "0.80rem", width: 55 }}>
+                      <td style={{ padding: "2px 1px", border: "1px solid #22c55e", fontSize: "0.80rem", width: 55 }}>
                         {job.seed_name}
                       </td>
-                      <td style={{ padding: "2px 1px", border: "1px solid #fde047", fontSize: "0.80rem", width: 38 }}>
+                      <td style={{ padding: "2px 1px", border: "1px solid #22c55e", fontSize: "0.80rem", width: 38 }}>
                         {job.seedX}
                       </td>
-                      <td style={{ padding: "2px 1px", border: "1px solid #fde047", fontSize: "0.80rem", width: 38 }}>
+                      <td style={{ padding: "2px 1px", border: "1px solid #22c55e", fontSize: "0.80rem", width: 38 }}>
                         {job.seedY}
                       </td>
-                      <td style={{ padding: "2px 1px", border: "1px solid #fde047", fontSize: "0.80rem", width: 80, textAlign: "center" }}>
+                      <td style={{ padding: "2px 1px", border: "1px solid #22c55e", fontSize: "0.80rem", width: 80, textAlign: "center" }}>
                         {dateStr}
                       </td>
-                      <td style={{ padding: "2px 1px", border: "1px solid #fde047", fontSize: "0.80rem", width: 80, textAlign: "center" }}>
+                      <td style={{ padding: "2px 1px", border: "1px solid #22c55e", fontSize: "0.80rem", width: 80, textAlign: "center" }}>
                         {timeStr}
                       </td>
-                      <td style={{ padding: "2px 1px", border: "1px solid #fde047", fontSize: "0.80rem", width: 60 }}>
+                      <td style={{ padding: "2px 1px", border: "1px solid #22c55e", fontSize: "0.80rem", width: 60 }}>
                         <button
                           style={{
-                            background: "#fbbf24",
-                            color: "#fff",
+                            background: "#ebf21bdc",
+                            color: "#090909ff",
                             border: "none",
                             borderRadius: 4,
                             padding: "1px 4px",
@@ -216,8 +216,8 @@ const SeedingJobQueue = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea
                         </button>
                         <button
                           style={{
-                            background: "#ef4444",
-                            color: "#fff",
+                            background: "#e73030ff",
+                            color: "#ffffffff",
                             border: "none",
                             borderRadius: 4,
                             padding: "1px 4px",

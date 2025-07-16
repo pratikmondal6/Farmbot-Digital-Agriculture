@@ -131,7 +131,7 @@ const AddPlanttype = () => {
 
         {isOpen && (
           <div style={styles.container}>
-            <label style={{ ...styles.label, marginTop: "24px", fontSize: 22}}>
+            <label style={{ ...styles.label, marginTop: "24px", fontSize: 19}}>
               Create a new plant type or select an existing type:
             </label>
             <div style={{ position: "relative", marginTop: 3 }}>
