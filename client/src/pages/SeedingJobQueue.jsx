@@ -62,7 +62,21 @@ const SeedingJobQueue = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea
         seedX: SeedX,
         seedY: SeedY,
         z: 50,
-        ...seedingAreaLocation,
+      }
+      if (seedingAreaLocation) {
+        data = {
+          ...data,
+          ...seedingAreaLocation,
+        }
+      }
+      else {
+        data = {
+          ...data,
+          topLeft,
+          topRight,
+          bottomLeft,
+          bottomRight
+        }
       }
 
       console.log('/seedingJob/' + EditSeedingJob._id)
