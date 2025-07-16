@@ -3,6 +3,10 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import api from "../utils/api";
 
+// const now = new Date();
+// const defaultDate = now.toISOString().slice(0, 10); // "YYYY-MM-DD"
+// const defaultTime = now.toTimeString().slice(0, 5); // "HH:MM"
+
 const SeedingPage = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea, seedingAreaLocation}) => {
   const navigate = useNavigate();
 
@@ -16,6 +20,7 @@ const SeedingPage = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea, se
   const [loading, setLoading] = useState(false);
   const [showPanel, setShowPanel] = useState('seeding'); // 'seeding', 'queue', 'history', 'schedule
   const [plantTypes, setPlantTypes] = useState([]);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   useEffect(() => {
     // if (seedLocation && seedLocation != {}) {
@@ -126,51 +131,101 @@ const SeedingPage = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea, se
         {error && <p style={styles.error}>Seeding done!</p>}
 
         <label style={styles.label}>Plant Type:</label>
-        <select
-            name="plant"
-            value={plant}
-            onChange={(e) => setPlant(e.target.value)}
-            placeholder="Choose plant type"
-            style={styles.input}
-            required
-        >
-        <option value="">--Select a plant--</option>
-        {plantTypes.map(plantType => (
-          <option key={plantType.plant_type} value={plantType.plant_type}>
-            {plantType.plant_type}
-          </option>
-        ))}
-        {/* <option value="">--Select a plant--</option>
-        <option value="wheat">Wheat</option>
-        <option value="corn">Corn</option>
-        <option value="sunflower">Sunflower</option>
-        <option value="lettuce">Lettuce</option>
-        <option value="carrot">Carrot</option>
-        <option value="potato">Potato</option>
-        <option value="pumpkin">Pumpkin</option> */}
-        </select>
+        <div style={{ position: "relative", marginTop: 8 }}>
+          <div
+            style={{
+              border: "1px solid #22c55e",
+              borderRadius: 6,
+              padding: "6px 8px",
+              background: "#fff",
+              cursor: "pointer",
+              minWidth: 120,
+              color: "#14532d",
+            }}
+            onClick={() => setDropdownOpen((open) => !open)}
+          >
+            {plant ? plant : "Select plant type"}
+            <span style={{ float: "right" }}>▼</span>
+          </div>
+          {dropdownOpen && (
+            <div
+              style={{
+                position: "absolute",
+                top: "100%",
+                left: 0,
+                right: 0,
+                background: "#fff",
+                border: "1px solid #22c55e",
+                borderRadius: 6,
+                zIndex: 10,
+                boxShadow: "0 2px 8px #0001",
+                maxHeight: 180,
+                overflowY: "auto",
+              }}
+            >
+              {plantTypes.map((plantType) => (
+                <div
+                  key={plantType.plant_type}
+                  style={{
+                    padding: "8px 12px",
+                    cursor: "pointer",
+                    background: plant === plantType.plant_type ? "#bbf7d0" : "#fff",
+                    color: "#14532d",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                  }}
+                  onClick={() => {
+                    setPlant(plantType.plant_type);
+                    setDropdownOpen(false);
+                  }}
+                >
+                  {plantType.plant_type}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         <label style={styles.label}>Seed Plate Position</label>
-        <div style={{display: 'flex', justifyContent: 'left'}}>
-            <input
-                type="number"
-                name="coordinate"
-                value={seedLocation.x}
-                onChange={(e) => setSeedX(e.target.value)}
-                disabled
-                placeholder="X"
-                style={{...styles.input, width: '40%', marginRight: '1rem'}}
-                required
-            />
-            <input
-                type="number"
-                name="coordinate"
-                value={seedLocation.y}
-                onChange={(e) => setSeedY(e.target.value)}
-                disabled
-                placeholder="Y"
-                style={{...styles.input, width: '40%'}}
-            />
+        <div style={{ display: 'flex', gap: '12px', marginBottom: '1rem' }}>
+          <input
+            type="number"
+            name="coordinate"
+            value={seedLocation.x}
+            onChange={(e) => setSeedX(e.target.value)}
+            disabled
+            placeholder="X"
+            style={{
+              ...styles.input,
+              width: '100px',
+              minWidth: '80px',
+              maxWidth: '120px',
+              textAlign: 'center',
+              marginBottom: 0,
+              border: "1px solid #22c55e",
+              borderRadius: 6,
+            }}
+            required
+          />
+          <input
+            type="number"
+            name="coordinate"
+            value={seedLocation.y}
+            onChange={(e) => setSeedY(e.target.value)}
+            disabled
+            placeholder="Y"
+            style={{
+              ...styles.input,
+              width: '100px',
+              minWidth: '80px',
+              maxWidth: '120px',
+              textAlign: 'center',
+              marginBottom: 0,
+              border: "1px solid #22c55e",
+              borderRadius: 6,
+            }}
+          />
         </div>
         <label style={styles.label}>Seed Destination</label>
         <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'left', alignItems: 'left', gap:'10px'}}>

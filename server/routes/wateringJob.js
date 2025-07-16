@@ -35,8 +35,7 @@ router.get("/", async (req, res) => {
 router.post("/", async (req, res) => {
   console.log("Received POST /api/watering:", req.body);
   try {
-    // Accept only one plantType and waterAmount
-    const { plantType, waterAmount, z, date, interval } = req.body;
+    const { plantType, waterAmount, waterUnit, z, date, interval } = req.body; // <-- add waterUnit
 
     // 1. Check: First execution is not in the past
     const now = new Date();
@@ -55,9 +54,11 @@ router.post("/", async (req, res) => {
     const job = new WateringJob({
       plantType,
       waterAmount,
+      waterUnit, // <-- save unit
       z,
       date: requestedDate,
       interval,
+      lastWateredDate: ""
     });
     await job.save();
     res.status(201).json(job);
@@ -88,6 +89,8 @@ router.post("/start", async (req, res) => {
 
   const plantType = req.body.plantType
   const waterAmount = parseInt(req.body.waterAmount)
+  const waterUnit = req.body.waterUnit
+  const height = parseInt(req.body.z)
 
   let seedsToWater = await Seed.find({seed_name: plantType});
   seedsToWater = findShortestPath(seedsToWater);
@@ -101,6 +104,9 @@ router.post("/start", async (req, res) => {
   }
 
   setJobStatus("moving to watering nuzzle");
+
+  // Go a little outside and upper than watering nuzzle
+  await move(bot, x=2500, y=150, z=-395)
 
   // Go to higher than watering nuzzle
   await move(bot, x=2630, y=150, z=-395)
@@ -118,7 +124,7 @@ router.post("/start", async (req, res) => {
     setJobStatus("moving to seed");
 
     // Go to a little higher from seed (x=2130, y=25)
-    await move(bot, x=seedX, y=seedY, z=-480)
+    await move(bot, x=seedX, y=seedY, z=(-1)*height)
 
     setJobStatus("watering");
 
@@ -128,8 +134,13 @@ router.post("/start", async (req, res) => {
       pin_value: 1,    // 1 = watering on, 0 = watering off
       pin_mode: 0      // 0 = digital, 1 = analog
     });
-
-    await sleep(mlToMS(waterAmount))
+    
+    if (waterUnit == "ms") {
+      await sleep(waterAmount)
+    }
+    else {
+      await sleep(mlToMS(waterAmount))
+    }
 
     // Turn off water
     await bot.writePin({
@@ -170,6 +181,7 @@ router.put("/:id", async (req, res) => {
         $set: {
           plantType: req.body.plantType,
           waterAmount: req.body.waterAmount,
+          waterUnit: req.body.waterUnit, // <-- save unit
           z: req.body.z,
           date: req.body.date,
           interval: req.body.interval,

@@ -62,7 +62,21 @@ const SeedingJobQueue = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea
         seedX: SeedX,
         seedY: SeedY,
         z: 50,
-        ...seedingAreaLocation,
+      }
+      if (seedingAreaLocation) {
+        data = {
+          ...data,
+          ...seedingAreaLocation,
+        }
+      }
+      else {
+        data = {
+          ...data,
+          topLeft,
+          topRight,
+          bottomLeft,
+          bottomRight
+        }
       }
 
       console.log('/seedingJob/' + EditSeedingJob._id)
@@ -122,46 +136,105 @@ const SeedingJobQueue = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea
   return (
     <div style={styles.container}>
     {editPage === false && (
-      <div>
-        {seedingJobs.map(seedingJob => (
-          <div style={styles.seedingJob} key={seedingJob._id}>
-            <div style={styles.details}>
-              <h2 style={styles.detailsHeader}>{seedingJob.seed_name}</h2>
-              <p  style={styles.detailsTime}>{seedingJob.seeding_date}</p>
-            </div>
-            <div style={{display: 'flex', flexDirection: 'column' , justifyContent: 'left'}}>
-              <button 
-                style={{
-                  ...styles.button,
-                  ...styles.buttonEdit,
-                  ...(isHoveredEdit ? styles.buttonHover : {}),
-                }}
-                onMouseEnter={() => setIsHoveredEdit(true)}
-                onMouseLeave={() => setIsHoveredEdit(false)}
-                onClick={() => {
-                  chooseSeedingJobToEdit(seedingJob._id)
-                  setEditPage(true)
-                }}
-                >
-                  Edit
-              </button>
-              <button 
-                style={{
-                  ...styles.button,
-                  ...styles.buttonDelete,
-                  ...(isHoveredDelete ? styles.buttonHover : {}),
-                }}
-                onMouseEnter={() => setIsHoveredDelete(true)}
-                onMouseLeave={() => setIsHoveredDelete(false)}
-                onClick={() => {
-                  deleteSeedingJob(seedingJob._id)
-                }}
-                >
-                  Delete
-              </button>
-            </div>
-          </div>
-        ))}
+      <div
+        style={{
+          background: "#f0fdf4",
+          border: "none",
+          borderRadius: 12,
+          padding: 10,
+          minWidth: 280,
+          maxWidth: 450,
+          boxShadow: "0 2px 8px #0002",
+          margin: "0",
+          marginBottom: 16,
+          maxHeight: "70vh",
+          overflowY: "auto",
+          position: "static",
+          display: "flex",
+          flexDirection: "column"
+        }}
+      >
+        <h3 style={{ color: "#14532d", fontSize: 20, fontWeight: "bold" }}>Seeding Job Queue</h3>
+        <h3 style={{ height: 16 }}></h3>
+        <h3 style={{ color: "#14532d", fontSize: 16, fontWeight: "bold" }}>Existing Seeding Jobs:</h3>
+        {seedingJobs.length === 0 ? (
+          <p style={{ fontSize: "0.85rem" }}>No seeding jobs found.</p>
+        ) : (
+          <table style={{ width: "100%", borderCollapse: "collapse", background: "#fff", fontSize: "0.80rem" }}>
+            <thead>
+              <tr style={{ background: "#e1f6ddff" }}>
+                <th style={{ padding: "2px 1px", border: "1px solid #22c55e", fontSize: "0.75rem", width: 55 }}>Seed</th>
+                <th style={{ padding: "2px 1px", border: "1px solid #22c55e", fontSize: "0.75rem", width: 38 }}>Seed X</th>
+                <th style={{ padding: "2px 1px", border: "1px solid #22c55e", fontSize: "0.75rem", width: 38 }}>Seed Y</th>
+                <th style={{ padding: "2px 1px", border: "1px solid #22c55e", fontSize: "0.75rem", width: 80 }}>Date</th>
+                <th style={{ padding: "2px 1px", border: "1px solid #22c55e", fontSize: "0.75rem", width: 80 }}>Time</th>
+                <th style={{ padding: "2px 1px", border: "1px solid #22c55e", fontSize: "0.75rem", width: 60 }}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[...seedingJobs]
+                .sort((a, b) => new Date(a.seeding_date) - new Date(b.seeding_date))
+                .map((job, idx) => {
+                  const d = new Date(job.seeding_date);
+                  const dateStr = d.toLocaleDateString();
+                  const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                  return (
+                    <tr key={job._id || idx}>
+                      <td style={{ padding: "2px 1px", border: "1px solid #22c55e", fontSize: "0.80rem", width: 55 }}>
+                        {job.seed_name}
+                      </td>
+                      <td style={{ padding: "2px 1px", border: "1px solid #22c55e", fontSize: "0.80rem", width: 38 }}>
+                        {job.seedX}
+                      </td>
+                      <td style={{ padding: "2px 1px", border: "1px solid #22c55e", fontSize: "0.80rem", width: 38 }}>
+                        {job.seedY}
+                      </td>
+                      <td style={{ padding: "2px 1px", border: "1px solid #22c55e", fontSize: "0.80rem", width: 80, textAlign: "center" }}>
+                        {dateStr}
+                      </td>
+                      <td style={{ padding: "2px 1px", border: "1px solid #22c55e", fontSize: "0.80rem", width: 80, textAlign: "center" }}>
+                        {timeStr}
+                      </td>
+                      <td style={{ padding: "2px 1px", border: "1px solid #22c55e", fontSize: "0.80rem", width: 60 }}>
+                        <button
+                          style={{
+                            background: "#ebf21bdc",
+                            color: "#090909ff",
+                            border: "none",
+                            borderRadius: 4,
+                            padding: "1px 4px",
+                            cursor: "pointer",
+                            marginRight: 2,
+                            fontSize: "0.80rem"
+                          }}
+                          onClick={() => {
+                            chooseSeedingJobToEdit(job._id);
+                            setEditPage(true);
+                          }}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          style={{
+                            background: "#e73030ff",
+                            color: "#ffffffff",
+                            border: "none",
+                            borderRadius: 4,
+                            padding: "1px 4px",
+                            cursor: "pointer",
+                            fontSize: "0.80rem"
+                          }}
+                          onClick={() => deleteSeedingJob(job._id)}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+            </tbody>
+          </table>
+        )}
       </div>
     )}
 

@@ -3,7 +3,7 @@ import { FaTint, FaRegCalendarAlt, FaShower } from "react-icons/fa";
 import api from "../utils/api";
 
 
-const DEFAULT_Z = -100;
+const DEFAULT_Z = 450;
 const DEFAULT_INTERVAL = 24;
 
 const WateringJobPage = () => {
@@ -12,15 +12,18 @@ const WateringJobPage = () => {
   const [plantTypes, setPlantTypes] = useState([]);
   const [selectedPlantType, setSelectedPlantType] = useState(""); // Only one type
   const [waterAmounts, setWaterAmounts] = useState({});
+ 
   const [z, setZ] = useState(DEFAULT_Z);
   const [date, setDate] = useState(new Date().toISOString().slice(0, 16));
   const [interval, setInterval] = useState(DEFAULT_INTERVAL);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [dropdownOpenUnit, setDropdownOpenUnit] = useState(false);
   const [wateringJobs, setWateringJobs] = useState([]);
   const [editingJobId, setEditingJobId] = useState(null);
   const [error, setError] = useState("");
   const [timezone, setTimezone] = useState("UTC");
   const [isWatering, setIsWatering] = useState(false);
+  const [waterUnit, setWaterUnit] = useState("ml");
 
   // Helper for local datetime-local string
   const getLocalDateTimeString = () => {
@@ -36,7 +39,9 @@ const WateringJobPage = () => {
     if (selectedPlantType) {
       await api.post("/api/watering/start", {
         plantType: selectedPlantType,
-        waterAmount: waterAmounts[selectedPlantType]
+        waterAmount: waterAmounts[selectedPlantType],
+        waterUnit: waterUnit,
+        z: z
       });
     }
     setIsWatering(false);
@@ -60,9 +65,9 @@ const WateringJobPage = () => {
           }
         });
         setPlantTypes(uniqueTypes);
-        // Set default water amounts as string "50"
+        // Set default water amounts as string "100"
         const defaults = {};
-        uniqueTypes.forEach(pt => { defaults[pt.id] = "50"; });
+        uniqueTypes.forEach(pt => { defaults[pt.id] = "100"; });
         setWaterAmounts(defaults);
       } catch {
         setPlantTypes([]);
@@ -102,10 +107,11 @@ const WateringJobPage = () => {
   const resetForm = () => {
     setEditingJobId(null);
     setSelectedPlantType("");
-    // Reset water amounts to "50" for all plant types
+    // Default water amount 100 ml
     const defaults = {};
-    plantTypes.forEach(pt => { defaults[pt.id] = "50"; });
+    plantTypes.forEach(pt => { defaults[pt.id] = "100"; });
     setWaterAmounts(defaults);
+    setWaterUnit("ml"); // default unit
     setZ(DEFAULT_Z);
     setDate(getLocalDateTimeString());
     setInterval(DEFAULT_INTERVAL);
@@ -115,16 +121,16 @@ const WateringJobPage = () => {
   const handleEdit = (job) => {
     setEditingJobId(job._id);
 
-    // Find the plant type object by name and get its id
     const pt = plantTypes.find(pt => pt.name === job.plantType);
-    setSelectedPlantType(pt ? pt.id : ""); // <-- use singular
+    setSelectedPlantType(pt ? pt.id : "");
 
-    // Set waterAmounts for the selected plant type (convert to string for input)
     const wa = {};
     if (pt && job.waterAmount !== undefined) {
       wa[pt.id] = String(job.waterAmount);
     }
     setWaterAmounts(wa);
+
+    setWaterUnit(job.waterUnit || "ml"); // <-- set unit from job
 
     setZ(job.z);
 
@@ -191,6 +197,7 @@ const WateringJobPage = () => {
     const payload = {
       plantType: selectedPlantType,
       waterAmount: Number(waterAmounts[selectedPlantType]),
+      waterUnit, // "ml" or "ms"
       z,
       date: utcDate,
       interval,
@@ -214,12 +221,8 @@ const WateringJobPage = () => {
     }
   };
 
-  const handleWaterAmountChange = (typeId, value) => {
-    setWaterAmounts(prev => ({
-      ...prev,
-      [typeId]: value
-    }));
-  };
+
+
 
 
   return (
@@ -320,16 +323,83 @@ const WateringJobPage = () => {
                   <input
                     type="number"
                     min={0}
-                    value={waterAmounts[selectedPlantType] ?? "50"}
-                    onChange={(e) => handleWaterAmountChange(selectedPlantType, e.target.value)}
+                    value={
+                      waterAmounts[selectedPlantType] ??
+                      (waterUnit === "ml" ? "100" : "1000")
+                    }
+                    onChange={(e) => {
+                      setWaterAmounts(prev => ({
+                        ...prev,
+                        [selectedPlantType]: e.target.value
+                      }));
+                    }}
                     style={{
-                      width: 80,
+                      width: 100,
                       padding: "4px 8px",
                       borderRadius: 4,
                       border: "1px solid #22c55e",
                     }}
                   />
-                  <span style={{ color: "#16a34a" }}>[ml]</span>
+                  <div style={{ position: "relative", marginTop: 0 }}>
+                    <div
+                      style={{
+                        border: "1px solid #22c55e",
+                        borderRadius: 6,
+                        padding: "6px 8px",
+                        background: "#fff",
+                        cursor: "pointer",
+                        minWidth: 60,
+                        color: "#14532d",
+                        width: 80,
+                        marginRight: 8,
+                        display: "inline-block"
+                      }}
+                      onClick={() => setDropdownOpenUnit((open) => !open)}
+                    >
+                      {waterUnit === "ml" ? "ml" : "ms"}
+                      <span style={{ float: "right" }}>▼</span>
+                    </div>
+                    {dropdownOpenUnit && (
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: "100%",
+                          left: 0,
+                          right: 0,
+                          background: "#fff",
+                          border: "1px solid #22c55e",
+                          borderRadius: 6,
+                          zIndex: 10,
+                          boxShadow: "0 2px 8px #0001",
+                          maxHeight: 100,
+                          overflowY: "auto",
+                        }}
+                      >
+                        {["ml", "ms"].map((unit) => (
+                          <div
+                            key={unit}
+                            style={{
+                              padding: "8px 12px",
+                              cursor: "pointer",
+                              background: waterUnit === unit ? "#bbf7d0" : "#fff",
+                              color: "#14532d",
+                            }}
+                            onClick={() => {
+                              setWaterUnit(unit);
+                              setDropdownOpenUnit(false);
+                              // Reset default value for input when unit changes
+                              setWaterAmounts(prev => ({
+                                ...prev,
+                                [selectedPlantType]: unit === "ml" ? "100" : "1000"
+                              }));
+                            }}
+                          >
+                            {unit}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -383,6 +453,7 @@ const WateringJobPage = () => {
               />
               <span style={{ color: "#16a34a", marginLeft: 4 }}>[h]</span>
             </div>
+            
             {error && (
               <div
                 style={{
@@ -444,8 +515,8 @@ const WateringJobPage = () => {
               <button
                 type="button"
                 style={{
-                  background: "#fde047",
-                  color: "#b45309",
+                  background: "#22c55e",
+                  color: "#fdfdfdff",
                   border: "none",
                   borderRadius: 8,
                   padding: "12px 0",
@@ -462,7 +533,7 @@ const WateringJobPage = () => {
                 }}
                 onClick={() => { setShowJobsPanel(true); setShowCreatePanel(false); }}
               >
-                <FaRegCalendarAlt style={{ color: "#b45309", fontSize: 18 }} />
+                <FaRegCalendarAlt style={{ color: "#fdfdfdff", fontSize: 18 }} />
                 See Watering Schedule
               </button>
             </div>
@@ -473,14 +544,14 @@ const WateringJobPage = () => {
       {showJobsPanel && (
         <div
           style={{
-            background: "#fefce8",
+            background: "#f0fdf4", // <-- match create panel green
             border: "none",
             borderRadius: 12,
             padding: 10,
             minWidth: 280,
             maxWidth: 450,
             boxShadow: "0 2px 8px #0002",
-            margin: "0", // <-- left align
+            margin: "0",
             marginBottom: 16,
             maxHeight: "70vh",
             overflowY: "auto",
@@ -490,21 +561,21 @@ const WateringJobPage = () => {
           }}
         >
           
-          <h3 style={{ color: "#b45309", fontSize: 20, fontWeight: "bold" }}>Watering Schedule</h3>
+          <h3 style={{ color: "#14532d", fontSize: 20, fontWeight: "bold" }}>Watering Schedule</h3>
           <h3 style={{ height: 16 }}></h3>
-          <h3 style={{ color: "#b45309", fontSize: 16, fontWeight: "bold" }}>Existing Watering Jobs:</h3>
+          <h3 style={{ color: "#14532d", fontSize: 16, fontWeight: "bold" }}>Existing Watering Jobs:</h3>
           {wateringJobs.length === 0 ? (
             <p style={{ fontSize: "0.85rem" }}>No watering jobs found.</p>
           ) : (
             <table style={{ width: "100%", borderCollapse: "collapse", background: "#fff", fontSize: "0.80rem" }}>
               <thead>
-                <tr style={{ background: "#fef9c3" }}>
-                  <th style={{ padding: "2px 1px", border: "1px solid #fde047", fontSize: "0.75rem", width: 55 }}>Seed</th>
-                  <th style={{ padding: "2px 1px", border: "1px solid #fde047", fontSize: "0.75rem", width: 38 }}>Water [ml]</th>
-                  <th style={{ padding: "2px 1px", border: "1px solid #fde047", fontSize: "0.75rem", width: 38 }}>Z</th>
-                  <th style={{ padding: "2px 1px", border: "1px solid #fde047", fontSize: "0.75rem", width: 80 }}>First Execution</th>
-                  <th style={{ padding: "2px 1px", border: "1px solid #fde047", fontSize: "0.75rem", width: 38 }}>Interval</th>
-                  <th style={{ padding: "2px 1px", border: "1px solid #fde047", fontSize: "0.75rem", width: 60 }}>Actions</th>
+                <tr style={{ background: "#e1f6ddff" }}>
+                  <th style={{ padding: "2px 1px", border: "1px solid #22c55e", fontSize: "0.75rem", width: 55 }}>Seed</th>
+                  <th style={{ padding: "2px 1px", border: "1px solid #22c55e", fontSize: "0.75rem", width: 38 }}>Water</th>
+                  <th style={{ padding: "2px 1px", border: "1px solid #22c55e", fontSize: "0.75rem", width: 38 }}>Z</th>
+                  <th style={{ padding: "2px 1px", border: "1px solid #22c55e", fontSize: "0.75rem", width: 80 }}>First Execution</th>
+                  <th style={{ padding: "2px 1px", border: "1px solid #22c55e", fontSize: "0.75rem", width: 38 }}>Interval</th>
+                  <th style={{ padding: "2px 1px", border: "1px solid #22c55e", fontSize: "0.75rem", width: 60 }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -515,7 +586,7 @@ const WateringJobPage = () => {
                       <td
                         style={{
                           padding: "2px 1px",
-                          border: "1px solid #fde047",
+                          border: "1px solid #22c55e",
                           fontSize: "0.80rem",
                           width: 55,
                           wordBreak: "break-all",
@@ -530,16 +601,18 @@ const WateringJobPage = () => {
                             )
                           : "-"}
                       </td>
-                      <td style={{ padding: "2px 1px", border: "1px solid #fde047", fontSize: "0.80rem", width: 38 }}>
-                        {job.waterAmount !== undefined ? job.waterAmount : "-"}
+                      <td style={{ padding: "2px 1px", border: "1px solid #22c55e", fontSize: "0.80rem", width: 38 }}>
+                        {job.waterAmount !== undefined
+                          ? `${job.waterAmount} ${job.waterUnit || "ml"}`
+                          : "-"}
                       </td>
-                      <td style={{ padding: "2px 1px", border: "1px solid #fde047", fontSize: "0.80rem", width: 38 }}>
+                      <td style={{ padding: "2px 1px", border: "1px solid #22c55e", fontSize: "0.80rem", width: 38 }}>
                         {job.z}
                       </td>
                       <td
                         style={{
                           padding: "2px 1px",
-                          border: "1px solid #fde047",
+                          border: "1px solid #22c55e",
                           fontSize: "0.80rem",
                           width: 80,
                           wordBreak: "break-all",
@@ -562,14 +635,14 @@ const WateringJobPage = () => {
                             })()
                           : "-"}
                       </td>
-                      <td style={{ padding: "2px 1px", border: "1px solid #fde047", fontSize: "0.80rem", width: 38 }}>
+                      <td style={{ padding: "2px 1px", border: "1px solid #22c55e", fontSize: "0.80rem", width: 38 }}>
                         {job.interval}
                       </td>
-                      <td style={{ padding: "2px 1px", border: "1px solid #fde047", fontSize: "0.80rem", width: 60 }}>
+                      <td style={{ padding: "2px 1px", border: "1px solid #22c55e", fontSize: "0.80rem", width: 60 }}>
                         <button
                           style={{
-                            background: "#fbbf24",
-                            color: "#fff",
+                            background: "#ebf21bdc",
+                            color: "#090909ff",
                             border: "none",
                             borderRadius: 4,
                             padding: "1px 4px",
@@ -583,8 +656,8 @@ const WateringJobPage = () => {
                         </button>
                         <button
                           style={{
-                            background: "#ef4444",
-                            color: "#fff",
+                            background: "#e73030ff",
+                            color: "#ffffffff",
                             border: "none",
                             borderRadius: 4,
                             padding: "1px 4px",
@@ -604,7 +677,7 @@ const WateringJobPage = () => {
           {/* Move Create Watering Job button here, always at the bottom */}
           <button
             style={{
-              background: "#38bdf8",
+              background: "#22c55e",
               color: "#fff",
               border: "none",
               borderRadius: 8,
@@ -622,7 +695,7 @@ const WateringJobPage = () => {
             }}
             onClick={() => { setShowCreatePanel(true); setShowJobsPanel(false); resetForm(); }}
           >
-            <FaShower style={{ color: "#2563eb", fontSize: 16 }} />
+            <FaShower style={{ color: "#f3f3f3ff", fontSize: 16 }} />
             Create Watering Job
           </button>
         </div>

@@ -18,8 +18,8 @@ const SoilHumidityPage = ({ selectArea, setSelectArea, selectedAreaLocation, onH
             setLoading(prev => ({ ...prev, measure: true }));
 
             // Validate selectedAreaLocation
-            if (!selectedAreaLocation || 
-                !selectedAreaLocation.topLeft || !selectedAreaLocation.topRight || 
+            if (!selectedAreaLocation ||
+                !selectedAreaLocation.topLeft || !selectedAreaLocation.topRight ||
                 !selectedAreaLocation.bottomLeft || !selectedAreaLocation.bottomRight) {
                 throw new Error('Invalid area selection. Please select an area again.');
             }
@@ -91,7 +91,7 @@ const SoilHumidityPage = ({ selectArea, setSelectArea, selectedAreaLocation, onH
             }
             alert(errorMessage);
         } finally {
-            setLoading(prev => ({ ...prev, measure: false }));
+            setLoading(prev => ({...prev, measure: false}));
         }
     };
 
@@ -99,7 +99,15 @@ const SoilHumidityPage = ({ selectArea, setSelectArea, selectedAreaLocation, onH
     return (
         <div className="soil-humidity-container">
             <div>
-                <form className="soil-humidity-form">
+                <form
+                    className="soil-humidity-form"
+                    style={{
+                        background: "#f0fdf4",
+                        borderRadius: 12,
+                        padding: "16px 10px 24px 10px",
+                        boxShadow: "0 2px 8px #0002"
+                    }}
+                >
                     <h2 className="soil-humidity-title">Soil Humidity Measurement</h2>
 
                     <label className="soil-humidity-label">Measurement Area</label>
@@ -107,12 +115,14 @@ const SoilHumidityPage = ({ selectArea, setSelectArea, selectedAreaLocation, onH
                         <button
                             type='button'
                             className="soil-humidity-button-select"
-                            onClick={handleSelectArea}
+                            onClick={() => {
+                                setSelectArea(!selectArea)
+                            }}
                         >
                             Select Area
                         </button>
                         <input
-                            value={selectedAreaLocation ? `(${selectedAreaLocation.topLeft.x}, ${selectedAreaLocation.topLeft.y}) to (${selectedAreaLocation.bottomRight.x}, ${selectedAreaLocation.bottomRight.y})` : ''}
+                            value={selectedAreaLocation ? `(${selectedAreaLocation.bottomLeft.x}, ${selectedAreaLocation.bottomLeft.y}) to (${selectedAreaLocation.topRight.x}, ${selectedAreaLocation.topRight.y})` : ''}
                             disabled
                             type="text"
                         />

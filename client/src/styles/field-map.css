@@ -3,10 +3,14 @@
     border-radius: 8px;
     display: flex;
     margin: 10px 0;
+    position: relative;
 }
 
 .field-map-container svg {
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    background-color: rgb(195, 161, 127);
+    border: 15px solid rgba(177, 88, 44, 0.75);
+    border-radius: 10px;
 }
 
 .action-modal {
@@ -120,41 +124,19 @@
     background-color: #15803d;
 }
 
-/* Humidity Legend Styles */
-.humidity-legend {
-    position: absolute;
-    top: 350px;
-    left: 350px;
-    background-color: white;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    padding: 12px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    z-index: 1000;
-    width: 200px;
+.toggle-radius-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 10;
+  background-color: rgba(243, 243, 243, 0.7); /* halbtransparent */
+  border: 1px solid #aaa;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
 }
 
-.humidity-legend h3 {
-    margin: 0 0 10px 0;
-    font-size: 16px;
-    color: #333;
-    text-align: center;
-}
-
-.legend-item {
-    display: flex;
-    align-items: center;
-    margin-bottom: 6px;
-}
-
-.legend-color {
-    width: 20px;
-    height: 20px;
-    margin-right: 10px;
-    border: 1px solid #333;
-}
-
-.legend-item span {
-    font-size: 14px;
-    color: #333;
+.toggle-radius-button:hover {
+  background-color: rgba(243, 243, 243, 0.9);
 }
