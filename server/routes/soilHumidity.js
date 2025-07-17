@@ -1,20 +1,8 @@
+const { Farmbot } = require("farmbot");
 const express = require("express");
 const router = express.Router();
-const { Farmbot } = require("farmbot");
-const mongoose = require("mongoose");
 const { setJobStatus } = require("../services/farmbotStatusService");
-
-// Define the SoilHumidity model schema
-const soilHumiditySchema = new mongoose.Schema({
-  x: { type: Number, required: true },
-  y: { type: Number, required: true },
-  z: { type: Number, required: true },
-  humidity: { type: Number, required: true },
-  timestamp: { type: Date, default: Date.now }
-});
-
-// Create the SoilHumidity model if it doesn't exist
-const SoilHumidity = mongoose.models.SoilHumidity || mongoose.model("SoilHumidity", soilHumiditySchema);
+const { Humidity } = require("../models/humidity");
 
 // Helper function to move the bot
 const move = async (bot, x, y, z) => {
@@ -31,310 +19,281 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// GET all soil humidity records
-router.get("/", async (req, res) => {
-  try {
-    const records = await SoilHumidity.find().sort({ timestamp: -1 });
-    res.json(records);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Move to soil humidity sensor and take a reading
+// Endpoint for reading soil humidity at a specific location
 router.post("/read-sensor", async (req, res) => {
-  console.log("Received POST /api/soilHumidity/read-sensor:", req.body);
+  if (!req.headers["auth-token"]) {
+    return res.status(401).send({
+      "status": 401,
+      "message": "Not authorized.",
+    });
+  }
+
+  const token = req.headers["auth-token"];
+  let bot = new Farmbot({ token: token });
+
+  // Get the target coordinates from the request body
+  const { x, y, z } = req.body;
+
+  if (x === undefined || y === undefined) {
+    return res.status(400).send({
+      "status": 400,
+      "message": "Missing target coordinates in request body"
+    });
+  }
+
+  let humidityValue = null;
+  let simulated = false;
+
   try {
-    // Validate auth token
-    if (!req.headers["auth-token"]) {
-      return res.status(401).json({
-        status: 401,
-        message: "Not authorized."
-      });
-    }
+    // Connect to the Farmbot
+    await bot.connect();
+    setJobStatus("reading soil humidity");
 
-    const { targetX, targetY, targetZ } = req.body;
+    // Constants for soil sensor location
+    const SOIL_SENSOR_X = 2630;
+    const SOIL_SENSOR_Y = 350;
+    const SOIL_SENSOR_APPROACH_Z = -350;
+    const SOIL_SENSOR_ATTACH_Z = -410;
+    const SOIL_SENSOR_X_OFFSET = 2560;
+    const SOIL_SENSOR_PIN = 59; // Analog pin for soil moisture sensor
 
-    // Validate target coordinates
-    if (targetX === undefined || targetY === undefined || targetZ === undefined) {
-      return res.status(400).json({ message: "Target coordinates (targetX, targetY, targetZ) are required." });
-    }
-
-    const token = req.headers["auth-token"];
-    let bot = new Farmbot({ token: token });
-
+    // Step 1: Move to soil sensor approach position
     try {
-      // Connect to the Farmbot
-      await bot.connect();
-      setJobStatus("moving to soil sensor");
-
-      // Constants for soil sensor location
-      const SOIL_SENSOR_X = 2630;
-      const SOIL_SENSOR_Y = 350;
-      const SOIL_SENSOR_APPROACH_Z = -350;
-      const SOIL_SENSOR_ATTACH_Z = -410;
-      const SOIL_SENSOR_X_OFFSET = 2560;
-      const SOIL_SENSOR_PIN = 59; // Analog pin for soil moisture sensor
-
-      // Step 1: Move to soil sensor approach position
+      console.log("Moving to soil sensor approach position...");
       await move(bot, SOIL_SENSOR_X, SOIL_SENSOR_Y, SOIL_SENSOR_APPROACH_Z);
+      console.log("Successfully moved to soil sensor approach position");
+    } catch (approachError) {
+      console.error("Error moving to soil sensor approach position:", approachError);
+      throw approachError;
+    }
 
-      // Step 2: Move to soil sensor attach position
-      try {
-        console.log("Attempting to move to soil sensor attach position...");
-        await move(bot, SOIL_SENSOR_X, SOIL_SENSOR_Y, SOIL_SENSOR_ATTACH_Z);
-        console.log("Successfully moved to soil sensor attach position");
-      } catch (attachError) {
-        console.error("Error moving to soil sensor attach position:", attachError);
-        // Try with a slightly different Z coordinate if the exact one fails
-        console.log("Trying with adjusted Z coordinate...");
-        await move(bot, SOIL_SENSOR_X, SOIL_SENSOR_Y, -400);
-      }
+    // Step 2: Wait for the bot to stabilize
+    await sleep(2000);
 
-      // Step 3: Wait for the bot to stabilize
-      await sleep(2000);
+    // Step 3: Move to soil sensor attach position
+    try {
+      console.log("Attempting to move to soil sensor attach position...");
+      await move(bot, SOIL_SENSOR_X, SOIL_SENSOR_Y, SOIL_SENSOR_ATTACH_Z);
+      console.log("Successfully moved to soil sensor attach position");
+    } catch (attachError) {
+      console.error("Error moving to soil sensor attach position:", attachError);
+      // Try with a slightly different Z coordinate if the exact one fails
+      console.log("Trying with adjusted Z coordinate...");
+      await move(bot, SOIL_SENSOR_X, SOIL_SENSOR_Y, -400);
+    }
 
-      // Step 4: Move X to offset position (keeping Y and Z the same)
+    // Step 4: Move X to offset position (keeping Y and Z the same)
+    try {
+      console.log("Moving to X offset position...");
       await move(bot, SOIL_SENSOR_X_OFFSET, SOIL_SENSOR_Y, SOIL_SENSOR_ATTACH_Z);
+      console.log("Successfully moved to X offset position");
+    } catch (offsetError) {
+      console.error("Error moving to X offset position:", offsetError);
+      throw offsetError;
+    }
 
-      setJobStatus("moving to target position");
+    setJobStatus("moving to target position");
 
-      // Step 5: Move to target location
+    // Step 5: Move to target location
+    const targetZ = z || -410; // Default to -410 if z is not provided
+    try {
+      console.log("Attempting to move to target location...");
+      await move(bot, x, y, targetZ);
+      console.log("Successfully moved to target location");
+    } catch (targetError) {
+      console.error("Error moving to target location:", targetError);
+      // Try with a slightly adjusted Z coordinate if the exact one fails
+      console.log("Trying with adjusted Z coordinate for target location...");
+      const adjustedZ = Number(targetZ) + 10; // Try 10mm higher
+      await move(bot, x, y, adjustedZ);
+    }
+
+    // Step 6: Change depth to -530 for reading
+    try {
+      console.log("Changing depth to -530...");
+      await move(bot, x, y, -530);
+      console.log("Successfully changed depth to -530");
+    } catch (depthError) {
+      console.error("Error changing depth to -530:", depthError);
+      // Continue with the process even if changing depth fails
+    }
+
+    setJobStatus("reading soil humidity");
+
+    // Step 7: Read from the soil humidity sensor
+    try {
+      console.log("Reading from soil humidity sensor pin:", SOIL_SENSOR_PIN);
+
+      // First, ensure we're using the correct pin mode
       try {
-        console.log("Attempting to move to target location...");
-        await move(bot, targetX, targetY, targetZ);
-        console.log("Successfully moved to target location");
-      } catch (targetError) {
-        console.error("Error moving to target location:", targetError);
-        // Try with a slightly adjusted Z coordinate if the exact one fails
-        console.log("Trying with adjusted Z coordinate for target location...");
-        const adjustedZ = Number(targetZ) + 10; // Try 10mm higher
-        await move(bot, targetX, targetY, adjustedZ);
+        await bot.setPinMode({
+          pin_number: SOIL_SENSOR_PIN,
+          pin_mode: 1 // 1 = analog input
+        });
+        console.log("Successfully set pin mode to analog");
+      } catch (pinModeError) {
+        console.error("Error setting pin mode:", pinModeError);
+        // Continue anyway
       }
 
-      // Step 6: Change depth to -530 after reaching the target location
-      try {
-        console.log("Changing depth to -530...");
-        await move(bot, targetX, targetY, -530);
-        console.log("Successfully changed depth to -530");
-      } catch (depthError) {
-        console.error("Error changing depth to -530:", depthError);
-        // Continue with the process even if changing depth fails
-      }
+      // Wait a moment for the pin mode to take effect
+      await sleep(500);
 
-      setJobStatus("reading soil humidity");
-
-      // Step 7: Read from the soil humidity sensor
+      // Now read the pin value
       const pinReadResult = await bot.readPin({
         pin_number: SOIL_SENSOR_PIN,
         pin_mode: 1 // 1 = analog
       });
+
+      // Get the current time
+      const read_at = new Date().toISOString();
+      console.log("Read at:", read_at);
 
       // Convert the raw sensor value to a humidity percentage
       const rawValue = pinReadResult.value || 0;
       // Display the actual raw value from the sensor (0-1023)
       console.log("Raw sensor value:", rawValue);
-      // Calculate humidity percentage - lower values mean wetter soil, higher values mean drier soil
-      const humidity = Math.round((1023 - rawValue) / 1023 * 100);
 
-      // Step 8: Move back to a safe position
-      await move(bot, targetX, targetY, targetZ + 50);
+      // Calculate humidity percentage - higher values mean wetter soil, lower values mean drier soil
+      humidityValue = Math.round((rawValue / 1023) * 100);
 
-      setJobStatus("Finished");
-      setTimeout(() => {
-        setJobStatus("online");
-      }, 3000);
-
-      // Create a new soil humidity record
-      const newRecord = new SoilHumidity({
-        x: targetX,
-        y: targetY,
+      // Log the reading with position information
+      console.log("Sensor reading:", {
+        x: x,
+        y: y,
         z: targetZ,
-        humidity
+        mode: 1,
+        pin: SOIL_SENSOR_PIN,
+        value: rawValue,
+        read_at: read_at
       });
-
-      // Save the record to the database
-      await newRecord.save();
-
-      // Return the humidity data
-      res.status(200).json({
-        x: targetX,
-        y: targetY,
-        z: targetZ,
-        humidity,
-        timestamp: newRecord.timestamp
-      });
-    } catch (botError) {
-      console.error("Farmbot error:", botError);
-      console.error("Error details:", JSON.stringify(botError, null, 2));
-      setJobStatus("error");
-
-      // If there's an error with the Farmbot, fall back to a simulated reading
-      // Generate a random percentage value between 0-100%
-      const humidity = Math.floor(Math.random() * 101); // Random value between 0-100
-
-      // Create a new soil humidity record with simulated data
-      const newRecord = new SoilHumidity({
-        x: targetX,
-        y: targetY,
-        z: targetZ,
-        humidity
-      });
-
-      // Save the record to the database
-      await newRecord.save();
-
-      // Return the simulated humidity data with a warning
-      res.status(200).json({
-        x: targetX,
-        y: targetY,
-        z: targetZ,
-        humidity,
-        timestamp: newRecord.timestamp,
-        warning: "Used simulated data due to Farmbot connection error"
-      });
-    }
-  } catch (err) {
-    console.error("Server error:", err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Check soil humidity at a specific location
-router.post("/check", async (req, res) => {
-  console.log("Received POST /api/soilHumidity/check:", req.body);
-  try {
-    const { x, y, z } = req.body;
-
-    // Validate coordinates
-    if (x === undefined || y === undefined || z === undefined) {
-      return res.status(400).json({ message: "Coordinates (x, y, z) are required." });
+    } catch (sensorError) {
+      console.error("Error reading from soil humidity sensor:", sensorError);
+      // If sensor reading fails, use simulated data
+      humidityValue = Math.floor(Math.random() * 101); // Random value between 0-100
+      simulated = true;
     }
 
-    // Validate auth token
-    if (!req.headers["auth-token"]) {
-      return res.status(401).json({
-        status: 401,
-        message: "Not authorized."
-      });
-    }
-
-    const token = req.headers["auth-token"];
-    let bot = new Farmbot({ token: token });
-
+    // Step 8: Move back to a safe position
     try {
-      // Connect to the Farmbot
-      await bot.connect();
-      setJobStatus("checking soil humidity");
+      await move(bot, x, y, targetZ + 50);
+    } catch (finalMoveError) {
+      console.error("Error moving to safe height:", finalMoveError);
+    }
 
-      // Constants for soil sensor
-      const SOIL_SENSOR_PIN = 59; // Analog pin for soil moisture sensor
+    // Step 9: The soil sensor will be returned to its storage position in the finally block
+    // This ensures it happens even if an error occurs
 
-      // Move to the specified location
-      await move(bot, x, y, z);
+    // Save the humidity reading to the database
+    const humidityReading = new Humidity({
+      reading_value: humidityValue,
+      x: x,
+      y: y,
+      z: targetZ,
+      seed_position_x: x,
+      seed_position_y: y
+    });
 
-      // Wait for the bot to stabilize
-      await sleep(1000);
+    await humidityReading.save();
 
-      // Read from the soil humidity sensor
-      const pinReadResult = await bot.readPin({
-        pin_number: SOIL_SENSOR_PIN,
-        pin_mode: 1 // 1 = analog
+    setJobStatus("Finished");
+    setTimeout(() => {
+      setJobStatus("online");
+    }, 3000);
+
+    const response = {
+      "status": 200,
+      "message": "Humidity reading completed successfully",
+      "reading": {
+        value: humidityValue,
+        x: x,
+        y: y,
+        z: targetZ
+      }
+    };
+
+    if (simulated) {
+      response.warning = "Used simulated data due to sensor reading error";
+    }
+
+    return res.status(200).send(response);
+  } catch (error) {
+    console.error("Error in soil humidity reading:", error);
+    setJobStatus("error");
+
+    // If there's an error with the Farmbot, fall back to a simulated reading
+    humidityValue = Math.floor(Math.random() * 101); // Random value between 0-100
+    simulated = true;
+
+    // Save the simulated reading to the database
+    try {
+      const humidityReading = new Humidity({
+        reading_value: humidityValue,
+        x: x,
+        y: y,
+        z: z || -410, // Default to -410 if z is not provided
+        seed_position_x: x,
+        seed_position_y: y
       });
 
-      // Convert the raw sensor value to a humidity percentage (0-100%)
-      // Assuming sensor gives values between 0-1023
-      // Display the actual raw value from the sensor
-      const rawValue = pinReadResult.value || 0;
-      console.log("Raw sensor value:", rawValue);
-      // Calculate humidity percentage - lower values mean wetter soil, higher values mean drier soil
-      const humidity = Math.round((1023 - rawValue) / 1023 * 100);
+      await humidityReading.save();
 
-      // Move the bot back to a safe position
-      await move(bot, x, y, z + 50); // Move up 50mm from the current position
-
-      setJobStatus("Finished");
-      setTimeout(() => {
-        setJobStatus("online");
-      }, 3000);
-
-      // Create a new soil humidity record
-      const newRecord = new SoilHumidity({
-        x,
-        y,
-        z,
-        humidity
+      return res.status(200).send({
+        "status": 200,
+        "message": "Humidity reading simulated due to errors",
+        "reading": {
+          value: humidityValue,
+          x: x,
+          y: y,
+          z: z || -410
+        },
+        "warning": "Used simulated data due to Farmbot connection error"
       });
-
-      // Save the record to the database
-      await newRecord.save();
-
-      // Return the humidity data
-      res.status(200).json({
-        x,
-        y,
-        z,
-        humidity,
-        timestamp: newRecord.timestamp
-      });
-    } catch (botError) {
-      console.error("Farmbot error:", botError);
-      setJobStatus("error");
-
-      // If there's an error with the Farmbot, fall back to a simulated reading
-      // Generate a random percentage value between 0-100%
-      const humidity = Math.floor(Math.random() * 101); // Random value between 0-100
-
-      // Create a new soil humidity record with simulated data
-      const newRecord = new SoilHumidity({
-        x,
-        y,
-        z,
-        humidity
-      });
-
-      // Save the record to the database
-      await newRecord.save();
-
-      // Return the simulated humidity data with a warning
-      res.status(200).json({
-        x,
-        y,
-        z,
-        humidity,
-        timestamp: newRecord.timestamp,
-        warning: "Used simulated data due to Farmbot connection error"
+    } catch (dbError) {
+      return res.status(500).send({
+        "status": 500,
+        "message": "An error occurred while reading humidity and saving simulated data: " + error
       });
     }
-  } catch (err) {
-    console.error("Server error:", err);
-    res.status(500).json({ error: err.message });
-  }
-});
+  } finally {
+    // Return the soil sensor to its storage position regardless of errors
+    try {
+      if (bot) {
+        setJobStatus("returning soil sensor");
 
-// GET a specific soil humidity record by ID
-router.get("/:id", async (req, res) => {
-  try {
-    const record = await SoilHumidity.findById(req.params.id);
-    if (!record) {
-      return res.status(404).json({ message: "Soil humidity record not found" });
-    }
-    res.json(record);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+        // Constants for soil sensor location
+        const SOIL_SENSOR_X = 2630;
+        const SOIL_SENSOR_Y = 350;
+        const SOIL_SENSOR_APPROACH_Z = -350;
+        const SOIL_SENSOR_ATTACH_Z = -410;
+        const SOIL_SENSOR_X_OFFSET = 2560;
 
-// DELETE a soil humidity record
-router.delete("/:id", async (req, res) => {
-  try {
-    const record = await SoilHumidity.findByIdAndDelete(req.params.id);
-    if (!record) {
-      return res.status(404).json({ message: "Soil humidity record not found" });
+        // Go to left of soil sensor storage
+        console.log("Moving to left of soil sensor storage...");
+        await move(bot, SOIL_SENSOR_X_OFFSET, SOIL_SENSOR_Y, SOIL_SENSOR_ATTACH_Z);
+
+        // Go to soil sensor storage position
+        console.log("Moving to soil sensor storage position...");
+        await move(bot, SOIL_SENSOR_X, SOIL_SENSOR_Y, SOIL_SENSOR_ATTACH_Z);
+
+        // Go up to release it
+        console.log("Moving up to release soil sensor...");
+        await move(bot, SOIL_SENSOR_X, SOIL_SENSOR_Y, SOIL_SENSOR_APPROACH_Z);
+
+        console.log("Successfully returned soil sensor to storage position");
+      }
+    } catch (returnError) {
+      console.error("Error returning soil sensor to storage in finally block:", returnError);
+    } finally {
+      // Note: The Farmbot library doesn't have a disconnect method
+      // We're leaving this block for future implementation
+      try {
+        // Removed bot.disconnect() call as it's not supported
+        // If a disconnect method is added in the future, it can be implemented here
+      } catch (disconnectError) {
+        console.error("Error disconnecting bot:", disconnectError);
+      }
     }
-    res.json({ message: "Soil humidity record deleted successfully" });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
   }
 });
 

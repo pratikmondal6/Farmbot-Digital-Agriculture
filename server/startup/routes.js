@@ -16,6 +16,7 @@ const wateringJob = require('../routes/wateringJob');
 const occupiedAreas = require("../routes/occupied-areas");
 const soilHumidity = require("../routes/soilHumidity");
 const areaHumidity = require("../routes/areaHumidity");
+const device = require("../routes/device");
 const conversion = require("../routes/conversion")
 
 
@@ -24,7 +25,7 @@ module.exports = function (app) {
   app.use("/login", login);
   app.use("/signup", signup);
   app.use("/plant", plant);
-  app.use("/move", moveFarmbot);
+  app.use("/api/moveFarmbot", moveFarmbot);
   app.use("/moveRelative", moveRelative);
   app.use("/seedingJob", seedingJob);
   farmbotPosition.updatePosition()
@@ -34,11 +35,12 @@ module.exports = function (app) {
   app.use('/api/watering', wateringJob);
   app.use('/api/soilHumidity', soilHumidity);
   app.use('/api/areaHumidity', areaHumidity);
+  app.use('/api/device', device);
   app.use('/api/conversion', conversion);
   handleScheduledSeedingJobs()
+  app.use("/api/seeds", occupiedAreas);
   handleScheduledWateringJobs()
   app.use("*", notFound);
   app.use(error); // we just give reference to this error function
-  app.use("/api/seeds", occupiedAreas);
 
 };
