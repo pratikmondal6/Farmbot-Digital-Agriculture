@@ -60,6 +60,7 @@ const SeedingPage = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea, se
       );
     } finally {
       setLoading(false);
+      onDone();
     }
   };
 
