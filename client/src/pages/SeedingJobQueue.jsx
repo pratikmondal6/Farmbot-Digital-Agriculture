@@ -90,6 +90,7 @@ const SeedingJobQueue = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea
       );
     } finally {
       setLoading(false);
+      onDone();
     }
   };
 
