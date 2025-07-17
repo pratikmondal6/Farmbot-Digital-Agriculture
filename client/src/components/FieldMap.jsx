@@ -59,7 +59,7 @@ const eventToMeterCoordinates = (event, svgRect) => {
     };
 };
 
-const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeComponent}) => {
+const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeComponent, reloadTrigger}) => {
     const gridSpacing = 60;
     const [showSafetyCircles, setShowSafetyCircles] = useState(true);
     const [hoverPoint, setHoverPoint] = useState(null);
@@ -78,7 +78,7 @@ const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeCompo
             y2: 400,
             name: "Component Storage Area",
             type: "component_storage",
-            color: "rgba(128,128,128,0.2)"
+            color: "rgba(128,128,128,0.4)"
         },
         {
             x1: 2545,
@@ -87,7 +87,7 @@ const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeCompo
             y2: 1110,
             name: "Component Storage Area",
             type: "component_storage",
-            color: "rgba(128,128,128,0.2)"
+            color: "rgba(128,128,128,0.4)"
         },
     ]);
 
@@ -360,7 +360,7 @@ const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeCompo
         };
 
         loadSeedLocations();
-    }, []);
+    }, [reloadTrigger]);
 
     // fetch selected areas from the server
     const fetchSelectedAreas = async () => {
@@ -374,15 +374,36 @@ const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeCompo
                 x2: parseInt(area.topRight.x),
                 y2: parseInt(area.topRight.y),
                 name: `Planted ${area.plant}`,
-                color: "rgba(0,47,255,0.09)",
+                color: "rgba(0,47,255,0.18)",
             }));
 
             console.log("Selected areas fetched:", selectedAreas);
 
-            setDisabledAreas(prevAreas => {
-                console.log(prevAreas)
-                return [...prevAreas, ...selectedAreas];
-            });
+            // setDisabledAreas(prevAreas => {
+            //     console.log(prevAreas)
+            //     return [...prevAreas, ...selectedAreas];
+            // });
+            const nuzzlesAreas = [
+                {
+                    x1: 2545,
+                    y1: 100,
+                    x2: 2700,
+                    y2: 400,
+                    name: "Component Storage Area",
+                    type: "component_storage",
+                    color: "rgba(128,128,128,0.4)"
+                },
+                {
+                    x1: 2545,
+                    y1: 810,
+                    x2: 2700,
+                    y2: 1110,
+                    name: "Component Storage Area",
+                    type: "component_storage",
+                    color: "rgba(128,128,128,0.4)"
+                },
+            ]
+            setDisabledAreas([...nuzzlesAreas, ...selectedAreas])
 
             console.log("disable areas", disabledAreas);
         } catch (error) {
@@ -392,7 +413,7 @@ const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeCompo
 
     useEffect(() => {
         fetchSelectedAreas();
-    }, []);
+    }, [reloadTrigger]);
 
     // Grid drawing
     const drawGrid = () => {
