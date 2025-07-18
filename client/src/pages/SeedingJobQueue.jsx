@@ -316,7 +316,7 @@ const SeedingJobQueue = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea
               >
                 Normal
               </button>
-              <button 
+              {/* <button 
                 type='button'
                 style={(pointsDistribution=="useAllSpace") ? styles.buttonSelect : styles.buttonUnselect}
                 onClick={async () => {
@@ -325,7 +325,7 @@ const SeedingJobQueue = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea
                 }}
               >
                 Use all
-              </button>
+              </button> */}
           </div>
           <label style={styles.label}>Seed Destination</label>
           <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'left', alignItems: 'left', gap:'10px'}}>
@@ -462,7 +462,8 @@ const styles = {
     border: 'none',
     borderRadius: '5px',
     cursor: 'pointer',
-    transitionDuration: '0.3s'
+    transitionDuration: '0.3s',
+    width: '100%'
   },
   buttonUnselect: {
     padding: '10px 10px',
@@ -474,6 +475,7 @@ const styles = {
     borderRadius: '5px',
     cursor: 'pointer',
     transitionDuration: '0.3s',
+    width: '100%'
   },
   buttonDisabled: {
     backgroundColor: '#cccccc',

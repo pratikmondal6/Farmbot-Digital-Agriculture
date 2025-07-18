@@ -265,7 +265,7 @@ const SeedingPage = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea, se
             >
               Normal
             </button>
-            <button 
+            {/* <button 
               type='button'
               style={(pointsDistribution=="useAllSpace") ? styles.buttonSelect : styles.buttonUnselect}
               onClick={async () => {
@@ -274,7 +274,7 @@ const SeedingPage = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea, se
               }}
             >
               Use all
-            </button>
+            </button> */}
         </div>
         <label style={styles.label}>Seed Destination</label>
         <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'left', alignItems: 'left', gap:'10px'}}>
@@ -472,7 +472,8 @@ const styles = {
     border: 'none',
     borderRadius: '5px',
     cursor: 'pointer',
-    transitionDuration: '0.3s'
+    transitionDuration: '0.3s',
+    width: '100%'
   },
   buttonUnselect: {
     padding: '10px 10px',
@@ -484,6 +485,7 @@ const styles = {
     borderRadius: '5px',
     cursor: 'pointer',
     transitionDuration: '0.3s',
+    width: '100%'
   },
   error: {
     color: '#14532d',
