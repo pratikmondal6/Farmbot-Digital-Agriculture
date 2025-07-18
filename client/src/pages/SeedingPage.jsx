@@ -21,6 +21,7 @@ const SeedingPage = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea, se
   const [showPanel, setShowPanel] = useState('seeding'); // 'seeding', 'queue', 'history', 'schedule
   const [plantTypes, setPlantTypes] = useState([]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [pointsDistribution, setPointsDistribution] = useState("efficient")
 
   useEffect(() => {
     // if (seedLocation && seedLocation != {}) {
@@ -34,6 +35,14 @@ const SeedingPage = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea, se
     }
     fetchData();
   }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await api.get('/seedingPointsDistribution'); // 🔁 Replace with your real backend URL
+      setPointsDistribution(response.data.distribution);
+    }
+    fetchData();
+  }, [pointsDistribution]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -234,6 +243,39 @@ const SeedingPage = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea, se
             }}
           />
         </div>
+        <label style={styles.label}>Seed distribution</label>
+        <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'left', alignItems: 'left', gap:'10px', marginBottom:'5px'}}>
+            <button 
+              type='button'
+              style={(pointsDistribution=="efficient") ? styles.buttonSelect : styles.buttonUnselect}
+              onClick={async () => {
+                await api.put('/seedingPointsDistribution', { "distribution": "efficient" })
+                setPointsDistribution("effieicne")
+              }}
+            >
+              Efficient
+            </button>
+            <button 
+              type='button'
+              style={(pointsDistribution=="normal") ? styles.buttonSelect : styles.buttonUnselect}
+              onClick={async () => {
+                await api.put('/seedingPointsDistribution', { "distribution": "normal" })
+                setPointsDistribution("normal")
+              }}
+            >
+              Normal
+            </button>
+            <button 
+              type='button'
+              style={(pointsDistribution=="useAllSpace") ? styles.buttonSelect : styles.buttonUnselect}
+              onClick={async () => {
+                await api.put('/seedingPointsDistribution', { "distribution": "useAllSpace" })
+                setPointsDistribution("useAllSpace")
+              }}
+            >
+              Use all
+            </button>
+        </div>
         <label style={styles.label}>Seed Destination</label>
         <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'left', alignItems: 'left', gap:'10px'}}>
             {/* <input
@@ -388,7 +430,7 @@ const styles = {
     color: '#14532d'
   },
   label: {
-    margin: '0.5rem 0 0.2rem',
+    margin: '0.7rem 0 0.2rem',
     fontWeight: 'bold',
     color: '#14532d',
     transition: 'color 0.3s ease',
@@ -431,6 +473,17 @@ const styles = {
     borderRadius: '5px',
     cursor: 'pointer',
     transitionDuration: '0.3s'
+  },
+  buttonUnselect: {
+    padding: '10px 10px',
+    fontSize: '0.8rem',
+    fontWeight: 'bold',
+    backgroundColor:'white' ,
+    color: '#22c55e',
+    border: '2px solid #22c55e',
+    borderRadius: '5px',
+    cursor: 'pointer',
+    transitionDuration: '0.3s',
   },
   error: {
     color: '#14532d',
