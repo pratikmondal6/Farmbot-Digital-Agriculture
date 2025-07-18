@@ -18,6 +18,7 @@ const soilHumidity = require("../routes/soilHumidity");
 const areaHumidity = require("../routes/areaHumidity");
 const device = require("../routes/device");
 const conversion = require("../routes/conversion")
+const emergencyStop = require('../routes/emergencyStop');
 
 
 module.exports = function (app) {
@@ -30,6 +31,7 @@ module.exports = function (app) {
   app.use("/seedingJob", seedingJob);
   farmbotPosition.updatePosition()
   app.use('/farmbotPosition', farmbotPosition.router);
+  app.use('/emergencyStop', emergencyStop);
   app.use("/api/botConfig", farmbotConfig);
   app.use('/api/status', statusRoutes);
   app.use('/api/watering', wateringJob);
