@@ -2,6 +2,18 @@ const express = require("express");
 const router = express.Router();
 const { SeedingPointsDistribution } = require("../models/seedingPointsDistribution.js")
 
+// Get
+router.get("/", async (req, res) => {
+  try {
+    const seedingPointsDistribution = await SeedingPointsDistribution.find({})
+    const distribution = seedingPointsDistribution[0].distribution
+
+    res.status(200).send({distribution: distribution});
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Update
 router.put("/", async (req, res) => {
   try {
