@@ -4,7 +4,6 @@ import instance from "../utils/api";
 
 const getPlantIconPath = (seedName) => {
     const name = seedName?.toLowerCase();
-    console.log(name)
     try {
         switch (name) {
             case 'carrot':
