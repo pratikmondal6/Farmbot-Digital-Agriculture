@@ -7,7 +7,7 @@ import api from "../utils/api";
 // const defaultDate = now.toISOString().slice(0, 10); // "YYYY-MM-DD"
 // const defaultTime = now.toTimeString().slice(0, 5); // "HH:MM"
 
-const SeedingPage = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea, seedingAreaLocation, onDone}) => {
+const SeedingPage = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea, seedingAreaLocation, onDone, setSelectedPlantType}) => {
   const navigate = useNavigate();
 
   const [plant, setPlant] = useState('');
@@ -50,7 +50,7 @@ const SeedingPage = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea, se
       }
 
       await api.post('/seedingJob/start', data);
-      
+
       navigate('/dashboard');
 
     } catch (err) {
@@ -84,7 +84,7 @@ const SeedingPage = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea, se
       }
 
       await api.post('/seedingJob/schedule', data);
-      
+
       alert("Seeding job scheduled successfully")
 
     } catch (err) {
@@ -181,6 +181,10 @@ const SeedingPage = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea, se
                   onClick={() => {
                     setPlant(plantType.plant_type);
                     setDropdownOpen(false);
+                    // Set the selected plant type for the FieldMap component
+                    if (setSelectedPlantType) {
+                      setSelectedPlantType(plantType.plant_type);
+                    }
                   }}
                 >
                   {plantType.plant_type}
