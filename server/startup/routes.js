@@ -8,6 +8,7 @@ const seedingJob = require("../routes/seedingJob");
 const farmbotPosition = require("../services/farmbotPosition");
 const { handleScheduledSeedingJobs } = require("../services/handleScheduledSeedingJobs");
 const { handleScheduledWateringJobs } = require("../services/handleScheduledWateringJobs");
+const generatePlantablePoints = require("../services/generatePlantablePoints");
 const notFound = require("../routes/notFound");
 const moveFarmbot = require("../routes/moveFarmbot");
 const moveRelative = require("../routes/moveRelative");
@@ -31,6 +32,7 @@ module.exports = function (app) {
   app.use("/seedingJob", seedingJob);
   farmbotPosition.updatePosition()
   app.use('/farmbotPosition', farmbotPosition.router);
+  app.use('/generatePlantablePoints', generatePlantablePoints.router);
   app.use('/emergencyStop', emergencyStop);
   app.use("/api/botConfig", farmbotConfig);
   app.use('/api/status', statusRoutes);

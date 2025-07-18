@@ -1,3 +1,5 @@
+const express = require("express");
+const router = express.Router();
 const { Seed } = require("../models/seed");
 const { FutureSeed } = require("../models/futureSeed");
 const Plant = require('../models/plan.js'); 
@@ -10,6 +12,10 @@ function distance(p1, p2) {
 
 async function generatePlantablePoints(plantDetails, topLeft, bottomRight) {
   points = []
+  console.log("Plant details")
+  console.log(plantDetails)
+  console.log(topLeft)
+  console.log(bottomRight)
 
   let allPlantDetails = await Plant.find({})
   // console.log("All plant details: ")
@@ -94,6 +100,13 @@ async function generatePlantablePoints(plantDetails, topLeft, bottomRight) {
   return points
 }
 
+router.post("/", async (req, res) => {
+  let plantDetails = await Plant.findOne({ plant_type: req.body.seed_name })
+  seedPoints = await generatePlantablePoints(plantDetails, req.body.topLeft, req.body.bottomRight)
+  res.status(200).send(seedPoints)
+})
+
 module.exports = {
-  generatePlantablePoints
+  generatePlantablePoints,
+  router
 }
