@@ -48,7 +48,6 @@ const pixelToMeterY = (pixelY) => Math.floor((containerHeight - pixelY) / scaleY
 // function to convert event coordinates to meter coordinates
 const eventToMeterCoordinates = (event, svgRect) => {
     const marginPx = margin * scaleX;
-    // Adjust for border only
     const pixelX = event.clientX - svgRect.left - marginPx - border;
     const pixelY = event.clientY - svgRect.top - marginPx - border;
     return {
@@ -70,6 +69,7 @@ const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeCompo
     const [selectionStart, setSelectionStart] = useState(null);
     const [selectionEnd, setSelectionEnd] = useState(null);
     const [plantedSeeds, setPlantedSeeds] = useState([]);
+    const [tempArea, setTempArea] = useState(null);
     const [disabledAreas, setDisabledAreas] = useState([
         {
             x1: 2545,
@@ -178,6 +178,8 @@ const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeCompo
     const handleStartSelection = (event) => {
         if (!isSelectingArea) return;
 
+        setTempArea(null);
+
         const svgRect = event.currentTarget.getBoundingClientRect();
         const coords = eventToMeterCoordinates(event, svgRect);
 
@@ -249,6 +251,16 @@ const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeCompo
         setSelectionStart(null);
         setSelectionEnd(null);
 
+        setTempArea({
+            x1: points.bottomLeft.x,
+            y1: points.bottomLeft.y,
+            x2: points.topRight.x,
+            y2: points.topRight.y,
+            name: "Temp Selected Area",
+            type: "temp_selected_area",
+            color: "rgba(128,128,128,0.2)"
+        });
+
         console.log(`Selected Area Points:`, points);
 
         if (onAreaSelect) {
@@ -318,36 +330,36 @@ const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeCompo
         };
     }, []);
 
-                    // Fetch Seed Locations
-                    const fetchSeedLocations = async () => {
-                    try {
-                        const response = await instance.get('/seedingJob/seeds');
-                        const seedLocations = response.data;
+    // Fetch Seed Locations
+    const fetchSeedLocations = async () => {
+        try {
+            const response = await instance.get('/seedingJob/seeds');
+            const seedLocations = response.data;
 
-                        const seedsWithDetails = await Promise.all(seedLocations.map(async (seed) => {
-                            try {
-                                const detailRes = await instance.get(`/plant/details/${seed.seed_name}`);
-                                return {
-                                    ...seed,
-                                    min_distance: detailRes.data.minimal_distance,
-                                    color: "#6d2ccf"
-                                };
-                            } catch (error) {
-                                console.error(`Fehler beim Laden von Details für ${seed.seed_name}:`, error);
-                                return {
-                                    ...seed,
-                                    min_distance: 100, // fallback
-                                    color: "#6d2ccf"
-                                };
-                            }
-                        }));
+            const seedsWithDetails = await Promise.all(seedLocations.map(async (seed) => {
+                try {
+                    const detailRes = await instance.get(`/plant/details/${seed.seed_name}`);
+                    return {
+                        ...seed,
+                        min_distance: detailRes.data.minimal_distance,
+                        color: "#6d2ccf"
+                    };
+                } catch (error) {
+                    console.error(`Fehler beim Laden von Details für ${seed.seed_name}:`, error);
+                    return {
+                        ...seed,
+                        min_distance: 100, // fallback
+                        color: "#6d2ccf"
+                    };
+                }
+            }));
 
-                        return seedsWithDetails;
-                    } catch (error) {
-                        console.error('Error fetching seed locations:', error);
-                        return [];
-                    }
-                };
+            return seedsWithDetails;
+        } catch (error) {
+            console.error('Error fetching seed locations:', error);
+            return [];
+        }
+    };
 
     useEffect(() => {
         const loadSeedLocations = async () => {
@@ -537,13 +549,15 @@ const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeCompo
         if (hoverPoint) {
             setSelectedPoint({
                 ...hoverPoint,
-                x: event.clientX,
-                y: event.clientY,
+                x: hoverPoint.pixelX,
+                y: hoverPoint.pixelY,
                 meterX: hoverPoint.x,
                 meterY: hoverPoint.y,
             });
             setHoverPoint(null);
         } else if (activeComponent === "soilHumidityPage") {
+            setTempArea(null);
+
             // For soil humidity page, check if click is on a disabled area
             const svgRect = event.currentTarget.getBoundingClientRect();
             const coords = eventToMeterCoordinates(event, svgRect);
@@ -647,6 +661,13 @@ const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeCompo
                     </g>
                 ))}
 
+                {/* Render temporary selected area */}
+                {tempArea && (
+                    <g key="temp-area">
+                        <Rectangle area={tempArea}/>
+                    </g>
+                )}
+
                 {/* robot circle */}
                 <circle
                     className="robot-circle"
@@ -737,7 +758,7 @@ const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeCompo
                                 element.isHovered = false;
                                 setPlantedSeeds([...plantedSeeds]);
                             }}
-                            style={{ cursor: 'pointer' }}
+                            style={{cursor: 'pointer'}}
                         />
 
                         {seed.isHovered &&
@@ -820,8 +841,15 @@ const ActionModal = ({position, onMove, previousZ}) => {
         }
     };
 
+    // Calculate position relative to the SVG container
+    const modalStyle = {
+        position: 'absolute',
+        left: `${position.pixelX + border}px`,
+        top: `${position.pixelY + border}px`
+    };
+
     return (
-        <div className="action-modal" style={{left: position.x, top: position.y}}>
+        <div className="action-modal" style={modalStyle}>
             <div className="action-modal-content">
                 <div className="action-modal-input-container">
                     <label className="action-modal-label">Width:</label>

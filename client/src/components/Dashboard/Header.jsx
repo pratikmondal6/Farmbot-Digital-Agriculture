@@ -3,6 +3,7 @@ import Settings from '../../pages/Setting';
 import '../../styles/header.css';
 import { useNavigate } from 'react-router-dom';
 import StatusCard from './StatusCard';
+import EmergencyStop from './EmergencyStop';
 
 export default function Header() {
     const navigate = useNavigate();
@@ -32,6 +33,9 @@ export default function Header() {
         <header className="header">
             <h1 className="header-title">🚜 FarmBot</h1>
             <div className="header-status-bar">
+                <div className="emergency-stop">
+                   <EmergencyStop />
+                </div>
                 <div className="header-item">
                     <span className="status-dot">●</span>
                     {/* <span>Online</span> */}
@@ -41,9 +45,9 @@ export default function Header() {
                     🔄
                     <span>Refresh</span>
                 </div>
-                <div className="header-item">
+                {/* <div className="header-item">
                     <Settings />
-                </div>
+                </div> */}
                 <div className="header-item" onClick={handleLogoutClick}>
                     🚪
                     <span>Logout</span>
