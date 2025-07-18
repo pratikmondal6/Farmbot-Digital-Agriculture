@@ -342,14 +342,16 @@ const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeCompo
                     return {
                         ...seed,
                         min_distance: detailRes.data.minimal_distance,
-                        color: "#6d2ccf"
+                        color: "#6d2ccf",
+                        seedType: "Present"
                     };
                 } catch (error) {
                     console.error(`Fehler beim Laden von Details für ${seed.seed_name}:`, error);
                     return {
                         ...seed,
                         min_distance: 100, // fallback
-                        color: "#6d2ccf"
+                        color: "#6d2ccf",
+                        seedType: "Present"
                     };
                 }
             }));
@@ -361,11 +363,28 @@ const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeCompo
         }
     };
 
+    const fetchFutureSeeds = async () => {
+        try {
+            const response = await instance.get('/seedingJob/futureSeeds');
+
+            return response.data.map(seed => ({
+                ...seed,
+                color: "#6d2ccf",
+                seedType: "Future",
+            }));
+        } catch (error) {
+            console.error('Fehler beim Laden der Future Seeds:', error);
+            return [];
+        }
+    };
+
     useEffect(() => {
         const loadSeedLocations = async () => {
             try {
                 const seedLocations = await fetchSeedLocations();
-                setPlantedSeeds(seedLocations);
+                const futureSeeds = await fetchFutureSeeds();
+
+                setPlantedSeeds([...seedLocations, ...futureSeeds]);
             } catch (error) {
                 console.error('Error loading seed locations:', error);
             }
@@ -603,7 +622,7 @@ const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeCompo
         setSelectedPoint(null);
 
         try {
-            await instance.post('/move', {
+            await instance.post('/api/moveFarmbot', {
                 x: xNew,
                 y: yNew,
                 z: -zNew
@@ -745,6 +764,7 @@ const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeCompo
                             href={getPlantIconPath(seed.seed_name)}
                             x={(parseInt(seed.x) * scaleX) - PLANT_ICON_WIDTH / 2}
                             y={(containerHeight - (parseInt(seed.y) * scaleY)) - PLANT_ICON_HEIGHT / 2}
+                            opacity={seed.seedType === "Future" ? 0.4 : 1}
                             width={PLANT_ICON_WIDTH}
                             height={PLANT_ICON_HEIGHT}
                             onPointerEnter={() => {
