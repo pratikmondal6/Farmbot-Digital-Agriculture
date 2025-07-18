@@ -272,8 +272,8 @@ const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeCompo
                     topLeft: {
                         ...points.topLeft
                     },
-                    topRight: {
-                        ...points.topRight
+                    bottomRight: {
+                        ...points.bottomRight
                     },
                     seed_name: plantType
                 });
@@ -468,6 +468,12 @@ const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeCompo
 
     useEffect(() => {
         fetchSelectedAreas();
+    }, [reloadTrigger]);
+    
+    // Clear calculated planting positions and temp area when reload is triggered
+    useEffect(() => {
+        setCalculatedPlantingPositions([]);
+        setTempArea(null);
     }, [reloadTrigger]);
 
     // Grid drawing
@@ -816,19 +822,19 @@ const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeCompo
                     <g key={`planting-position-${index}`}>
                         {/* X mark */}
                         <line
-                            x1={meterToPixelX(position.x) - 10}
-                            y1={meterToPixelY(position.y) - 10}
-                            x2={meterToPixelX(position.x) + 10}
-                            y2={meterToPixelY(position.y) + 10}
-                            stroke="#FF0000"
+                            x1={meterToPixelX(position.x) - 5}
+                            y1={meterToPixelY(position.y) - 5}
+                            x2={meterToPixelX(position.x) + 5}
+                            y2={meterToPixelY(position.y) + 5}
+                            stroke="#000000"
                             strokeWidth="2"
                         />
                         <line
-                            x1={meterToPixelX(position.x) - 10}
-                            y1={meterToPixelY(position.y) + 10}
-                            x2={meterToPixelX(position.x) + 10}
-                            y2={meterToPixelY(position.y) - 10}
-                            stroke="#FF0000"
+                            x1={meterToPixelX(position.x) - 5}
+                            y1={meterToPixelY(position.y) + 5}
+                            x2={meterToPixelX(position.x) + 5}
+                            y2={meterToPixelY(position.y) - 5}
+                            stroke="#000000"
                             strokeWidth="2"
                         />
                     </g>
