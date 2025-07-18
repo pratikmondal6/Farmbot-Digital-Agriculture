@@ -3,7 +3,7 @@ import { FaTint, FaRegCalendarAlt, FaShower } from "react-icons/fa";
 import api from "../utils/api";
 
 
-const DEFAULT_Z = 300;
+const DEFAULT_Z = 450;
 const DEFAULT_INTERVAL = 24;
 
 const WateringJobPage = () => {
@@ -39,7 +39,9 @@ const WateringJobPage = () => {
     if (selectedPlantType) {
       await api.post("/api/watering/start", {
         plantType: selectedPlantType,
-        waterAmount: waterAmounts[selectedPlantType]
+        waterAmount: waterAmounts[selectedPlantType],
+        waterUnit: waterUnit,
+        z: z
       });
     }
     setIsWatering(false);

@@ -110,3 +110,130 @@
     margin-top: 20px;
     gap: 20px;
 }
+
+.soil-humidity-container {
+    padding: 20px;
+    max-width: 800px;
+}
+
+.soil-humidity-form {
+    margin-bottom: 20px;
+}
+
+.soil-humidity-title {
+    color: #166534;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+}
+
+.soil-humidity-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #166534;
+}
+
+.soil-humidity-area-selection {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.soil-humidity-area-selection input {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+}
+
+.soil-humidity-button-select {
+    padding: 8px 16px;
+    background-color: #16a34a;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.soil-humidity-button-select:hover {
+    background-color: #15803d;
+}
+
+.soil-humidity-button-container {
+    display: flex;
+    justify-content: center;
+}
+
+.soil-humidity-button {
+    padding: 10px 20px;
+    background-color: #16a34a;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.soil-humidity-button:hover {
+    background-color: #15803d;
+}
+
+.soil-humidity-button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+/* Heatmap styles */
+.humidity-heatmap-container {
+    margin-top: 30px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+}
+
+.humidity-heatmap-container h3 {
+    color: #166534;
+    margin-bottom: 15px;
+}
+
+.heatmap-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.legend-color {
+    width: 20px;
+    height: 20px;
+    border: 1px solid #000;
+}
+
+.humidity-readings {
+    margin-top: 20px;
+}
+
+.humidity-readings h4 {
+    color: #166534;
+    margin-bottom: 10px;
+}
+
+.humidity-readings ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.humidity-readings li {
+    margin-bottom: 5px;
+    padding: 5px;
+    background-color: #f0fdf4;
+    border-radius: 4px;
+}

@@ -16,6 +16,10 @@ export default function FarmBotDashboard() {
     const [seedPoints, setSeedPoints] = useState({})
     const [selectArea, setSelectArea] = useState(false)
     const [seedingAreaLocation, setSeedingAreaLocation] = useState()
+    const [reloadCounter, setReloadCounter] = useState(0);
+
+    const triggerReload = () => setReloadCounter(prev => prev + 1);
+
 
     const handleComponentSelection = (visibleComp) => {
         setVisibleComponent(visibleComp);
@@ -34,14 +38,14 @@ export default function FarmBotDashboard() {
             <Header />
             <div className="dashboard-items">
                 <Sidebar onSelectComponent={handleComponentSelection}/>
-                {visibleComponent=="seedingJob" && <SeedingPage seedLocation={seedPoints} selectArea={selectArea} setSelectArea={setSelectArea} seedingAreaLocation={seedingAreaLocation}/>}
-                {visibleComponent=="seedingJobQueue" && <SeedingJobQueue seedLocation={seedPoints} selectArea={selectArea} setSelectArea={setSelectArea} seedingAreaLocation={seedingAreaLocation}/>}
+                {visibleComponent=="seedingJob" && <SeedingPage seedLocation={seedPoints} selectArea={selectArea} setSelectArea={setSelectArea} seedingAreaLocation={seedingAreaLocation} onDone={triggerReload}/>}
+                {visibleComponent=="seedingJobQueue" && <SeedingJobQueue seedLocation={seedPoints} selectArea={selectArea} setSelectArea={setSelectArea} seedingAreaLocation={seedingAreaLocation} onDone={triggerReload}/>}
                 {visibleComponent=="botControlPanel" && <FarmbotMoving />}
                 {visibleComponent=="addPlantType" && <AddPlanttype />}
                 {visibleComponent=="c" && <SeedingPage />}
                 {visibleComponent=="wateringJobPage" && <WateringJobPage />}
                 {visibleComponent=="soilHumidityPage" && <SoilHumidityPage selectArea={selectArea} setSelectArea={setSelectArea} selectedAreaLocation={seedingAreaLocation} setSelectedAreaLocation={setSeedingAreaLocation} />}
-                <FieldMap activeComponent={visibleComponent} onAreaSelect={handleAreaSelect} selectArea={selectArea} onElementClick={handleClickElement}/>
+                <FieldMap activeComponent={visibleComponent} onAreaSelect={handleAreaSelect} selectArea={selectArea} onElementClick={handleClickElement} reloadTrigger={reloadCounter}/>
             </div>
         </div>
     );

@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import api from "../utils/api";
 
-const SeedingJobQueue = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea, seedingAreaLocation}) => {
+const SeedingJobQueue = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea, seedingAreaLocation, onDone}) => {
   const [isHoveredEdit, setIsHoveredEdit] = useState(false);
   const [isHoveredDelete, setIsHoveredDelete] = useState(false);
   const [seedingJobs, setSeedingJobs] = useState([]);
@@ -62,7 +62,21 @@ const SeedingJobQueue = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea
         seedX: SeedX,
         seedY: SeedY,
         z: 50,
-        ...seedingAreaLocation,
+      }
+      if (seedingAreaLocation) {
+        data = {
+          ...data,
+          ...seedingAreaLocation,
+        }
+      }
+      else {
+        data = {
+          ...data,
+          topLeft,
+          topRight,
+          bottomLeft,
+          bottomRight
+        }
       }
 
       console.log('/seedingJob/' + EditSeedingJob._id)
@@ -76,6 +90,7 @@ const SeedingJobQueue = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea
       );
     } finally {
       setLoading(false);
+      onDone();
     }
   };
 
@@ -116,6 +131,7 @@ const SeedingJobQueue = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea
       );
     } finally {
       setLoading(false);
+      onDone()
     }
   }
 

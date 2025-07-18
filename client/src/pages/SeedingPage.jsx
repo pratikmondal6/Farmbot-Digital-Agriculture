@@ -7,7 +7,7 @@ import api from "../utils/api";
 // const defaultDate = now.toISOString().slice(0, 10); // "YYYY-MM-DD"
 // const defaultTime = now.toTimeString().slice(0, 5); // "HH:MM"
 
-const SeedingPage = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea, seedingAreaLocation}) => {
+const SeedingPage = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea, seedingAreaLocation, onDone}) => {
   const navigate = useNavigate();
 
   const [plant, setPlant] = useState('');
@@ -60,6 +60,7 @@ const SeedingPage = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea, se
       );
     } finally {
       setLoading(false);
+      onDone();
     }
   };
 
@@ -93,6 +94,8 @@ const SeedingPage = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea, se
       );
     } finally {
       setLoading(false);
+      // window.location.reload()
+      onDone()
     }
   }
 

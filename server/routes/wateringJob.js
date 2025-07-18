@@ -89,6 +89,8 @@ router.post("/start", async (req, res) => {
 
   const plantType = req.body.plantType
   const waterAmount = parseInt(req.body.waterAmount)
+  const waterUnit = req.body.waterUnit
+  const height = parseInt(req.body.z)
 
   let seedsToWater = await Seed.find({seed_name: plantType});
   seedsToWater = findShortestPath(seedsToWater);
@@ -122,7 +124,7 @@ router.post("/start", async (req, res) => {
     setJobStatus("moving to seed");
 
     // Go to a little higher from seed (x=2130, y=25)
-    await move(bot, x=seedX, y=seedY, z=-480)
+    await move(bot, x=seedX, y=seedY, z=(-1)*height)
 
     setJobStatus("watering");
 
@@ -132,8 +134,13 @@ router.post("/start", async (req, res) => {
       pin_value: 1,    // 1 = watering on, 0 = watering off
       pin_mode: 0      // 0 = digital, 1 = analog
     });
-
-    await sleep(mlToMS(waterAmount))
+    
+    if (waterUnit == "ms") {
+      await sleep(waterAmount)
+    }
+    else {
+      await sleep(mlToMS(waterAmount))
+    }
 
     // Turn off water
     await bot.writePin({
