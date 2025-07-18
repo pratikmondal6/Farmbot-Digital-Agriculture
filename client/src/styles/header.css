@@ -39,6 +39,25 @@
     transform: scale(1.05);
 }
 
+.emergency-stop {
+    display: flex;
+    align-items: center;  /* Ensures icon and text are vertically aligned */
+    gap: 0.4rem;
+    cursor: pointer;
+    transition: transform 0.2s, background-color 0.2s;
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    /* color: rgb(221, 33, 33); */
+    font-weight: bold;
+    /* border: 2px solid rgb(221, 33, 33); */
+    color: white;
+    background-color: rgb(221, 33, 33);
+}
+
+.emergency-stop:hover {
+    background-color: rgb(178, 17, 17);
+}
+
 .status-dot {
     font-size: 1.2rem;
     color: #b2f5ea;

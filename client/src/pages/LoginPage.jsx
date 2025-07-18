@@ -6,8 +6,8 @@ import { saveToken } from '../utils/tokenManager';
 const LoginPage = ({setIsLoggedIn}) => {
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('kalagdf@rhrk.uni-kl.de');
+  const [password, setPassword] = useState('mYfarm2025*');
   const [isHovered, setIsHovered] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
