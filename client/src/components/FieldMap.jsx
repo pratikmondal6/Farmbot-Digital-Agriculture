@@ -14,6 +14,8 @@ const getPlantIconPath = (seedName) => {
                 return require('../assets/images/lettuce.png');
             case 'kiwi':
                 return require('../assets/images/kiwi.png');
+            case 'orange':
+                return require('../assets/images/orange.png');
             default:
                 return require('../assets/images/fallback.png');
         }
