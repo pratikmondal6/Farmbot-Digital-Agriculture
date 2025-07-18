@@ -59,7 +59,7 @@ const eventToMeterCoordinates = (event, svgRect) => {
     };
 };
 
-const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeComponent, reloadTrigger}) => {
+const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeComponent, reloadTrigger, plantType = null}) => {
     const gridSpacing = 60;
     const [showSafetyCircles, setShowSafetyCircles] = useState(true);
     const [hoverPoint, setHoverPoint] = useState(null);
@@ -70,6 +70,7 @@ const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeCompo
     const [selectionStart, setSelectionStart] = useState(null);
     const [selectionEnd, setSelectionEnd] = useState(null);
     const [plantedSeeds, setPlantedSeeds] = useState([]);
+    const [calculatedPlantingPositions, setCalculatedPlantingPositions] = useState([]);
     const [tempArea, setTempArea] = useState(null);
     const [disabledAreas, setDisabledAreas] = useState([
         {
@@ -180,6 +181,7 @@ const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeCompo
         if (!isSelectingArea) return;
 
         setTempArea(null);
+        setCalculatedPlantingPositions([]);
 
         const svgRect = event.currentTarget.getBoundingClientRect();
         const coords = eventToMeterCoordinates(event, svgRect);
@@ -197,7 +199,7 @@ const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeCompo
         setSelectionEnd({x: coords.x, y: coords.y});
     };
 
-    const handleEndSelection = () => {
+    const handleEndSelection = async () => {
         if (!isSelectingArea || !selectionStart || !selectionEnd) return;
 
         const isSamePoint = Math.abs(selectionStart.x - selectionEnd.x) < 15 &&
@@ -263,6 +265,29 @@ const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeCompo
         });
 
         console.log(`Selected Area Points:`, points);
+
+        // Call API to get planting positions
+        try {
+            // Only make the API call if we're in the seeding job component
+            if ((activeComponent === "seedingJob" || activeComponent === "seedingJobQueue") && plantType) {
+                const response = await instance.post('/generatePlantablePoints', {
+                    topLeft: {
+                        ...points.topLeft
+                    },
+                    bottomRight: {
+                        ...points.bottomRight
+                    },
+                    seed_name: plantType
+                });
+
+                if (response.data) {
+                    setCalculatedPlantingPositions(response.data);
+                    console.log('Calculated planting positions:', response.data);
+                }
+            }
+        } catch (error) {
+            console.error('Error calculating planting positions:', error);
+        }
 
         if (onAreaSelect) {
             onAreaSelect(points);
@@ -343,14 +368,16 @@ const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeCompo
                     return {
                         ...seed,
                         min_distance: detailRes.data.minimal_distance,
-                        color: "#6d2ccf"
+                        color: "#6d2ccf",
+                        seedType: "Present"
                     };
                 } catch (error) {
                     console.error(`Fehler beim Laden von Details für ${seed.seed_name}:`, error);
                     return {
                         ...seed,
                         min_distance: 100, // fallback
-                        color: "#6d2ccf"
+                        color: "#6d2ccf",
+                        seedType: "Present"
                     };
                 }
             }));
@@ -362,11 +389,28 @@ const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeCompo
         }
     };
 
+    const fetchFutureSeeds = async () => {
+        try {
+            const response = await instance.get('/seedingJob/futureSeeds');
+
+            return response.data.map(seed => ({
+                ...seed,
+                color: "#6d2ccf",
+                seedType: "Future",
+            }));
+        } catch (error) {
+            console.error('Fehler beim Laden der Future Seeds:', error);
+            return [];
+        }
+    };
+
     useEffect(() => {
         const loadSeedLocations = async () => {
             try {
                 const seedLocations = await fetchSeedLocations();
-                setPlantedSeeds(seedLocations);
+                const futureSeeds = await fetchFutureSeeds();
+
+                setPlantedSeeds([...seedLocations, ...futureSeeds]);
             } catch (error) {
                 console.error('Error loading seed locations:', error);
             }
@@ -426,6 +470,12 @@ const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeCompo
 
     useEffect(() => {
         fetchSelectedAreas();
+    }, [reloadTrigger]);
+    
+    // Clear calculated planting positions and temp area when reload is triggered
+    useEffect(() => {
+        setCalculatedPlantingPositions([]);
+        setTempArea(null);
     }, [reloadTrigger]);
 
     // Grid drawing
@@ -604,7 +654,7 @@ const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeCompo
         setSelectedPoint(null);
 
         try {
-            await instance.post('/move', {
+            await instance.post('/api/moveFarmbot', {
                 x: xNew,
                 y: yNew,
                 z: -zNew
@@ -746,6 +796,7 @@ const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeCompo
                             href={getPlantIconPath(seed.seed_name)}
                             x={(parseInt(seed.x) * scaleX) - PLANT_ICON_WIDTH / 2}
                             y={(containerHeight - (parseInt(seed.y) * scaleY)) - PLANT_ICON_HEIGHT / 2}
+                            opacity={seed.seedType === "Future" ? 0.4 : 1}
                             width={PLANT_ICON_WIDTH}
                             height={PLANT_ICON_HEIGHT}
                             onPointerEnter={() => {
@@ -765,6 +816,29 @@ const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeCompo
                         {seed.isHovered &&
                             <Text x={seed.x} y={seed.y} text={seed.seed_name}/>
                         }
+                    </g>
+                ))}
+
+                {/* Render calculated planting positions as X marks */}
+                {calculatedPlantingPositions.map((position, index) => (
+                    <g key={`planting-position-${index}`}>
+                        {/* X mark */}
+                        <line
+                            x1={meterToPixelX(position.x) - 5}
+                            y1={meterToPixelY(position.y) - 5}
+                            x2={meterToPixelX(position.x) + 5}
+                            y2={meterToPixelY(position.y) + 5}
+                            stroke="#000000"
+                            strokeWidth="2"
+                        />
+                        <line
+                            x1={meterToPixelX(position.x) - 5}
+                            y1={meterToPixelY(position.y) + 5}
+                            x2={meterToPixelX(position.x) + 5}
+                            y2={meterToPixelY(position.y) - 5}
+                            stroke="#000000"
+                            strokeWidth="2"
+                        />
                     </g>
                 ))}
 
