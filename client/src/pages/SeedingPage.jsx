@@ -268,16 +268,16 @@ const SeedingPage = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea, se
             >
               Normal
             </button>
-            {/* <button 
+            <button 
               type='button'
-              style={(pointsDistribution=="useAllSpace") ? styles.buttonSelect : styles.buttonUnselect}
+              style={(pointsDistribution=="hexagonal") ? styles.buttonSelect : styles.buttonUnselect}
               onClick={async () => {
-                await api.put('/seedingPointsDistribution', { "distribution": "useAllSpace" })
-                setPointsDistribution("useAllSpace")
+                await api.put('/seedingPointsDistribution', { "distribution": "hexagonal" })
+                setPointsDistribution("hexagonal")
               }}
             >
-              Use all
-            </button> */}
+              Hexagonal
+            </button>
         </div>
         <label style={styles.label}>Seed Destination</label>
         <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'left', alignItems: 'left', gap:'10px'}}>

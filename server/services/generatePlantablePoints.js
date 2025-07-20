@@ -182,7 +182,7 @@ async function generatePlantablePoints(plantDetails, topLeft, bottomRight) {
     }
   }
 
-  const triangleDist = dist * Math.sqrt(3) / 2
+  const triangleDist = dist * (Math.sqrt(3) / 2)
   for (let y = yDown; y <= yUp; y += triangleDist) {
     for (let x = xLeft; x <= xRight; x += 1) {
       const candidate = { x, y, minDistance: dist  };
@@ -228,6 +228,9 @@ async function generatePlantablePoints(plantDetails, topLeft, bottomRight) {
       b.length > a.length ? b : a
     );
     return longest
+  }
+  else if (distribution == "hexagonal") {
+    return points4
   }
   else if (distribution == "normal" && points2.length >= points3.length) {
     return points2
