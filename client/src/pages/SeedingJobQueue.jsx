@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import api from "../utils/api";
 
-const SeedingJobQueue = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea, seedingAreaLocation, onDone}) => {
+const SeedingJobQueue = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea, seedingAreaLocation, onDone, setSelectedPlantType}) => {
   const [isHoveredEdit, setIsHoveredEdit] = useState(false);
   const [isHoveredDelete, setIsHoveredDelete] = useState(false);
   const [seedingJobs, setSeedingJobs] = useState([]);
@@ -266,7 +266,13 @@ const SeedingJobQueue = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea
           >
           <option value={EditSeedingJob.seed_name}>{EditSeedingJob.seed_name}</option>
           {plantTypes.map(plantType => (
-            <option key={plantType.plant_type} value={plantType.plant_type}>
+            <option 
+              key={plantType.plant_type} 
+              value={plantType.plant_type}
+              onClick={
+                setSelectedPlantType(plantType.plant_type)
+              }
+            >
               {plantType.plant_type}
             </option>
           ))}
