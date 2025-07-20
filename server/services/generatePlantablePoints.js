@@ -16,6 +16,9 @@ async function generatePlantablePoints(plantDetails, topLeft, bottomRight) {
   const distribution = seedingPointsDistribution[0].distribution
 
   let points = []
+  let points2 = []
+  let points3 = []
+  let points4 = []
   console.log("Plant details")
   console.log(plantDetails)
   console.log(topLeft)
@@ -62,130 +65,174 @@ async function generatePlantablePoints(plantDetails, topLeft, bottomRight) {
   yUp = parseInt(topLeft.y, 10)
   yDown = parseInt(bottomRight.y, 10)
 
-  if (distribution == "efficient") {
-    for (let y = yDown; y <= yUp; y += 1) {
-      for (let x = xLeft; x <= xRight; x += 1) {
-        const candidate = { x, y, minDistance: dist  };
+  for (let y = yDown; y <= yUp; y += 1) {
+    for (let x = xLeft; x <= xRight; x += 1) {
+      const candidate = { x, y, minDistance: dist  };
 
-        // Check against existing seeds' exclusion zones
-        const isTooCloseToExisting = existingSeeds.some(seed => {
-          // console.log(seed.minDistance)
-          const tempDist = distance(candidate, seed);
-          return (tempDist < seed.minDistance || tempDist < dist);
-        });
+      // Check against existing seeds' exclusion zones
+      const isTooCloseToExisting = existingSeeds.some(seed => {
+        // console.log(seed.minDistance)
+        const tempDist = distance(candidate, seed);
+        return (tempDist < seed.minDistance || tempDist < dist);
+      });
 
-        if (isTooCloseToExisting) continue;
+      if (isTooCloseToExisting) continue;
 
-        // Check against future seeds' exclusion zones
-        const isTooCloseToFuture = futureSeeds.some(seed => {
-          // console.log(seed.minDistance)
-          const tempDist = distance(candidate, seed);
-          return (tempDist < seed.minDistance || tempDist < dist);
-        });
+      // Check against future seeds' exclusion zones
+      const isTooCloseToFuture = futureSeeds.some(seed => {
+        // console.log(seed.minDistance)
+        const tempDist = distance(candidate, seed);
+        return (tempDist < seed.minDistance || tempDist < dist);
+      });
 
-        if (isTooCloseToFuture) continue;
+      if (isTooCloseToFuture) continue;
 
-        if (points.length == 0) {
-          points.push(candidate);
-          continue
-        }
-
-        // Check against new seeds' exclusion zones
-        const isTooCloseToNew = points.some(seed => {
-          const tempDist = distance(candidate, seed);
-          return (tempDist < seed.minDistance || tempDist < dist);
-        });
-        
-        if (isTooCloseToNew) continue;
-
+      if (points.length == 0) {
         points.push(candidate);
+        continue
       }
+
+      // Check against new seeds' exclusion zones
+      const isTooCloseToNew = points.some(seed => {
+        const tempDist = distance(candidate, seed);
+        return (tempDist < seed.minDistance || tempDist < dist);
+      });
+      
+      if (isTooCloseToNew) continue;
+
+      points.push(candidate);
     }
   }
 
-  else if (distribution == "normal") {
-    for (let y = yDown; y <= yUp; y += dist) {
-      for (let x = xLeft; x <= xRight; x += 1) {
-        const candidate = { x, y, minDistance: dist  };
+  for (let y = yDown; y <= yUp; y += dist) {
+    for (let x = xLeft; x <= xRight; x += 1) {
+      const candidate = { x, y, minDistance: dist  };
 
-        // Check against existing seeds' exclusion zones
-        const isTooCloseToExisting = existingSeeds.some(seed => {
-          // console.log(seed.minDistance)
-          const tempDist = distance(candidate, seed);
-          return (tempDist < seed.minDistance || tempDist < dist);
-        });
+      // Check against existing seeds' exclusion zones
+      const isTooCloseToExisting = existingSeeds.some(seed => {
+        // console.log(seed.minDistance)
+        const tempDist = distance(candidate, seed);
+        return (tempDist < seed.minDistance || tempDist < dist);
+      });
 
-        if (isTooCloseToExisting) continue;
+      if (isTooCloseToExisting) continue;
 
-        // Check against future seeds' exclusion zones
-        const isTooCloseToFuture = futureSeeds.some(seed => {
-          // console.log(seed.minDistance)
-          const tempDist = distance(candidate, seed);
-          return (tempDist < seed.minDistance || tempDist < dist);
-        });
+      // Check against future seeds' exclusion zones
+      const isTooCloseToFuture = futureSeeds.some(seed => {
+        // console.log(seed.minDistance)
+        const tempDist = distance(candidate, seed);
+        return (tempDist < seed.minDistance || tempDist < dist);
+      });
 
-        if (isTooCloseToFuture) continue;
+      if (isTooCloseToFuture) continue;
 
-        if (points.length == 0) {
-          points.push(candidate);
-          continue
-        }
-
-        // Check against new seeds' exclusion zones
-        const isTooCloseToNew = points.some(seed => {
-          const tempDist = distance(candidate, seed);
-          return (tempDist < seed.minDistance || tempDist < dist);
-        });
-        
-        if (isTooCloseToNew) continue;
-
-        points.push(candidate);
+      if (points2.length == 0) {
+        points2.push(candidate);
+        continue
       }
+
+      // Check against new seeds' exclusion zones
+      const isTooCloseToNew = points2.some(seed => {
+        const tempDist = distance(candidate, seed);
+        return (tempDist < seed.minDistance || tempDist < dist);
+      });
+      
+      if (isTooCloseToNew) continue;
+
+      points2.push(candidate);
     }
   }
   
-  else if (distribution == "useAllSpace") {
-    for (let y = yDown; y <= yUp; y += 1) {
-      for (let x = xLeft; x <= xRight; x += dist) {
-        const candidate = { x, y, minDistance: dist  };
+  for (let y = yDown; y <= yUp; y += 1) {
+    for (let x = xLeft; x <= xRight; x += dist) {
+      const candidate = { x, y, minDistance: dist  };
 
-        // Check against existing seeds' exclusion zones
-        const isTooCloseToExisting = existingSeeds.some(seed => {
-          // console.log(seed.minDistance)
-          const tempDist = distance(candidate, seed);
-          return (tempDist < seed.minDistance || tempDist < dist);
-        });
+      // Check against existing seeds' exclusion zones
+      const isTooCloseToExisting = existingSeeds.some(seed => {
+        // console.log(seed.minDistance)
+        const tempDist = distance(candidate, seed);
+        return (tempDist < seed.minDistance || tempDist < dist);
+      });
 
-        if (isTooCloseToExisting) continue;
+      if (isTooCloseToExisting) continue;
 
-        // Check against future seeds' exclusion zones
-        const isTooCloseToFuture = futureSeeds.some(seed => {
-          // console.log(seed.minDistance)
-          const tempDist = distance(candidate, seed);
-          return (tempDist < seed.minDistance || tempDist < dist);
-        });
+      // Check against future seeds' exclusion zones
+      const isTooCloseToFuture = futureSeeds.some(seed => {
+        // console.log(seed.minDistance)
+        const tempDist = distance(candidate, seed);
+        return (tempDist < seed.minDistance || tempDist < dist);
+      });
 
-        if (isTooCloseToFuture) continue;
+      if (isTooCloseToFuture) continue;
 
-        if (points.length == 0) {
-          points.push(candidate);
-          continue
-        }
-
-        // Check against new seeds' exclusion zones
-        const isTooCloseToNew = points.some(seed => {
-          const tempDist = distance(candidate, seed);
-          return (tempDist < seed.minDistance || tempDist < dist);
-        });
-        
-        if (isTooCloseToNew) continue;
-
-        points.push(candidate);
+      if (points3.length == 0) {
+        points3.push(candidate);
+        continue
       }
+
+      // Check against new seeds' exclusion zones
+      const isTooCloseToNew = points3.some(seed => {
+        const tempDist = distance(candidate, seed);
+        return (tempDist < seed.minDistance || tempDist < dist);
+      });
+      
+      if (isTooCloseToNew) continue;
+
+      points3.push(candidate);
     }
   }
 
-  return points
+  const triangleDist = dist * Math.sqrt(3) / 2
+  for (let y = yDown; y <= yUp; y += triangleDist) {
+    for (let x = xLeft; x <= xRight; x += 1) {
+      const candidate = { x, y, minDistance: dist  };
+
+      // Check against existing seeds' exclusion zones
+      const isTooCloseToExisting = existingSeeds.some(seed => {
+        // console.log(seed.minDistance)
+        const tempDist = distance(candidate, seed);
+        return (tempDist < seed.minDistance || tempDist < dist);
+      });
+
+      if (isTooCloseToExisting) continue;
+
+      // Check against future seeds' exclusion zones
+      const isTooCloseToFuture = futureSeeds.some(seed => {
+        // console.log(seed.minDistance)
+        const tempDist = distance(candidate, seed);
+        return (tempDist < seed.minDistance || tempDist < dist);
+      });
+
+      if (isTooCloseToFuture) continue;
+
+      if (points4.length == 0) {
+        points4.push(candidate);
+        continue
+      }
+
+      // Check against new seeds' exclusion zones
+      const isTooCloseToNew = points4.some(seed => {
+        const tempDist = distance(candidate, seed);
+        return (tempDist < seed.minDistance || tempDist < dist);
+      });
+      
+      if (isTooCloseToNew) continue;
+
+      points4.push(candidate);
+    }
+  }
+
+
+  if (distribution == "efficient") {
+    const longest = [points, points2, points3, points4].reduce((a, b) =>
+      b.length > a.length ? b : a
+    );
+    return longest
+  }
+  else if (distribution == "normal" && points2.length >= points3.length) {
+    return points2
+  }
+  return points3
 }
 
 router.post("/", async (req, res) => {
