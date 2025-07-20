@@ -7,7 +7,7 @@ import api from "../utils/api";
 // const defaultDate = now.toISOString().slice(0, 10); // "YYYY-MM-DD"
 // const defaultTime = now.toTimeString().slice(0, 5); // "HH:MM"
 
-const SeedingPage = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea, seedingAreaLocation, onDone, setSelectedPlantType}) => {
+const SeedingPage = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea, seedingAreaLocation, setSeedingAreaLocation, setVisibleComponent, onDone, setSelectedPlantType}) => {
   const navigate = useNavigate();
 
   const [plant, setPlant] = useState('');
@@ -69,6 +69,7 @@ const SeedingPage = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea, se
       );
     } finally {
       setLoading(false);
+      setSeedingAreaLocation(null)
       onDone();
     }
   };
@@ -104,6 +105,8 @@ const SeedingPage = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea, se
     } finally {
       setLoading(false);
       // window.location.reload()
+      setSeedingAreaLocation(null)
+      setVisibleComponent("seedingJobQueue")
       onDone()
     }
   }

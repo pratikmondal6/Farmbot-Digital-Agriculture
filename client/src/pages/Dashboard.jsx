@@ -15,7 +15,7 @@ export default function FarmBotDashboard() {
     const [visibleComponent, setVisibleComponent] = useState("")
     const [seedPoints, setSeedPoints] = useState({})
     const [selectArea, setSelectArea] = useState(false)
-    const [seedingAreaLocation, setSeedingAreaLocation] = useState()
+    const [seedingAreaLocation, setSeedingAreaLocation] = useState(null)
     const [reloadCounter, setReloadCounter] = useState(0);
     const [selectedPlantType, setSelectedPlantType] = useState(null);
 
@@ -39,7 +39,7 @@ export default function FarmBotDashboard() {
             <Header />
             <div className="dashboard-items">
                 <Sidebar onSelectComponent={handleComponentSelection}/>
-                {visibleComponent=="seedingJob" && <SeedingPage seedLocation={seedPoints} selectArea={selectArea} setSelectArea={setSelectArea} seedingAreaLocation={seedingAreaLocation} onDone={triggerReload} setSelectedPlantType={setSelectedPlantType}/>}
+                {visibleComponent=="seedingJob" && <SeedingPage seedLocation={seedPoints} selectArea={selectArea} setSelectArea={setSelectArea} seedingAreaLocation={seedingAreaLocation} setSeedingAreaLocation={setSeedingAreaLocation} setVisibleComponent={handleComponentSelection} onDone={triggerReload} setSelectedPlantType={setSelectedPlantType}/>}
                 {visibleComponent=="seedingJobQueue" && <SeedingJobQueue seedLocation={seedPoints} selectArea={selectArea} setSelectArea={setSelectArea} seedingAreaLocation={seedingAreaLocation} onDone={triggerReload} setSelectedPlantType={setSelectedPlantType}/>}
                 {visibleComponent=="botControlPanel" && <FarmbotMoving />}
                 {visibleComponent=="addPlantType" && <AddPlanttype />}
