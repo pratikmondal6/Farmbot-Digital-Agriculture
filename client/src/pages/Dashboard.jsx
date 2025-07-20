@@ -24,6 +24,8 @@ export default function FarmBotDashboard() {
 
     const handleComponentSelection = (visibleComp) => {
         setVisibleComponent(visibleComp);
+        setSeedingAreaLocation(null)
+        triggerReload()
     };
 
     const handleClickElement = ({x, y ,z}) => {
