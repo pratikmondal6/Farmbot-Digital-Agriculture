@@ -183,8 +183,10 @@ async function generatePlantablePoints(plantDetails, topLeft, bottomRight) {
   }
 
   const triangleDist = dist * (Math.sqrt(3) / 2)
+  let row = 0;
   for (let y = yDown; y <= yUp; y += triangleDist) {
-    for (let x = xLeft; x <= xRight; x += 1) {
+    const offset = (row % 2 === 0) ? 0 : dist / 2;
+    for (let x = xLeft+offset; x <= xRight; x += dist) {
       const candidate = { x, y, minDistance: dist  };
 
       // Check against existing seeds' exclusion zones
@@ -210,22 +212,15 @@ async function generatePlantablePoints(plantDetails, topLeft, bottomRight) {
         continue
       }
 
-      // Check against new seeds' exclusion zones
-      const isTooCloseToNew = points4.some(seed => {
-        const tempDist = distance(candidate, seed);
-        return (tempDist < seed.minDistance || tempDist < dist);
-      });
-      
-      if (isTooCloseToNew) continue;
-
       points4.push(candidate);
     }
+    row++;
   }
 
 
   if (distribution == "efficient") {
     const longest = [points, points2, points3, points4].reduce((a, b) =>
-      b.length > a.length ? b : a
+      b.length >= a.length ? b : a
     );
     return longest
   }
