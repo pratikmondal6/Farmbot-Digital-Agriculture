@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import api from "../utils/api";
 
-const SeedingJobQueue = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea, seedingAreaLocation, onDone, setSelectedPlantType}) => {
+const SeedingJobQueue = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea, seedingAreaLocation, setSeedingAreaLocation, onDone, setSelectedPlantType}) => {
   const [isHoveredEdit, setIsHoveredEdit] = useState(false);
   const [isHoveredDelete, setIsHoveredDelete] = useState(false);
   const [seedingJobs, setSeedingJobs] = useState([]);
@@ -99,6 +99,7 @@ const SeedingJobQueue = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea
       );
     } finally {
       setLoading(false);
+      setSeedingAreaLocation(null)
       onDone();
     }
   };
@@ -108,6 +109,7 @@ const SeedingJobQueue = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea
       if (seedingJob._id === id) {
         setEditSeedingJob(seedingJob)
         setPlant(seedingJob.seed_name)
+        setSelectedPlantType(seedingJob.seed_name)
         setSeedX(seedingJob.seedX)
         setSeedY(seedingJob.seedY)
         // setX(seedingJob.x)
@@ -259,7 +261,10 @@ const SeedingJobQueue = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea
           <select
               name="plant"
               value={plant}
-              onChange={(e) => setPlant(e.target.value)}
+              onChange={(e) => {
+                setPlant(e.target.value)
+                setSelectedPlantType(e.target.value)
+              }}
               placeholder="Choose plant type"
               style={styles.input}
               required
@@ -269,9 +274,12 @@ const SeedingJobQueue = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea
             <option 
               key={plantType.plant_type} 
               value={plantType.plant_type}
-              onClick={
-                setSelectedPlantType(plantType.plant_type)
-              }
+              // onClick={() => {
+              //   console.log("Plant type to ediiiiiiiiit")
+              //   console.log(plantType)
+              //   setPlant(plantType.plant_type)
+              //   setSelectedPlantType(plantType.plant_type)
+              // }}
             >
               {plantType.plant_type}
             </option>
