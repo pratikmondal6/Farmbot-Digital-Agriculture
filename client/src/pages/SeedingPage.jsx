@@ -243,7 +243,7 @@ const SeedingPage = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea, se
             }}
           />
         </div>
-        <label style={styles.label}>Seed distribution</label>
+        <label style={styles.label}>Seed Distribution</label>
         <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'left', alignItems: 'left', gap:'10px', marginBottom:'5px'}}>
             <button 
               type='button'
@@ -300,7 +300,12 @@ const SeedingPage = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea, se
               type='button'
               style={styles.buttonSelect}
               onClick={() => {
-                setSelectArea(!selectArea)
+                if (plant == "") {
+                  alert("Select plant type first")
+                }
+                else {
+                  setSelectArea(!selectArea)
+                }
               }}
             >
               Select

@@ -280,7 +280,10 @@ const FieldMap = ({onAreaSelect, selectArea = false, onElementClick, activeCompo
                     seed_name: plantType
                 });
 
-                if (response.data) {
+                if (response.data && response.data.length == 0) {
+                    alert("No plants can be planted in the selected area")
+                }
+                else if (response.data) {
                     setCalculatedPlantingPositions(response.data);
                     console.log('Calculated planting positions:', response.data);
                 }
