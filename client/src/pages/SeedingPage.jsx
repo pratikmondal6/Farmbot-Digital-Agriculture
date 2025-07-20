@@ -335,7 +335,7 @@ const SeedingPage = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea, se
                 style={{
                 ...styles.button,
                 ...(isHovered ? styles.buttonHover : {}),
-                ...( (!plant ||  ScheduledDate || Time || loading) ? styles.buttonDisabled : {} )
+                ...( (!plant || Object.keys(seedLocation).length === 0 || !seedingAreaLocation ||  ScheduledDate || Time || loading) ? styles.buttonDisabled : {} )
                 }}
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
