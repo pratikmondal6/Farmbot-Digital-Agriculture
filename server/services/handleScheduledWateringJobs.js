@@ -35,20 +35,24 @@ const handleScheduledWateringJobs = async () => {
       // console.log(firstExecutionDate)
       // console.log(now)
 
-      if (wateringJob.lastWateredDate == "" && firstExecutionDate < now) {
-        console.log("Need to water for the first time")
-        console.log(wateringJob)
-        await startWateringJob(wateringJob, token)
-        wateringJob.lastWateredDate = now
-        await wateringJob.save()
-      }
+      try{  
+          if (wateringJob.lastWateredDate == "" && firstExecutionDate < now) {
+          console.log("Need to water for the first time")
+          console.log(wateringJob)
+          await startWateringJob(wateringJob, token)
+          wateringJob.lastWateredDate = now
+          await wateringJob.save()
+        }
 
-      else if (wateringJob.lastWateredDate != "" && parseInt(wateringJob.lastWateredDate)+(parseInt(wateringJob.interval)*3600000) < now) {
-        console.log("Need to water")
-        console.log(wateringJob)
-        await startWateringJob(wateringJob, token)
-        wateringJob.lastWateredDate = now
-        await wateringJob.save()
+        else if (wateringJob.lastWateredDate != "" && parseInt(wateringJob.lastWateredDate)+(parseInt(wateringJob.interval)*3600000) < now) {
+          console.log("Need to water")
+          console.log(wateringJob)
+          await startWateringJob(wateringJob, token)
+          wateringJob.lastWateredDate = now
+          await wateringJob.save()
+        }
+      } catch (err) {
+        console.log("Scheduled watering job failed")
       }
     }
 

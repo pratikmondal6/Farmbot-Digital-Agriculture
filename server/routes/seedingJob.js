@@ -73,6 +73,9 @@ router.post("/start", async (req, res) => {
     await move(bot, x=2500, y=245, z=-410)
 
     for (let point of seedPoints) {
+      point.x = parseInt(point.x)
+      point.y = parseInt(point.y)
+      point.z = parseInt(point.z)
 
       // Go to a little higher from seed (x=2130, y=25)
       await move(bot, x=seedX, y=seedY, z=-480)

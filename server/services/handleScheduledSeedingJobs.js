@@ -31,25 +31,29 @@ const handleScheduledSeedingJobs = async () => {
             "Auth-Token": token,
           }
         })
-        await axios.post(
-          "http://localhost:5001/seedingJob/start",
-          { ...seedingJob, seedPoints: futureSeeds.data },                 // <-- request body (data)
-          {
-            headers: {
-              "auth-token": token        // <-- headers go here
+        try {  
+          await axios.post(
+            "http://localhost:5001/seedingJob/start",
+            { ...seedingJob, seedPoints: futureSeeds.data },                 // <-- request body (data)
+            {
+              headers: {
+                "auth-token": token        // <-- headers go here
+              }
             }
-          }
-        );
-        await axios.delete("http://localhost:5001/seedingJob/futureSeed/job/" + seedingJob._id, {
-          headers: {
-            "Auth-Token": token,
-          }
-        })
-        await axios.delete("http://localhost:5001/seedingJob/" + seedingJob._id, {
-          headers: {
-            "Auth-Token": token,
-          }
-        })
+          );
+          await axios.delete("http://localhost:5001/seedingJob/futureSeed/job/" + seedingJob._id, {
+            headers: {
+              "Auth-Token": token,
+            }
+          })
+          await axios.delete("http://localhost:5001/seedingJob/" + seedingJob._id, {
+            headers: {
+              "Auth-Token": token,
+            }
+          })
+        } catch (err) {
+          console.log("Error occured while running scheduled jobs: " + err)
+        }
       }
     }
 
