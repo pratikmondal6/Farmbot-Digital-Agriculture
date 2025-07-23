@@ -93,7 +93,12 @@ const FarmbotMoving = () => {
         setIsMoving(false);
         return;
       }
-      const response = await api.post('/move', { x: nx, y: ny, z: nz });
+      const response = await api.post('/api/moveFarmbot', { x: nx, y: ny, z: nz });
+      console.log("Moving status:")
+      console.log(response.status)
+      if (response.status == 418) {
+        alert("Farmbot cannot go to that location")
+      }
       const result = response.data;
       console.log('Move to coordinate success:', result);
     } catch (err) {
