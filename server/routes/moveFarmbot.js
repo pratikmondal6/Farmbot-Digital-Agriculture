@@ -2,7 +2,7 @@ const { Farmbot } =  require("farmbot");
 const express = require("express");
 const router = express.Router();
 const { setJobStatus } = require("../services/farmbotStatusService");
-
+const { checkMovableArea } = require("../services/checkMovableArea")
 
 router.post("/", async (req, res) => {
   if (!req.headers["auth-token"]) {
@@ -12,7 +12,7 @@ router.post("/", async (req, res) => {
     })
   }
 
-  
+
 
   const token = req.headers["auth-token"];
   let bot = new Farmbot({ token: token });
@@ -38,6 +38,11 @@ router.post("/", async (req, res) => {
 
   if (req.body.z) {
     z = req.body.z;
+  }
+  
+  if (!await checkMovableArea(x, y, z, absolute=true)) {
+    // alert("Farmbot cannot move to that location")
+    return res.status(418).send({message: "Farmbot cannot move to that location"})
   }
 
   bot
