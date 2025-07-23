@@ -42,7 +42,7 @@ router.post("/start", async (req, res) => {
   const seedY = parseInt(req.body.seedY)
   // const destX = parseInt(req.body.x)
   // const destY = parseInt(req.body.y)
-  // const depth = parseInt(req.body.z)
+  const depth = parseInt(req.body.z)
 
   let seedPoints = []
   if (req.body.seedPoints) {
@@ -86,7 +86,7 @@ router.post("/start", async (req, res) => {
     });
 
     // Go down to get seed
-    await move(bot, x=seedX, y=seedY, z=-527)
+    await move(bot, x=seedX, y=seedY, z=-530)
 
     // Go higher
     await move(bot, x=seedX, y=seedY, z=-480)
@@ -107,6 +107,7 @@ router.post("/start", async (req, res) => {
     });
 
     // Go up
+    await move(bot, x=point.x-20, y=point.y, z=-480)
     await move(bot, x=point.x, y=point.y, z=-480)
 
     setJobStatus("watering");
