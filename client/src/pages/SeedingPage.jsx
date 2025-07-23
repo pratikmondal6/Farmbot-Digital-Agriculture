@@ -143,7 +143,7 @@ const SeedingPage = ({setIsLoggedIn, seedLocation, selectArea, setSelectArea, se
       <div>
         <form  onSubmit={handleSubmit} style={styles.form}>
         <h2 style={styles.title}>Seeding Details</h2>
-        {error && <p style={styles.error}>Seeding done!</p>}
+        {error && <p style={styles.error}>An error occured or bot is stopped</p>}
 
         <label style={styles.label}>Plant Type:</label>
         <div style={{ position: "relative", marginTop: 8 }}>
@@ -496,14 +496,15 @@ const styles = {
     width: '100%'
   },
   error: {
-    color: '#14532d',
-    width: '50%',
-    marginLeft: '22%',
-    backgroundColor: 'rgb(211, 245, 204)',
-    border: '1px solid #22c55e',
+    color: 'rgb(178, 23, 23)',
+    width: '80%',
+    marginLeft: '10%',
+    backgroundColor: 'rgb(247, 200, 200)',
+    border: '2px solid rgb(188, 16, 16)',
     padding: '0.6rem',
     borderRadius: '5px',
     fontSize: '0.9rem',
+    fontWeight: 'bold',
     marginBottom: '1rem',
     textAlign: 'center',
     transition: '0.3s'
