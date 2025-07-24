@@ -5,6 +5,8 @@ const { setJobStatus } = require("../services/farmbotStatusService");
 const { Humidity } = require("../models/humidity");
 const { Seed } = require("../models/seed");
 const Plant = require("../models/plan");
+const axios = require("axios");
+const config = require("config");
 
 // Helper function to move the bot
 const move = async (bot, x, y, z) => {
@@ -19,6 +21,71 @@ const move = async (bot, x, y, z) => {
 // Helper function to sleep
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// Helper function to get sensor readings from the Farmbot API
+async function getSensorReadings(token, x, y, z) {
+  try {
+    const farmbotURL = config.get('farmbotUrl');
+    const response = await axios.get(`${farmbotURL}/api/sensor_readings`, {
+      headers: {
+        'Authorization': token,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    console.log("Sensor readings API response:", response.data);
+
+    // Check if we have valid data
+    if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+      const result = response.data.filter(reading =>
+        reading.pin === 59 && reading.mode === 1
+      ).filter(reading => {
+          // Custom rounding function: if decimal part > 0.5, use ceiling value, otherwise use floor value
+          const roundValue = (value) => {
+            const decimalPart = value - Math.floor(value);
+            return decimalPart > 0.5 ? Math.ceil(value) : Math.floor(value);
+          };
+
+          // Convert reading.x and reading.y to integers based on the specified rules
+          const roundedX = roundValue(reading.x);
+          const roundedY = roundValue(reading.y);
+
+          return roundedX === x && roundedY === y; //&& reading.z === z
+      }).sort((a, b) =>
+          new Date(b.created_at) - new Date(a.created_at)
+      );
+
+      let finalValue = result[0];
+
+      return { value: finalValue.value };
+    }
+
+    return { value: 0 };
+
+  } catch (error) {
+    console.error("Error fetching sensor readings:", error.message);
+    throw error;
+  }
+}
+
+async function getSensorReadingsTemp(token, readingId) {
+  try {
+    const farmbotURL = config.get('farmbotUrl');
+    const response = await axios.get(`${farmbotURL}/api/sensor_readings/${readingId}`, {
+      headers: {
+        'Authorization': token,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    console.log("Sensor readings API response:", response.data);
+
+    return { value: response.data.value };
+  } catch (error) {
+    console.error("Error fetching sensor readings:", error.message);
+    throw error;
+  }
 }
 
 // Helper function to check if a point overlaps with existing seeds or plants
@@ -259,6 +326,9 @@ router.post("/measure", async (req, res) => {
             pin_mode: 1 // 1 = analog
           });
 
+          let sensorReading = getSensorReadings(token,  pointX, pointY, FIXED_DEPTH)
+          // let sensorReading = getSensorReadingsTemp(token, pinReadResult.id)
+
           console.log("Pin read result:", pinReadResult);
 
           // Get the current time
@@ -266,7 +336,7 @@ router.post("/measure", async (req, res) => {
           console.log("Read at:", read_at);
 
           // Convert the raw sensor value to a humidity percentage
-          const rawValue = pinReadResult.value || 0;
+          const rawValue = await sensorReading.value ;
           console.log("Raw sensor value:", rawValue);
 
           // Calculate humidity percentage - higher values mean wetter soil, lower values mean drier soil
