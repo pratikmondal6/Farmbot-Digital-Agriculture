@@ -58,7 +58,7 @@ async function getSensorReadings(token, x, y, z) {
 
       let finalValue = result[0];
 
-      return { value: finalValue.value };
+      return { value: finalValue.value || 100 };
     }
 
     return { value: 0 };
@@ -326,7 +326,7 @@ router.post("/measure", async (req, res) => {
             pin_mode: 1 // 1 = analog
           });
 
-          let sensorReading = getSensorReadings(token,  pointX, pointY, FIXED_DEPTH)
+          let sensorReading = await getSensorReadings(token,  pointX, pointY, FIXED_DEPTH)
           // let sensorReading = getSensorReadingsTemp(token, pinReadResult.id)
 
           console.log("Pin read result:", pinReadResult);
@@ -336,7 +336,7 @@ router.post("/measure", async (req, res) => {
           console.log("Read at:", read_at);
 
           // Convert the raw sensor value to a humidity percentage
-          const rawValue = await sensorReading.value ;
+          const rawValue = sensorReading.value ;
           console.log("Raw sensor value:", rawValue);
 
           // Calculate humidity percentage - higher values mean wetter soil, lower values mean drier soil
