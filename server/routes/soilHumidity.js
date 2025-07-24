@@ -83,7 +83,6 @@ router.post("/read-sensor", async (req, res) => {
   }
 
   let humidityValue = null;
-  let simulated = false;
 
   try {
     // Connect to the Farmbot
@@ -95,7 +94,7 @@ router.post("/read-sensor", async (req, res) => {
     const SOIL_SENSOR_Y = 350;
     const SOIL_SENSOR_APPROACH_Z = -350;
     const SOIL_SENSOR_ATTACH_Z = -410;
-    const SOIL_SENSOR_X_OFFSET = 2560;
+    const SOIL_SENSOR_X_OFFSET = 2550;
     const SOIL_SENSOR_PIN = 59; // Analog pin for soil moisture sensor
 
     // Step 1: Move to soil sensor approach position
@@ -233,9 +232,7 @@ router.post("/read-sensor", async (req, res) => {
       });
     } catch (sensorError) {
       console.error("Error reading from soil humidity sensor:", sensorError);
-      // If sensor reading fails, use simulated data
-      humidityValue = Math.floor(Math.random() * 101); // Random value between 0-100
-      simulated = true;
+      throw sensorError; // Propagate the error instead of simulating data
     }
 
     // Step 8: Move back to a safe position
@@ -276,49 +273,15 @@ router.post("/read-sensor", async (req, res) => {
       }
     };
 
-    if (simulated) {
-      response.warning = "Used simulated data due to sensor reading error";
-    }
-
     return res.status(200).send(response);
   } catch (error) {
     console.error("Error in soil humidity reading:", error);
     setJobStatus("error");
 
-    // If there's an error with the Farmbot, fall back to a simulated reading
-    humidityValue = Math.floor(Math.random() * 101); // Random value between 0-100
-    simulated = true;
-
-    // Save the simulated reading to the database
-    try {
-      const humidityReading = new Humidity({
-        reading_value: humidityValue,
-        x: x,
-        y: y,
-        z: z || -410, // Default to -410 if z is not provided
-        seed_position_x: x,
-        seed_position_y: y
-      });
-
-      await humidityReading.save();
-
-      return res.status(200).send({
-        "status": 200,
-        "message": "Humidity reading simulated due to errors",
-        "reading": {
-          value: humidityValue,
-          x: x,
-          y: y,
-          z: z || -410
-        },
-        "warning": "Used simulated data due to Farmbot connection error"
-      });
-    } catch (dbError) {
-      return res.status(500).send({
-        "status": 500,
-        "message": "An error occurred while reading humidity and saving simulated data: " + error
-      });
-    }
+    return res.status(500).send({
+      "status": 500,
+      "message": "An error occurred while reading soil humidity: " + error.message
+    });
   } finally {
     // Return the soil sensor to its storage position regardless of errors
     try {
@@ -330,7 +293,7 @@ router.post("/read-sensor", async (req, res) => {
         const SOIL_SENSOR_Y = 350;
         const SOIL_SENSOR_APPROACH_Z = -350;
         const SOIL_SENSOR_ATTACH_Z = -410;
-        const SOIL_SENSOR_X_OFFSET = 2560;
+        const SOIL_SENSOR_X_OFFSET = 2550;
 
         // Go to left of soil sensor storage
         console.log("Moving to left of soil sensor storage...");

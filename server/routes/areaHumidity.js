@@ -177,7 +177,7 @@ router.post("/measure", async (req, res) => {
     const SOIL_SENSOR_Y = 350;
     const SOIL_SENSOR_APPROACH_Z = -350;
     const SOIL_SENSOR_ATTACH_Z = -410;
-    const SOIL_SENSOR_X_OFFSET = 2560;
+    const SOIL_SENSOR_X_OFFSET = 2550;
     const SOIL_SENSOR_PIN = 59; // Analog pin for soil moisture sensor
 
     // Step 1: Move to soil sensor approach position
@@ -379,28 +379,8 @@ router.post("/measure", async (req, res) => {
           console.error(`Error at point (${pointX}, ${pointY}):`, pointError);
           // Continue with next point even if this one fails
 
-          // If sensor reading fails, use simulated data
-          const humidityValue = Math.floor(Math.random() * 101); // Random value between 0-100
-
-          // Save the simulated reading to the database
-          const humidityReading = new Humidity({
-            reading_value: humidityValue,
-            x: pointX,
-            y: pointY,
-            z: FIXED_DEPTH,
-            seed_position_x: centerX,
-            seed_position_y: centerY
-          });
-
-          await humidityReading.save();
-          humidityReadings.push({
-            value: humidityValue,
-            x: pointX,
-            y: pointY,
-            z: FIXED_DEPTH,
-            point: `${i+1},${j+1}`,
-            simulated: true
-          });
+          // Skip this point if sensor reading fails
+          console.log(`Skipping point (${pointX}, ${pointY}) due to error`);
 
           // Try to move back up to approach height even in error case to avoid dragging soil
           try {
@@ -464,77 +444,14 @@ router.post("/measure", async (req, res) => {
             y: (topLeft.y + bottomRight.y) / 2
           }
         },
-        "warning": "Some readings may be simulated due to Farmbot connection errors"
+        "warning": "Some readings could not be obtained due to Farmbot connection errors"
       });
     } else {
-      // If we have no readings at all, generate simulated data for a few points in the area
-      const centerX = (topLeft.x + bottomRight.x) / 2;
-      const centerY = (topLeft.y + bottomRight.y) / 2;
-      const FIXED_DEPTH = -531;
-      const simulatedReadings = [];
-
-      // Calculate the width and height of the selected area
-      const areaWidth = bottomRight.x - topLeft.x;
-      const areaHeight = bottomRight.y - topLeft.y;
-
-      // Generate simulated data for 4 points (corners and center)
-      const simulationPoints = [
-        { x: topLeft.x, y: topLeft.y, label: "top-left" },
-        { x: bottomRight.x, y: topLeft.y, label: "top-right" },
-        { x: topLeft.x, y: bottomRight.y, label: "bottom-left" },
-        { x: bottomRight.x, y: bottomRight.y, label: "bottom-right" },
-        { x: centerX, y: centerY, label: "center" }
-      ];
-
-      // Save the simulated readings to the database
-      try {
-        for (const point of simulationPoints) {
-          // Generate a random humidity value
-          const humidityValue = Math.floor(Math.random() * 101); // Random value between 0-100
-
-          const humidityReading = new Humidity({
-            reading_value: humidityValue,
-            x: point.x,
-            y: point.y,
-            z: FIXED_DEPTH,
-            seed_position_x: centerX,
-            seed_position_y: centerY
-          });
-
-          await humidityReading.save();
-
-          simulatedReadings.push({
-            value: humidityValue,
-            x: point.x,
-            y: point.y,
-            z: FIXED_DEPTH,
-            point: point.label,
-            simulated: true
-          });
-        }
-
-        return res.status(200).send({
-          "status": 200,
-          "message": "Humidity measurement simulated due to errors",
-          "readings": simulatedReadings,
-          "area": {
-            topLeft,
-            topRight,
-            bottomLeft,
-            bottomRight,
-            center: {
-              x: centerX,
-              y: centerY
-            }
-          },
-          "warning": "All readings are simulated due to Farmbot connection errors"
-        });
-      } catch (dbError) {
-        return res.status(500).send({
-          "status": 500,
-          "message": "An error occurred while measuring humidity and saving simulated data: " + error
-        });
-      }
+      // If we have no readings at all, return an error
+      return res.status(500).send({
+        "status": 500,
+        "message": "Failed to obtain any humidity readings: " + error.message
+      });
     }
   } finally {
     // Return the soil sensor to its storage position regardless of errors
@@ -547,7 +464,7 @@ router.post("/measure", async (req, res) => {
         const SOIL_SENSOR_Y = 350;
         const SOIL_SENSOR_APPROACH_Z = -350;
         const SOIL_SENSOR_ATTACH_Z = -410;
-        const SOIL_SENSOR_X_OFFSET = 2560;
+        const SOIL_SENSOR_X_OFFSET = 2550;
 
         // Go to left of soil sensor storage
         console.log("Moving to left of soil sensor storage...");
