@@ -1,72 +1,39 @@
-# Team Uni
+# 🌱 Farmbot - Digital Farming
 
+An AI-powered agricultural automation system that integrates **IoT**, **AI**, and web technologies to perform precise farming tasks such as **seeding**, **watering**, and **soil monitoring**.  
+This project was developed as part of the **Digital Farming Project** at RPTU Kaiserslautern.
 
-## Getting started
+---
 
-To set up the project, do these steps in terminal/CMD:
+## 🚜 Project Overview
 
-```
-git clone https://df-git.informatik.uni-kl.de/teaching/df-project/ss25/team-uni.git
-cd team-uni
-git checkout <your_branch>
-cd server
-npm install
-cd ..
-cd client
-npm install
-```
+**Farmbot - Digital Farming** aims to bring automation and precision to modern agriculture.  
+Through a web-based dashboard, users can schedule tasks, monitor live farm status, and optimize crop care for **efficiency** and **sustainability**.
 
-To run the project, do these steps:
-1st terminal:
-```
-cd team-uni
-cd server
-node index.js
-```
+Key features include:
+- Automated **seeding** and **watering**
+- Real-time **soil humidity monitoring**
+- Visual task management on a map interface
+- Smart irrigation control
+- Modular UI for crop and task configuration
 
-2nd terminal:
-```
-cd team-uni
-cd client
-npm start
-```
+---
 
-Then go to http://localhost:3000/
+## 🛠 Tech Stack
 
+**Frontend**  
+- React.js (with Tailwind CSS)  
+- Axios for API communication  
 
-## API calls
+**Backend**  
+- Node.js / Express  
+- MongoDB for data storage  
+- MQTT for real-time bot communication  
 
-To do API calls, first import this utility:
-```
-import api from "../utils/api";
-```
+**Other Tools**  
+- Docker & Docker Compose  
+- GitLab/GitHub CI/CD  
+- IoT sensors for humidity and positioning  
 
-Then send a request:
+---
 
-GET:
-```
-const response = await api.get('/api/...')
-const result = await response.data;
-```
-
-POST:
-```
-const response = await api.post('/api/...', {...})
-const result = await response.data;
-```
-
-PUT:
-```
-const response = await api.put('/api/...', {...})
-const result = await response.data;
-```
-
-## Some APIs:
-
-Moving Farmbot:
-```
-import api from "../utils/api";
-
-const response = await api.post('http://localhost:5001/move, {x: 200, y: 500, z: 0})
-const result = await response.data;
-```
